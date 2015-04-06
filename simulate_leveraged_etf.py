@@ -59,7 +59,7 @@ def run_trials(params,num_trials=1000,allowable_deviation_from_theory=1.0,debug=
             leveraged_prices.append(leveraged_price)
         
         # Periodically print how many trials along we are
-        if trial % 1000 == 0:
+        if trial % 500 == 0:
             percent_complete = 100 * float(trial)/num_trials
             print str(int(percent_complete)) + "% done"
     
