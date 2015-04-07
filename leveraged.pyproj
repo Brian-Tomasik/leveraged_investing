@@ -5,7 +5,7 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>{e79e0767-973b-46c9-99c6-1cb3727d4ad3}</ProjectGuid>
     <ProjectHome />
-    <StartupFile>InvestmentComparison.py</StartupFile>
+    <StartupFile>margin_leverage.py</StartupFile>
     <SearchPath />
     <WorkingDirectory>.</WorkingDirectory>
     <OutputPath>.</OutputPath>
@@ -21,8 +21,23 @@
     <PtvsTargetsFile>$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets</PtvsTargetsFile>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="BrokerageAccount.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="InvestmentComparison.py" />
+    <Compile Include="margin_leverage.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Investor.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Market.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="simulate_leveraged_etf.py" />
+    <Compile Include="util.py">
+      <SubType>Code</SubType>
+    </Compile>
   </ItemGroup>
   <Import Project="$(PtvsTargetsFile)" Condition="Exists($(PtvsTargetsFile))" />
   <Import Project="$(MSBuildToolsPath)\Microsoft.Common.targets" Condition="!Exists($(PtvsTargetsFile))" />
