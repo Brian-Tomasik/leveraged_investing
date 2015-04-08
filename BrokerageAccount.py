@@ -1,15 +1,17 @@
+import Assets
+
 EPSILON = 0
 
 class BrokerageAccount(object):
     """Store parameters about how an investor's brokerage account"""
 
-    def __init__(self, margin, assets, margin_to_assets_when_buy_new_stock,
+    def __init__(self, margin, assets, margin_to_assets_when_buy_new_ETF,
                  max_margin_to_assets_ratio):
         self.__margin = margin # amount of debt
-        self.__assets = assets # value of the stocks you own
-        self.__margin_to_assets_when_buy_new_stock = margin_to_assets_when_buy_new_stock
+        self.__assets = Assets.Assets() # list of the ETFs you own
+        self.__margin_to_assets_when_buy_new_ETF = margin_to_assets_when_buy_new_ETF
         self.__max_margin_to_assets_ratio = max_margin_to_assets_ratio
-        assert self.__margin_to_assets_when_buy_new_stock <= self.max_margin_to_assets_ratio, "Based on how I'm implementing this particular program, I'm not letting you buy with leverage beyond the max leverage rate for the overall account even if you could theoretically due to having enough assets already in the account."
+        assert self.__margin_to_assets_when_buy_new_ETF <= self.max_margin_to_assets_ratio, "Based on how I'm implementing this particular program, I'm not letting you buy with leverage beyond the max leverage rate for the overall account even if you could theoretically due to having enough assets already in the account."
 
     @property
     def margin(self):
@@ -21,15 +23,14 @@ class BrokerageAccount(object):
 
     @property
     def assets(self):
-        return self.__assets
+        return self.__assets.total_assets()
 
     @property
     def max_margin_to_assets_ratio(self):
         return self.__max_margin_to_assets_ratio
 
-    @assets.setter
-    def assets(self, val):
-        self.__assets = val
+    def update_asset_prices(self, rate_of_return):
+        self.__assets.update_prices(rate_of_return)
 
     def margin_to_assets(self):
         if abs(self.margin-0) < .001:
@@ -47,32 +48,32 @@ class BrokerageAccount(object):
         else:
             return self.margin - self.assets * self.max_margin_to_assets_ratio
 
-    def margin_call_rebalance(self):
+    def margin_call_rebalance(self, day, short_term_cap_gains_rate, long_term_cap_gains_rate):
         """Restore us to a margin-to-assets ratio R within the limit (say, .5). Our 
         current margin amount is M and assets amount is A. We need to sell
         some assets to pay off some debt. To do this, we sell some amount S
-        of stock such that (M-S)/(A-S) = R  ==>  M-S = AR - SR  ==>
+        of ETF such that (M-S)/(A-S) = R  ==>  M-S = AR - SR  ==>
         M - AR = S - SR  ==>  M - AR = (1-R)S  ==>  S = (M-AR)/(1-R)"""
         if self.margin_to_assets() > (1+EPSILON) * self.max_margin_to_assets_ratio:
             amount_to_sell = (self.margin - self.assets * self.max_margin_to_assets_ratio) / (1 - self.max_margin_to_assets_ratio)
-            self.assets -= amount_to_sell
+            self.__assets.sell(amount_to_sell, day, short_term_cap_gains_rate, long_term_cap_gains_rate)
             self.margin -= amount_to_sell
             assert self.margin_to_assets() <= (1+EPSILON) * self.max_margin_to_assets_ratio
 
-    def buy_stock(self, money_on_hand):
-        """Say the user added M dollars. We should buy an amount of stock
+    def buy_ETF(self, money_on_hand, day):
+        """Say the user added M dollars. We should buy an amount of ETF
         using a loan amount of L such that L/(L+M) is the desired ratio R.
         L/(L+M) = R  ==>  L = LR + MR  ==>  L - LR = MR  ==>  L(1-R) = MR
         ==>  L = MR/(1-R)."""
-        loan = money_on_hand * self.__margin_to_assets_when_buy_new_stock / (1 - self.__margin_to_assets_when_buy_new_stock)
+        loan = money_on_hand * self.__margin_to_assets_when_buy_new_ETF / (1 - self.__margin_to_assets_when_buy_new_ETF)
         self.margin += loan
-        self.assets += money_on_hand + loan
+        self.__assets.buy_new_lot(money_on_hand + loan, day)
         assert self.margin_to_assets() <= (1+EPSILON) * self.max_margin_to_assets_ratio, "This assertion should also be true if the account started out within its margin limits."
 
     def compute_interest(self, annual_interest_rate, fraction_of_year_elapsed):
         return self.margin * ((1+annual_interest_rate)**fraction_of_year_elapsed - 1)
 
-    def pay_off_all_margin(self):
+    def pay_off_all_margin(self, day, short_term_cap_gains_rate, long_term_cap_gains_rate):
         assert self.assets >= self.margin, "More debt than equity!"
-        self.assets -= self.margin
+        self.__assets.sell(self.margin, day, short_term_cap_gains_rate, long_term_cap_gains_rate)
         self.margin = 0

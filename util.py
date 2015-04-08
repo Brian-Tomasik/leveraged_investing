@@ -36,4 +36,4 @@ def per_period_annuity_payment_of_principal(principal, num_payment_periods,
     A/P = (1-F)/(1-F^(N+1))  ==>  A = P * (1-F) / (1-F^(N+1))
     """
     inverse_interest = 1/(1+loan_interest_rate)
-    return principal * (1-inverse_interest) / (1-inverse_interest**(num_payment_periods))
+    return principal * (1-inverse_interest) / (1-inverse_interest**(num_payment_periods+1))

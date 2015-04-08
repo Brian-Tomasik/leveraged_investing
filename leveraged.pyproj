@@ -21,7 +21,13 @@
     <PtvsTargetsFile>$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets</PtvsTargetsFile>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="Assets.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="BrokerageAccount.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="EtfLot.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="InvestmentComparison.py" />

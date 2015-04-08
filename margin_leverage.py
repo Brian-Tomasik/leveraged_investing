@@ -3,6 +3,8 @@ import Investor
 import Market
 import BrokerageAccount
 
+# TODO: if lots of trading happens, consider counting trading fees
+
 DAYS_PER_YEAR = 365
 SATURDAY = 6
 SUNDAY = 0
@@ -20,9 +22,9 @@ def one_run(investor,market,debug):
         # Stock market changes on weekdays
         if (day % 7 != SATURDAY) and (day % 7 != SUNDAY):
             random_daily_return = market.random_daily_return()
-            regular_account.assets *= (1+random_daily_return)
-            margin_account.assets *= (1+random_daily_return)
-            matched_401k_account.assets *= (1+random_daily_return)
+            regular_account.update_asset_prices(random_daily_return)
+            margin_account.update_asset_prices(random_daily_return)
+            matched_401k_account.update_asset_prices(random_daily_return)
 
         # check if we should get paid and defray interest
         if day % interest_and_salary_every_num_days == 0:
@@ -31,35 +33,35 @@ def one_run(investor,market,debug):
             
             if debug > 1:
                 if day % 1000 == 0:
-                    print "Day " + str(day) + ", year " + str(years_elapsed)
+                    print "Day " + str(day) + ", year " + str(years_elapsed) ,
 
-            # regular account just buys stock
-            regular_account.buy_stock(pay)
+            # regular account just buys ETF
+            regular_account.buy_ETF(pay, day)
 
-            # matched 401k account buys stock with employee and employer funds
-            matched_401k_account.buy_stock(pay * (1+investor.match_percent_from_401k/100.0))
+            # matched 401k account buys ETF with employee and employer funds
+            matched_401k_account.buy_ETF(pay * (1+investor.match_percent_from_401k/100.0), day)
 
             # The next steps are for the margin account. It
             # 1. pays interest
             # 2. pays some principal on loans
             # 3. pay margin calls, if any
-            # 4. buys new stock with the remaining $
+            # 4. buys new ETF with the remaining $
 
             # 1. pay interest
             interest = margin_account.compute_interest(market.annual_margin_interest_rate,interest_and_salary_every_fraction_of_year)
             pay_after_interest = pay - interest
             if pay_after_interest <= 0:
                 margin_account.margin += (interest - pay) # amount of interest remaining
-                margin_account.margin_call_rebalance() # pay for the interest with equity
+                margin_account.margin_call_rebalance(day, investor.short_term_cap_gains_rate, investor.long_term_cap_gains_rate) # pay for the interest with equity
                 print """I didn't think hard about this case, since it's rare, so check back if I ever enter it. It's also bad tax-wise to rebalance, so try to avoid doing this."""
-                # if this happens, no money left to 2. pay principal or 3. buy stock
+                # if this happens, no money left to 2. pay principal, 3. pay margin calls if any, or 4. buy ETF
             else:
                 # 2. pay some principal
                 number_of_pay_periods_until_retirement = (days_from_start_to_retirement - day) / interest_and_salary_every_num_days
                 amount_of_principal_to_repay = util.per_period_annuity_payment_of_principal(margin_account.margin, number_of_pay_periods_until_retirement,market.annual_margin_interest_rate)
                 if amount_of_principal_to_repay > pay_after_interest:
                     margin_account.margin -= pay_after_interest
-                    margin_account.margin_call_rebalance() # pay for the principal with equity
+                    margin_account.margin_call_rebalance(day, investor.short_term_cap_gains_rate, investor.long_term_cap_gains_rate) # pay for the principal with equity
                     print "WARNING: You're paying for principal with equity. This incurs tax costs and so should be minimized!"
                 else:
                     margin_account.margin -= amount_of_principal_to_repay
@@ -70,16 +72,16 @@ def one_run(investor,market,debug):
                         # pay what we can
                         margin_account.margin -= pay_after_interest_and_principal
                         # use equity for the rest
-                        margin_account.margin_call_rebalance()
+                        margin_account.margin_call_rebalance(day, investor.short_term_cap_gains_rate, investor.long_term_cap_gains_rate)
                     else:
                         # just pay off margin call
                         margin_account.margin -= amount_to_pay_for_margin_call
                         pay_after_interest_and_principal_and_margincall = pay_after_interest_and_principal - amount_to_pay_for_margin_call
-                        # 4. buy some stock
-                        margin_account.buy_stock(pay_after_interest_and_principal_and_margincall)
+                        # 4. buy some ETF
+                        margin_account.buy_ETF(pay_after_interest_and_principal_and_margincall, day)
 
     # Now that we're retired, finish up
-    margin_account.pay_off_all_margin()
+    margin_account.pay_off_all_margin(days_from_start_to_retirement, investor.short_term_cap_gains_rate, investor.long_term_cap_gains_rate)
 
     # Return present values of the account balances
     return (market.present_value(regular_account.assets,investor.years_until_retirement),
@@ -96,8 +98,8 @@ def run_samples(investor,market,debug,num_samples):
         margin_account_values.append(margin_val)
         matched_401k_values.append(matched_401k_val)
         if debug > 0:
-            if sample % 10 == 0:
-                print "Finished sample " + str(sample)
+            if sample % 2 == 0:
+                print "Finished sample " + str(sample) ,
 
     print ""
     regular_mean = util.mean(regular_account_values)
@@ -116,7 +118,7 @@ def run_samples(investor,market,debug,num_samples):
         print ""
 
 if __name__ == "__main__":
-    investor = Investor.Investor(30, 6000, 2, 50)
+    investor = Investor.Investor(30, 30000, 2, 50, .28, .15)
     market = Market.Market(.054,.22,.015)
     #market = Market.Market(.054,.6,.015)
-    run_samples(investor,market,1,200)
+    run_samples(investor,market,1,10)
