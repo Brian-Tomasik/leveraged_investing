@@ -90,33 +90,40 @@ def one_run(investor,market,debug):
             market.present_value(margin_account.assets,investor.years_until_retirement),
             market.present_value(matched_401k_account.assets,investor.years_until_retirement))
 
-def plot_results(account_values):
+def plot_results(account_values, num_samples):
     alpha_for_pyplot = .5
-    pyplot.hist(numpy.array(account_values["regular"]), bins=50, alpha=alpha_for_pyplot, color="b")
-    pyplot.show()
-    pyplot.hist(numpy.array(account_values["margin"]), bins=50, alpha=alpha_for_pyplot, color="r")
-    #pyplot.hist(b, alpha=.3)
-    pyplot.show()
+    num_bins = max(10, num_samples/10)
+    for type in ["regular", "margin", "matched401k"]:
+        median_value = util.percentile(account_values[type], .5)
+        numpy_array = numpy.array(account_values[type])
+        bin_min = min(numpy_array)
+        bin_max = 4 * median_value # avoids having a distorted graph due to far-right skewed values
+        graph_bins = numpy.linspace(bin_min, bin_max, num_bins)
+        pyplot.hist(numpy_array, bins=graph_bins, alpha=alpha_for_pyplot, color="r")
+        pyplot.title("Distribution of results for " + type + " investing")
+        pyplot.xlabel("Present value of savings ($)")
+        pyplot.ylabel("Frequency out of " + str(num_samples) + " runs")
+        pyplot.show()
 
 def print_means(account_values, years_until_retirement):
     regular_mean = util.mean(account_values["regular"])
     margin_mean = util.mean(account_values["margin"])
     matched_401k_mean = util.mean(account_values["matched401k"])
-    print "Mean regular = " + str(int(regular_mean))
-    print "Mean margin = " + str(int(margin_mean))
-    print "Mean matched 401k = " + str(int(matched_401k_mean))
-    print "Mean value per year of margin over regular = " + str(int((margin_mean-regular_mean)/years_until_retirement))
     print ""
+    print "Mean regular = ${:,}".format(int(regular_mean))
+    print "Mean margin = ${:,}".format(int(margin_mean))
+    print "Mean matched 401k = ${:,}".format(int(matched_401k_mean))
+    print "Mean value per year of margin over regular = ${:,}".format(int((margin_mean-regular_mean)/years_until_retirement))
 
 def print_percentiles(account_values):
     for percentile in [0, 10, 25, 50, 75, 90, 100]:
         fractional_percentile = percentile/100.0
-        print str(percentile) + "th percentile regular = " + str(int(util.percentile(account_values["regular"], fractional_percentile)))
-        print str(percentile) + "th percentile margin = " + str(int(util.percentile(account_values["margin"], fractional_percentile)))
-        print str(percentile) + "th percentile matched 401k = " + str(int(util.percentile(account_values["matched401k"], fractional_percentile)))
         print ""
+        print str(percentile) + "th percentile regular = ${:,}".format(int(util.percentile(account_values["regular"], fractional_percentile)))
+        print str(percentile) + "th percentile margin = ${:,}".format(int(util.percentile(account_values["margin"], fractional_percentile)))
+        print str(percentile) + "th percentile matched 401k = ${:,}".format(int(util.percentile(account_values["matched401k"], fractional_percentile)))
 
-def run_samples(investor,market,debug,num_samples,output_as_html):
+def run_samples(investor,market,debug,num_samples):
     account_values = dict()
     for type in ["regular", "margin", "matched401k"]:
         account_values[type] = []
@@ -128,15 +135,15 @@ def run_samples(investor,market,debug,num_samples,output_as_html):
         if debug > 0:
             if sample % 2 == 0:
                 print "Finished sample " + str(sample) ,
-    plot_results(account_values)
+    plot_results(account_values, num_samples)
     print ""
     print_means(account_values, investor.years_until_retirement)
     print_percentiles(account_values)
 
 if __name__ == "__main__":
-    investor = Investor.Investor(30, 30000, 2, 50, .28, .15)
-    #investor = Investor.Investor(1, 30000, 2, 50, .28, .15)
+    #investor = Investor.Investor(30, 30000, 2, 50, .28, .15)
+    investor = Investor.Investor(1, 30000, 2, 50, .28, .15)
     market = Market.Market(.054,.22,.015)
     #market = Market.Market(.054,.6,.015)
-    run_samples(investor,market,1,10000,False)
-    #run_samples(investor,market,1,1000,False)
+    run_samples(investor,market,1,1000)
+    #run_samples(investor,market,1,2000)
