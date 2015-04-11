@@ -2,6 +2,8 @@ import util
 import Investor
 import Market
 import BrokerageAccount
+import numpy
+from matplotlib import pyplot
 
 # TODO: if lots of trading happens, consider counting trading fees
 
@@ -11,7 +13,7 @@ SUNDAY = 0
 MAX_MARGIN_TO_ASSETS_RATIO = .5
 
 def one_run(investor,market,debug):
-    days_from_start_to_retirement = DAYS_PER_YEAR * investor.years_until_retirement
+    days_from_start_to_retirement = int(DAYS_PER_YEAR * investor.years_until_retirement)
     regular_account = BrokerageAccount.BrokerageAccount(0,0,0,MAX_MARGIN_TO_ASSETS_RATIO)
     margin_account = BrokerageAccount.BrokerageAccount(0,0,.5,MAX_MARGIN_TO_ASSETS_RATIO)
     matched_401k_account = BrokerageAccount.BrokerageAccount(0,0,0,MAX_MARGIN_TO_ASSETS_RATIO)
@@ -88,37 +90,53 @@ def one_run(investor,market,debug):
             market.present_value(margin_account.assets,investor.years_until_retirement),
             market.present_value(matched_401k_account.assets,investor.years_until_retirement))
 
-def run_samples(investor,market,debug,num_samples):
-    regular_account_values = []
-    margin_account_values = []
-    matched_401k_values = []
-    for sample in range(num_samples):
-        (regular_val, margin_val, matched_401k_val) = one_run(investor,market,debug)
-        regular_account_values.append(regular_val)
-        margin_account_values.append(margin_val)
-        matched_401k_values.append(matched_401k_val)
-        if debug > 0:
-            if sample % 2 == 0:
-                print "Finished sample " + str(sample) ,
+def plot_results(account_values):
+    alpha_for_pyplot = .5
+    pyplot.hist(numpy.array(account_values["regular"]), bins=50, alpha=alpha_for_pyplot, color="b")
+    pyplot.show()
+    pyplot.hist(numpy.array(account_values["margin"]), bins=50, alpha=alpha_for_pyplot, color="r")
+    #pyplot.hist(b, alpha=.3)
+    pyplot.show()
 
-    print ""
-    regular_mean = util.mean(regular_account_values)
-    margin_mean = util.mean(margin_account_values)
-    matched_401k_mean = util.mean(matched_401k_values)
+def print_means(account_values, years_until_retirement):
+    regular_mean = util.mean(account_values["regular"])
+    margin_mean = util.mean(account_values["margin"])
+    matched_401k_mean = util.mean(account_values["matched401k"])
     print "Mean regular = " + str(int(regular_mean))
     print "Mean margin = " + str(int(margin_mean))
     print "Mean matched 401k = " + str(int(matched_401k_mean))
-    print "Mean value per year of margin over regular = " + str(int((margin_mean-regular_mean)/investor.years_until_retirement))
+    print "Mean value per year of margin over regular = " + str(int((margin_mean-regular_mean)/years_until_retirement))
     print ""
+
+def print_percentiles(account_values):
     for percentile in [0, 10, 25, 50, 75, 90, 100]:
         fractional_percentile = percentile/100.0
-        print str(percentile) + "th percentile regular = " + str(int(util.percentile(regular_account_values, fractional_percentile)))
-        print str(percentile) + "th percentile margin = " + str(int(util.percentile(margin_account_values, fractional_percentile)))
-        print str(percentile) + "th percentile matched 401k = " + str(int(util.percentile(matched_401k_values, fractional_percentile)))
+        print str(percentile) + "th percentile regular = " + str(int(util.percentile(account_values["regular"], fractional_percentile)))
+        print str(percentile) + "th percentile margin = " + str(int(util.percentile(account_values["margin"], fractional_percentile)))
+        print str(percentile) + "th percentile matched 401k = " + str(int(util.percentile(account_values["matched401k"], fractional_percentile)))
         print ""
+
+def run_samples(investor,market,debug,num_samples,output_as_html):
+    account_values = dict()
+    for type in ["regular", "margin", "matched401k"]:
+        account_values[type] = []
+    for sample in range(num_samples):
+        (regular_val, margin_val, matched_401k_val) = one_run(investor,market,debug)
+        account_values["regular"].append(regular_val)
+        account_values["margin"].append(margin_val)
+        account_values["matched401k"].append(matched_401k_val)
+        if debug > 0:
+            if sample % 2 == 0:
+                print "Finished sample " + str(sample) ,
+    plot_results(account_values)
+    print ""
+    print_means(account_values, investor.years_until_retirement)
+    print_percentiles(account_values)
 
 if __name__ == "__main__":
     investor = Investor.Investor(30, 30000, 2, 50, .28, .15)
+    #investor = Investor.Investor(1, 30000, 2, 50, .28, .15)
     market = Market.Market(.054,.22,.015)
     #market = Market.Market(.054,.6,.015)
-    run_samples(investor,market,1,10)
+    run_samples(investor,market,1,10000,False)
+    #run_samples(investor,market,1,1000,False)
