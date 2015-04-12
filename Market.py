@@ -40,4 +40,5 @@ class Market(object):
         return self.annual_sigma * random.gauss(0,1) * math.sqrt(delta_t) + self.annual_mu * delta_t #GBM for stock; for an example of this equation, see the first equation in section 7.1 of 'Path-dependence of Leveraged ETF returns', http://www.math.nyu.edu/faculty/avellane/LeveragedETF20090515.pdf; remember that yearly_sigma = daily_sigma * sqrt(252), so given that delta_t = 1/252, then daily_sigma = yearly_sigma * sqrt(delta_t)
 
     def present_value(self, amount, years_in_future):
-        return amount / (1+self.annual_mu)**years_in_future
+        #return amount / (1+self.annual_mu)**years_in_future
+        return amount * math.exp(- self.annual_mu * years_in_future) # use continuous interest like GBM model does
