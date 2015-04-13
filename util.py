@@ -13,6 +13,13 @@ def percentile(list, percentile_as_fraction):
     index_of_value_to_return = min(index_of_value_to_return, len(list)-1) # ensure that we don't go out of bounds
     return list[index_of_value_to_return]
 
+def probability_x_better_than_y(x_list, y_list):
+    assert len(x_list) >= 0, "Empty list"
+    assert len(x_list) == len(y_list), "Can't compare lists of different lengths"
+    x_numpy = numpy.array(x_list)
+    y_numpy = numpy.array(y_list)
+    return float(sum(x_numpy > y_numpy)) / len(x_numpy)
+
 def per_period_annuity_payment_of_principal(principal, num_payment_periods, 
                                             loan_interest_rate, pay_principal_throughout):
     """We want to pay some amount A every period such that we'll pay

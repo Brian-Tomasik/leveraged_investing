@@ -23,7 +23,7 @@ def one_run(investor,market,verbosity):
     for day in range(days_from_start_to_donation_date):
         # Stock market changes on weekdays
         if (day % 7 != SATURDAY) and (day % 7 != SUNDAY):
-            random_daily_return = market.random_daily_return()
+            random_daily_return = market.random_daily_return(day)
             regular_account.update_asset_prices(random_daily_return)
             margin_account.update_asset_prices(random_daily_return)
             matched_401k_account.update_asset_prices(random_daily_return)
@@ -90,7 +90,7 @@ def one_run(investor,market,verbosity):
             market.present_value(margin_account.assets,investor.years_until_donate),
             market.present_value(matched_401k_account.assets,investor.years_until_donate))
 
-def plot_results(account_values, num_samples):
+def graph_results(account_values, num_samples):
     alpha_for_pyplot = .5
     num_bins = max(10, num_samples/10)
     for type in ["regular", "margin", "matched401k"]:
@@ -149,7 +149,7 @@ def run_samples(investor,market,verbosity,num_samples,outfile=None,plot_results=
                 print "Finished sample " + str(sample) ,
 
     if plot_results:
-        plot_results(account_values, num_samples)
+        graph_results(account_values, num_samples)
     print ""
     print_means(account_values, investor.years_until_donate)
     print_percentiles(account_values)
@@ -170,6 +170,7 @@ def write_file_table(account_values, account_types, outfile):
             int(util.percentile(account_values[type], 0)) , int(util.percentile(account_values[type], 1)) ,
             numpy.std(log_values) ))
     outfile.write("</table>")
+    outfile.write("\nMargin is better than regular {}% of the time.".format(int(100 * util.probability_x_better_than_y(account_values["margin"],account_values["regular"]))))
 
 def return_pretty_name_for_type(type):
     if type == "regular":
@@ -191,6 +192,7 @@ def sweep_scenarios():
     MU = .054
     SIGMA = .22
     INTEREST_RATE = .015
+    USE_VIX_DATA = False
     STARTING_ANNUAL_INCOME = 30000
     INCOME_GROWTH_PERCENT = 2
     MATCH_FOR_401K = 50
@@ -198,36 +200,91 @@ def sweep_scenarios():
     LONG_TERM_CAP_GAINS = .15
     PAY_PRINCIPAL_THROUGHOUT = True
     MAX_MARGIN_TO_ASSETS_RATIO = .5
-    #NUM_TRIALS = 1000
-    NUM_TRIALS = 10000
+    NUM_TRIALS = 1000
+    #NUM_TRIALS = 300
     VERBOSITY = 1
     PLOT_RESULTS = False
 
-    with open("output\output.txt", "w") as outfile:
+    with open("output\default.txt", "w") as outfile:
         outfile.write("Default scenario:\n")
         investor = Investor.Investor(YEARS, STARTING_ANNUAL_INCOME, 
                                      INCOME_GROWTH_PERCENT, MATCH_FOR_401K, 
                                      SHORT_TERM_CAP_GAINS, LONG_TERM_CAP_GAINS, 
                                      PAY_PRINCIPAL_THROUGHOUT, MAX_MARGIN_TO_ASSETS_RATIO)
-        market = Market.Market(MU,SIGMA,INTEREST_RATE)
+        market = Market.Market(MU,SIGMA,INTEREST_RATE,USE_VIX_DATA)
         run_samples(investor,market,VERBOSITY,NUM_TRIALS,outfile,PLOT_RESULTS)
         outfile.write("\n\n")
 
+    with open("output\use_VIX.txt", "w") as outfile:
+        outfile.write("Use VIX data:\n")
+        investor = Investor.Investor(YEARS, STARTING_ANNUAL_INCOME, 
+                                     INCOME_GROWTH_PERCENT, MATCH_FOR_401K, 
+                                     SHORT_TERM_CAP_GAINS, LONG_TERM_CAP_GAINS, 
+                                     PAY_PRINCIPAL_THROUGHOUT, MAX_MARGIN_TO_ASSETS_RATIO)
+        market = Market.Market(MU,SIGMA,INTEREST_RATE,True)
+        run_samples(investor,market,VERBOSITY,NUM_TRIALS,outfile,PLOT_RESULTS)
+        outfile.write("\n\n")
+
+    with open("output\principal_at_end.txt", "w") as outfile:
         outfile.write("Don't pay principal until end:\n")
         investor = Investor.Investor(YEARS, STARTING_ANNUAL_INCOME, 
                                      INCOME_GROWTH_PERCENT, MATCH_FOR_401K, 
                                      SHORT_TERM_CAP_GAINS, LONG_TERM_CAP_GAINS, 
                                      False, MAX_MARGIN_TO_ASSETS_RATIO)
-        market = Market.Market(MU,SIGMA,INTEREST_RATE)
+        market = Market.Market(MU,SIGMA,INTEREST_RATE,USE_VIX_DATA)
         run_samples(investor,market,VERBOSITY,NUM_TRIALS,outfile,PLOT_RESULTS)
         outfile.write("\n\n")
 
+    with open("output\leverage=3X.txt", "w") as outfile:
         outfile.write("3X leverage:\n")
         investor = Investor.Investor(YEARS, STARTING_ANNUAL_INCOME, 
                                      INCOME_GROWTH_PERCENT, MATCH_FOR_401K, 
                                      SHORT_TERM_CAP_GAINS, LONG_TERM_CAP_GAINS, 
                                      PAY_PRINCIPAL_THROUGHOUT, .67)
-        market = Market.Market(MU,SIGMA,INTEREST_RATE)
+        market = Market.Market(MU,SIGMA,INTEREST_RATE,USE_VIX_DATA)
+        run_samples(investor,market,VERBOSITY,NUM_TRIALS,outfile,PLOT_RESULTS)
+        outfile.write("\n\n")
+
+    with open("output\sigma=.4.txt", "w") as outfile:
+        outfile.write("sigma = .4:\n")
+        investor = Investor.Investor(YEARS, STARTING_ANNUAL_INCOME, 
+                                     INCOME_GROWTH_PERCENT, MATCH_FOR_401K, 
+                                     SHORT_TERM_CAP_GAINS, LONG_TERM_CAP_GAINS, 
+                                     PAY_PRINCIPAL_THROUGHOUT, MAX_MARGIN_TO_ASSETS_RATIO)
+        market = Market.Market(MU,.4,INTEREST_RATE,USE_VIX_DATA)
+        run_samples(investor,market,VERBOSITY,NUM_TRIALS,outfile,PLOT_RESULTS)
+        outfile.write("\n\n")
+
+    with open("output\mu=.07.txt", "w") as outfile:
+        outfile.write("mu = .07:\n")
+        print "\ntesting mu"
+        investor = Investor.Investor(YEARS, STARTING_ANNUAL_INCOME, 
+                                     INCOME_GROWTH_PERCENT, MATCH_FOR_401K, 
+                                     SHORT_TERM_CAP_GAINS, LONG_TERM_CAP_GAINS, 
+                                     PAY_PRINCIPAL_THROUGHOUT, MAX_MARGIN_TO_ASSETS_RATIO)
+        market = Market.Market(.07,SIGMA,INTEREST_RATE,USE_VIX_DATA)
+        run_samples(investor,market,VERBOSITY,NUM_TRIALS,outfile,PLOT_RESULTS)
+        outfile.write("\n\n")
+
+    with open("output\interest_rate=.03.txt", "w") as outfile:
+        outfile.write("interest rate = .03:\n")
+        print "\ntesting interest rate"
+        investor = Investor.Investor(YEARS, STARTING_ANNUAL_INCOME, 
+                                     INCOME_GROWTH_PERCENT, MATCH_FOR_401K, 
+                                     SHORT_TERM_CAP_GAINS, LONG_TERM_CAP_GAINS, 
+                                     PAY_PRINCIPAL_THROUGHOUT, MAX_MARGIN_TO_ASSETS_RATIO)
+        market = Market.Market(MU,SIGMA,.03,USE_VIX_DATA)
+        run_samples(investor,market,VERBOSITY,NUM_TRIALS,outfile,PLOT_RESULTS)
+        outfile.write("\n\n")
+
+    with open("output\years=10.txt", "w") as outfile:
+        outfile.write("years = 10:\n")
+        print "\ntesting years"
+        investor = Investor.Investor(10, STARTING_ANNUAL_INCOME, 
+                                     INCOME_GROWTH_PERCENT, MATCH_FOR_401K, 
+                                     SHORT_TERM_CAP_GAINS, LONG_TERM_CAP_GAINS, 
+                                     PAY_PRINCIPAL_THROUGHOUT, MAX_MARGIN_TO_ASSETS_RATIO)
+        market = Market.Market(MU,SIGMA,INTEREST_RATE,USE_VIX_DATA)
         run_samples(investor,market,VERBOSITY,NUM_TRIALS,outfile,PLOT_RESULTS)
         outfile.write("\n\n")
 
@@ -236,9 +293,9 @@ if __name__ == "__main__":
     if DO_SWEEP:
         sweep_scenarios()
     else:
-        investor = Investor.Investor(30, 30000, 2, 50, .28, .15, True, .67)
-        #investor = Investor.Investor(1, 30000, 2, 50, .28, .15, True, .67)
-        market = Market.Market(.054,.22,.015)
-        #market = Market.Market(.054,.6,.015)
+        #investor = Investor.Investor(30, 30000, 2, 50, .28, .15, True, .67)
+        investor = Investor.Investor(1, 30000, 2, 50, .28, .15, True, .67)
+        #market = Market.Market(.054,.22,.015,False)
+        market = Market.Market(.054,.22,.015,True)
         run_samples(investor,market,1,1000)
         #run_samples(investor,market,1,2000)
