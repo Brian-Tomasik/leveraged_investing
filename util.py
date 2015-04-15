@@ -1,3 +1,5 @@
+import numpy
+
 def abs_fractional_difference(num1, num2):
     return abs((float(num1) - num2)/num2)
 

@@ -19,20 +19,20 @@ class EtfLot(object):
         #self.__current_price *= (1+rate_of_return)
         self.__current_price *= math.exp(rate_of_return) # this is the technically correct way to update returns in a lognormal model, c.f.: http://www.columbia.edu/~ks20/FE-Notes/4700-07-Notes-GBM.pdf
 
-    def capital_gains_tax(self, day, short_term_cap_gains_rate, long_term_cap_gains_rate):
+    def capital_gains_tax(self, day, tax_rates):
         """What's the fraction of capital-gains tax paid per dollar of the lot that's sold?"""
         capital_gain = self.__current_price - self.__purchase_price
         if (day - self.__purchase_day) / DAYS_PER_YEAR > 1:
-            return (capital_gain * long_term_cap_gains_rate) / self.__current_price
+            return (capital_gain * (tax_rates.long_term_cap_gains_rate+tax_rates.state_income_tax)) / self.__current_price
         else:
-            return (capital_gain * short_term_cap_gains_rate) / self.__current_price
+            return (capital_gain * (tax_rates.short_term_cap_gains_rate+tax_rates.state_income_tax)) / self.__current_price
 
-    def sell(self, cash_still_need_to_get, day, short_term_cap_gains_rate, long_term_cap_gains_rate):
+    def sell(self, cash_still_need_to_get, day, tax_rates):
         """We want to take out some amount A of after-tax cash. If the tax rate
         is T, that means we want to sell some amount S such that S(1-T) = A, i.e.,
         S = A/(1-T). If S exceeds the amount of money in the lot, sell the whole lot
         and return how much more cash still needs to be gotten."""
-        tax_rate = self.capital_gains_tax(day, short_term_cap_gains_rate, long_term_cap_gains_rate)
+        tax_rate = self.capital_gains_tax(day, tax_rates)
         after_tax_value_of_this_security = (1-tax_rate) * self.__current_price
         if after_tax_value_of_this_security > cash_still_need_to_get:
             self.__current_price -= cash_still_need_to_get / (1-tax_rate) # this is how much we need to sell to get an after-tax payout of cash_still_need_to_get

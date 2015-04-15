@@ -4,6 +4,8 @@ from InvestmentComparison import InvestmentComparison
 
 # TODO: ADD TAXES to leveraged fund
 
+USE_CONTINUOUS_COMPOUNDING = False # There's less deviation from theory without continuous compounding....
+
 # ~252 trading days per year: http://en.wikipedia.org/wiki/Trading_day
 def one_run(params):
     """Run through one random simulated trajectory of the regular ETF and its leveraged counterpart"""
@@ -14,8 +16,13 @@ def one_run(params):
     for day in range(total_days):
         # update fund prices
         daily_return = params.annual_sigma * random.gauss(0,1) * math.sqrt(delta_t) + params.annual_mu * delta_t #GBM for stock; for an example of this equation, see the first equation in section 7.1 of 'Path-dependence of Leveraged ETF returns', http://www.math.nyu.edu/faculty/avellane/LeveragedETF20090515.pdf; remember that yearly_sigma = daily_sigma * sqrt(252), so given that delta_t = 1/252, then daily_sigma = yearly_sigma * sqrt(delta_t)
-        regular_price = regular_price * (1+daily_return)
-        leveraged_price = leveraged_price * (1+params.leverage_ratio*daily_return - ((params.leverage_ratio-1) * params.annual_leverage_interest_rate + params.annual_leverage_expense_ratio) * delta_t) # see equation (1) in section 2.1 of "Path-dependence of Leveraged ETF returns", http://www.math.nyu.edu/faculty/avellane/LeveragedETF20090515.pdf
+
+        if USE_CONTINUOUS_COMPOUNDING:
+            regular_price *= math.exp(daily_return)
+            leveraged_price *= math.exp(params.leverage_ratio*daily_return - ((params.leverage_ratio-1) * params.annual_leverage_interest_rate + params.annual_leverage_expense_ratio) * delta_t)
+        else:
+            regular_price *= (1+daily_return)
+            leveraged_price *= (1+params.leverage_ratio*daily_return - ((params.leverage_ratio-1) * params.annual_leverage_interest_rate + params.annual_leverage_expense_ratio) * delta_t) # see equation (1) in section 2.1 of "Path-dependence of Leveraged ETF returns", http://www.math.nyu.edu/faculty/avellane/LeveragedETF20090515.pdf
 
         # Check prices against theoretical formula to make sure simulation is on track
         theoretical_value = formula_for_L_over_S_to_the_beta(params)
@@ -33,7 +40,7 @@ def formula_for_alpha(params,S_T):
     Y = (S_T/params.initial_value)**(1.0/params.years_held) - 1
     return (math.exp((params.leverage_ratio-1)*Y + .5 * (params.leverage_ratio - params.leverage_ratio**2)*params.annual_sigma**2 + (1-params.leverage_ratio)*params.annual_leverage_interest_rate - params.annual_leverage_expense_ratio))**params.years_held
 
-def run_trials(params,num_trials=1000,allowable_deviation_from_theory=1.0,debug=False):
+def run_trials(params,num_trials=1000,allowable_deviation_from_theory=.01,debug=False):
     """Run through many simulated asset histories to accumulate aggregate performance distributional statistics"""
     regular_prices = []
     leveraged_prices = []
@@ -90,5 +97,8 @@ def percentile(list, percentile_as_fraction):
     return list[index_of_value_to_return]
 
 if __name__ == "__main__":
-    params = InvestmentComparison(years_held=1,trading_days_per_year=252,annual_mu=.056,annual_sigma=.22,leverage_ratio=2,initial_value=100,annual_leverage_interest_rate=.0137,annual_leverage_expense_ratio=.0089,)
+    params = InvestmentComparison(years_held=1,trading_days_per_year=252,
+                                  annual_mu=.056,annual_sigma=.22,leverage_ratio=2,
+                                  initial_value=100,annual_leverage_interest_rate=.0137,
+                                  annual_leverage_expense_ratio=.0089)
     run_trials(params)

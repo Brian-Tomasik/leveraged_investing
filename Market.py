@@ -60,6 +60,7 @@ class Market(object):
         delta_t = 1.0/TRADING_DAYS_PER_YEAR
         if self.__use_VIX_data_for_volatility:
             sigma_to_use = self.__VIX_data[day % self.__num_days_VIX_data]
+            """ ^ Cycle through the VIX data in order, repeating after we hit the end"""
         else:
             sigma_to_use = self.annual_sigma
         return sigma_to_use * random.gauss(0,1) * math.sqrt(delta_t) + self.annual_mu * delta_t
