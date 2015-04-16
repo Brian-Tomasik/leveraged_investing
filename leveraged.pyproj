@@ -5,7 +5,7 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>{e79e0767-973b-46c9-99c6-1cb3727d4ad3}</ProjectGuid>
     <ProjectHome />
-    <StartupFile>simulate_leveraged_etf.py</StartupFile>
+    <StartupFile>margin_leverage.py</StartupFile>
     <SearchPath />
     <WorkingDirectory>.</WorkingDirectory>
     <OutputPath>.</OutputPath>
@@ -38,6 +38,12 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Market.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="plots.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="print_and_write.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="simulate_leveraged_etf.py" />

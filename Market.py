@@ -7,10 +7,11 @@ class Market(object):
     """Parameters about the behavior of the stock market and interest rates"""
 
     def __init__(self, annual_mu, annual_sigma, annual_margin_interest_rate,
-                 use_VIX_data_for_volatility):
+                 inflation_rate, use_VIX_data_for_volatility):
         self.annual_mu = annual_mu
         self.annual_sigma = annual_sigma
         self.annual_margin_interest_rate = annual_margin_interest_rate
+        self.__inflation_rate = inflation_rate
         self.__use_VIX_data_for_volatility = use_VIX_data_for_volatility
         self.__VIX_data = None
         self.__num_days_VIX_data = 0
@@ -40,13 +41,17 @@ class Market(object):
     def annual_margin_interest_rate(self):
         return self.__annual_margin_interest_rate
 
-    @property
-    def use_VIX_data_for_volatility(self):
-        return self.__use_VIX_data_for_volatility
-
     @annual_margin_interest_rate.setter
     def annual_margin_interest_rate(self, val):
         self.__annual_margin_interest_rate = val
+
+    @property
+    def inflation_rate(self):
+        return self.__inflation_rate
+
+    @property
+    def use_VIX_data_for_volatility(self):
+        return self.__use_VIX_data_for_volatility
 
     def read_VIX_data(self):
         """Read in daily VIX prices, which I took from 
@@ -72,6 +77,6 @@ class Market(object):
         delta_t = 1/252, then daily_sigma = yearly_sigma * sqrt(delta_t)
         """
 
-    def present_value(self, amount, years_in_future):
+    def real_present_value(self, amount, years_in_future):
         #return amount / (1+self.annual_mu)**years_in_future
-        return amount * math.exp(- self.annual_mu * years_in_future) # use continuous interest like GBM model does
+        return amount * math.exp(- self.annual_mu * years_in_future) / (1+self.__inflation_rate)**years_in_future # use continuous interest for discounting like GBM model does

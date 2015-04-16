@@ -1,6 +1,7 @@
 import Assets
 
 EPSILON = .0001
+MIN_ADDITIONAL_PURCHASE_AMOUNT = 500
 
 class BrokerageAccount(object):
     """Store parameters about how an investor's brokerage account"""
@@ -83,6 +84,18 @@ class BrokerageAccount(object):
 
     def compute_interest(self, annual_interest_rate, fraction_of_year_elapsed):
         return self.margin * ((1+annual_interest_rate)**fraction_of_year_elapsed - 1)
+
+    def rebalance_to_increase_leverage(self, day):
+        """Suppose we have margin M, assets A, and a voluntary personally
+        imposed max margin-to-assets ratio R. If M/A < R, we want to 
+        take out additional debt D and use it to buy more stocks such that
+        (M+D)/(A+D) = R  ==>  M+D = AR+DR  ==>  M-AR = DR-D  ==>  
+        M-AR = D(R-1)  ==>  D = (M-AR)/(R-1) = (AR-M)/(1-R)"""
+        if self.margin_to_assets() < (1-EPSILON) * self.__personal_max_margin_to_assets_ratio:
+            additional_debt = (self.assets * self.__personal_max_margin_to_assets_ratio - self.margin) / (1-self.__personal_max_margin_to_assets_ratio)
+            if additional_debt >= MIN_ADDITIONAL_PURCHASE_AMOUNT: # due to transactions costs, we shouldn't bother buying new ETF shares if we only have a trivial amount of money for the purchase
+                self.margin += additional_debt
+                self.__assets.buy_new_lot(additional_debt, day)
 
     def pay_off_all_margin(self, day, tax_rates):
         assert self.assets >= self.margin, "More debt than equity!"
