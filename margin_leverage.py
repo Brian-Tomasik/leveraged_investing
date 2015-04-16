@@ -1,12 +1,13 @@
 import util
 import plots
-import print_and_write
+import write_results
 import Investor
 import Market
 import BrokerageAccount
 import TaxRates
 import numpy
 import copy
+from multiprocessing import Process
 
 # TODO: if lots of trading happens, consider counting trading fees
 
@@ -125,7 +126,7 @@ def one_run(investor,market,verbosity):
             market.real_present_value(matched_401k_account.assets,investor.years_until_donate),
             historical_margin_to_assets_ratios, historical_margin_wealth)
 
-def run_samples(investor,market,verbosity,num_samples,outfilepath=None):
+def run_samples(investor,market,verbosity,num_samples,outfilepath):
     account_values = dict()
     account_types = ["regular", "margin", "matched401k"]
     NUM_HISTORIES_TO_PLOT = 20
@@ -156,20 +157,19 @@ def run_samples(investor,market,verbosity,num_samples,outfilepath=None):
 
     avg_margin_to_assets_ratios = running_average_margin_to_assets_ratios / num_samples
 
-    print ""
-    print_and_write.print_means(account_values, investor.years_until_donate)
-    print_and_write.print_percentiles(account_values)
-    print_and_write.print_winner_for_each_percentile(account_values)
-    
-    if outfilepath:
-        with open(outfilepath + ".txt", "w") as outfile:
-            print_and_write.write_file_table(account_values, account_types, outfile)
-        plots.graph_results(account_values, num_samples, outfilepath)
-        plots.graph_historical_margin_to_assets_ratios(margin_to_assets_ratio_histories, avg_margin_to_assets_ratios, outfilepath)
-        plots.graph_historical_wealth_trajectories(wealth_histories, outfilepath)
+    with open(outfilepath + ".txt", "w") as outfile:
+        write_results.write_file_table(account_values, account_types, outfile)
+        outfile.write("\n")
+        write_results.write_means(account_values, investor.years_until_donate, outfile)
+        write_results.write_percentiles(account_values, outfile)
+        write_results.write_winner_for_each_percentile(account_values, outfile)
+        
+    plots.graph_results(account_values, num_samples, outfilepath)
+    plots.graph_historical_margin_to_assets_ratios(margin_to_assets_ratio_histories, avg_margin_to_assets_ratios, outfilepath)
+    plots.graph_historical_wealth_trajectories(wealth_histories, outfilepath)
 
 def sweep_scenarios():
-    QUICK_TEST = False
+    QUICK_TEST = True
 
     if QUICK_TEST:
         YEARS = 1
@@ -191,8 +191,8 @@ def sweep_scenarios():
     MAX_MARGIN_TO_ASSETS_RATIO = .5
     MONTHLY_PROBABILITY_OF_LAYOFF = .01
     MONTHLY_PROBABILITY_FIND_WORK_AFTER_LAID_OFF = .2
-    NUM_TRIALS = 1000
-    #NUM_TRIALS = 2
+    #NUM_TRIALS = 1000
+    NUM_TRIALS = 2
     VERBOSITY = 1
 
     tax_rates = TaxRates.TaxRates(SHORT_TERM_CAP_GAINS,LONG_TERM_CAP_GAINS,STATE_INCOME_TAX)
@@ -204,7 +204,9 @@ def sweep_scenarios():
                                     PAY_PRINCIPAL_THROUGHOUT, MAX_MARGIN_TO_ASSETS_RATIO, 
                                     MONTHLY_PROBABILITY_OF_LAYOFF, MONTHLY_PROBABILITY_FIND_WORK_AFTER_LAID_OFF)
     market = Market.Market(MU,SIGMA,INTEREST_RATE,INFLATION_RATE,USE_VIX_DATA)
-    run_samples(investor,market,VERBOSITY,NUM_TRIALS,"out\default_{}".format(QUICK_TEST))
+    Process(target=run_samples, 
+            args=(investor,market,VERBOSITY,
+                  NUM_TRIALS,"out\default_{}".format(QUICK_TEST))).start()
 
     print "\n\n\nRebalance to increase leverage"
     investor = Investor.Investor(YEARS, STARTING_ANNUAL_INCOME, 
@@ -213,7 +215,9 @@ def sweep_scenarios():
                                     False, MAX_MARGIN_TO_ASSETS_RATIO, 
                                     MONTHLY_PROBABILITY_OF_LAYOFF, MONTHLY_PROBABILITY_FIND_WORK_AFTER_LAID_OFF)
     market = Market.Market(MU,SIGMA,INTEREST_RATE,INFLATION_RATE,USE_VIX_DATA)
-    run_samples(investor,market,VERBOSITY,NUM_TRIALS,"out\inclev_{}".format(QUICK_TEST))
+    Process(target=run_samples, 
+            args=(investor,market,VERBOSITY,
+                  NUM_TRIALS,"out\inclev_{}".format(QUICK_TEST))).start()
 
     print "\n\n\nUse VIX data"
     investor = Investor.Investor(YEARS, STARTING_ANNUAL_INCOME, 
@@ -222,7 +226,9 @@ def sweep_scenarios():
                                     PAY_PRINCIPAL_THROUGHOUT, MAX_MARGIN_TO_ASSETS_RATIO, 
                                     MONTHLY_PROBABILITY_OF_LAYOFF, MONTHLY_PROBABILITY_FIND_WORK_AFTER_LAID_OFF)
     market = Market.Market(MU,SIGMA,INTEREST_RATE,INFLATION_RATE,True)
-    run_samples(investor,market,VERBOSITY,NUM_TRIALS,"out\VIX_{}".format(QUICK_TEST))
+    Process(target=run_samples, 
+            args=(investor,market,VERBOSITY,
+                  NUM_TRIALS,"out\VIX_{}".format(QUICK_TEST))).start()
 
     print "\n\n\nDon't pay principal until end"
     investor = Investor.Investor(YEARS, STARTING_ANNUAL_INCOME, 
@@ -231,8 +237,9 @@ def sweep_scenarios():
                                     False, MAX_MARGIN_TO_ASSETS_RATIO, 
                                     MONTHLY_PROBABILITY_OF_LAYOFF, MONTHLY_PROBABILITY_FIND_WORK_AFTER_LAID_OFF)
     market = Market.Market(MU,SIGMA,INTEREST_RATE,INFLATION_RATE,USE_VIX_DATA)
-    run_samples(investor,market,VERBOSITY,NUM_TRIALS,"out\princ_end_{}".format(QUICK_TEST))
-
+    Process(target=run_samples, 
+            args=(investor,market,VERBOSITY,
+                  NUM_TRIALS,"out\princ_end_{}".format(QUICK_TEST))).start()
 
     print "\n\n\ntesting 3X leverage"
     investor = Investor.Investor(YEARS, STARTING_ANNUAL_INCOME, 
@@ -241,7 +248,9 @@ def sweep_scenarios():
                                     PAY_PRINCIPAL_THROUGHOUT, .67, 
                                     MONTHLY_PROBABILITY_OF_LAYOFF, MONTHLY_PROBABILITY_FIND_WORK_AFTER_LAID_OFF)
     market = Market.Market(MU,SIGMA,INTEREST_RATE,INFLATION_RATE,USE_VIX_DATA)
-    run_samples(investor,market,VERBOSITY,NUM_TRIALS,"out\lev=3X_{}".format(QUICK_TEST))
+    Process(target=run_samples, 
+            args=(investor,market,VERBOSITY,
+                  NUM_TRIALS,"out\lev=3X_{}".format(QUICK_TEST))).start()
 
     print "\n\n\ntesting sigma"
     investor = Investor.Investor(YEARS, STARTING_ANNUAL_INCOME, 
@@ -250,7 +259,9 @@ def sweep_scenarios():
                                     PAY_PRINCIPAL_THROUGHOUT, MAX_MARGIN_TO_ASSETS_RATIO, 
                                     MONTHLY_PROBABILITY_OF_LAYOFF, MONTHLY_PROBABILITY_FIND_WORK_AFTER_LAID_OFF)
     market = Market.Market(MU,.4,INTEREST_RATE,INFLATION_RATE,USE_VIX_DATA)
-    run_samples(investor,market,VERBOSITY,NUM_TRIALS,"out\sig4_{}".format(QUICK_TEST))
+    Process(target=run_samples, 
+            args=(investor,market,VERBOSITY,
+                  NUM_TRIALS,"out\sig4_{}".format(QUICK_TEST))).start()
 
     print "\n\n\ntesting mu"
     investor = Investor.Investor(YEARS, STARTING_ANNUAL_INCOME, 
@@ -259,7 +270,9 @@ def sweep_scenarios():
                                     PAY_PRINCIPAL_THROUGHOUT, MAX_MARGIN_TO_ASSETS_RATIO, 
                                     MONTHLY_PROBABILITY_OF_LAYOFF, MONTHLY_PROBABILITY_FIND_WORK_AFTER_LAID_OFF)
     market = Market.Market(.07,SIGMA,INTEREST_RATE,INFLATION_RATE,USE_VIX_DATA)
-    run_samples(investor,market,VERBOSITY,NUM_TRIALS,"out\mu07_{}".format(QUICK_TEST))
+    Process(target=run_samples, 
+            args=(investor,market,VERBOSITY,
+                  NUM_TRIALS,"out\mu07_{}".format(QUICK_TEST))).start()
 
     print "\n\n\ntesting interest rate"
     investor = Investor.Investor(YEARS, STARTING_ANNUAL_INCOME, 
@@ -268,7 +281,9 @@ def sweep_scenarios():
                                     PAY_PRINCIPAL_THROUGHOUT, MAX_MARGIN_TO_ASSETS_RATIO, 
                                     MONTHLY_PROBABILITY_OF_LAYOFF, MONTHLY_PROBABILITY_FIND_WORK_AFTER_LAID_OFF)
     market = Market.Market(MU,SIGMA,.03,INFLATION_RATE,USE_VIX_DATA)
-    run_samples(investor,market,VERBOSITY,NUM_TRIALS,"out\int_r03_{}".format(QUICK_TEST))
+    Process(target=run_samples, 
+            args=(investor,market,VERBOSITY,
+                  NUM_TRIALS,"out\int_r03_{}".format(QUICK_TEST))).start()
 
     print "\n\n\ntesting 10 years"
     investor = Investor.Investor(10, STARTING_ANNUAL_INCOME, 
@@ -277,8 +292,9 @@ def sweep_scenarios():
                                     PAY_PRINCIPAL_THROUGHOUT, MAX_MARGIN_TO_ASSETS_RATIO, 
                                     MONTHLY_PROBABILITY_OF_LAYOFF, MONTHLY_PROBABILITY_FIND_WORK_AFTER_LAID_OFF)
     market = Market.Market(MU,SIGMA,INTEREST_RATE,INFLATION_RATE,USE_VIX_DATA)
-    run_samples(investor,market,VERBOSITY,NUM_TRIALS,"out\yrs=10_{}".format(QUICK_TEST))
-
+    Process(target=run_samples, 
+            args=(investor,market,VERBOSITY,
+                  NUM_TRIALS,"out\yrs=10_{}".format(QUICK_TEST))).start()
 
     print "\n\n\nBroker max margin-to-assets = .75"
     investor = Investor.Investor(YEARS, STARTING_ANNUAL_INCOME, 
@@ -287,8 +303,9 @@ def sweep_scenarios():
                                     PAY_PRINCIPAL_THROUGHOUT, .75, 
                                     MONTHLY_PROBABILITY_OF_LAYOFF, MONTHLY_PROBABILITY_FIND_WORK_AFTER_LAID_OFF)
     market = Market.Market(MU,SIGMA,INTEREST_RATE,INFLATION_RATE,USE_VIX_DATA)
-    run_samples(investor,market,VERBOSITY,NUM_TRIALS,"out\lev75_{}".format(QUICK_TEST))
-
+    Process(target=run_samples, 
+            args=(investor,market,VERBOSITY,
+                  NUM_TRIALS,"out\lev75_{}".format(QUICK_TEST))).start()
 
     print "\n\n\nBroker max margin-to-assets = .9"
     investor = Investor.Investor(YEARS, STARTING_ANNUAL_INCOME, 
@@ -297,7 +314,9 @@ def sweep_scenarios():
                                     PAY_PRINCIPAL_THROUGHOUT, .9, 
                                     MONTHLY_PROBABILITY_OF_LAYOFF, MONTHLY_PROBABILITY_FIND_WORK_AFTER_LAID_OFF)
     market = Market.Market(MU,SIGMA,INTEREST_RATE,INFLATION_RATE,USE_VIX_DATA)
-    run_samples(investor,market,VERBOSITY,NUM_TRIALS,"out\lev90_{}".format(QUICK_TEST))
+    Process(target=run_samples, 
+            args=(investor,market,VERBOSITY,
+                  NUM_TRIALS,"out\lev90_{}".format(QUICK_TEST))).start()
 
 if __name__ == "__main__":
     DO_SWEEP = True

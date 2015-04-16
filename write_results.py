@@ -2,35 +2,35 @@ import numpy
 import util
 import math
 
-def print_means(account_values, years_until_donation_date):
+def write_means(account_values, years_until_donation_date, outfile):
     regular_mean = util.mean(account_values["regular"])
     margin_mean = util.mean(account_values["margin"])
     matched_401k_mean = util.mean(account_values["matched401k"])
-    print ""
-    print "Mean regular = ${:,}".format(int(regular_mean))
-    print "Mean margin = ${:,}".format(int(margin_mean))
-    print "Mean matched 401k = ${:,}".format(int(matched_401k_mean))
-    print "Mean value per year of margin over regular = ${:,}".format(int((margin_mean-regular_mean)/years_until_donation_date))
+    outfile.write("\n")
+    outfile.write("Mean regular = ${:,}\n".format(int(regular_mean)))
+    outfile.write("Mean margin = ${:,}\n".format(int(margin_mean)))
+    outfile.write("Mean matched 401k = ${:,}\n".format(int(matched_401k_mean)))
+    outfile.write("Mean value per year of margin over regular = ${:,}\n".format(int((margin_mean-regular_mean)/years_until_donation_date)))
 
-def print_percentiles(account_values):
+def write_percentiles(account_values, outfile):
     for percentile in [0, 10, 25, 50, 75, 90, 100]:
         fractional_percentile = percentile/100.0
-        print ""
+        outfile.write("\n")
         for type in ["regular", "margin", "matched401k"]:
-            print str(percentile) + "th percentile " + type + " = ${:,}".format(int(util.percentile(account_values[type], fractional_percentile)))
+            outfile.write( str(percentile) + "th percentile " + type + " = ${:,}\n".format(int(util.percentile(account_values[type], fractional_percentile))) )
 
-def print_winner_for_each_percentile(account_values):
+def write_winner_for_each_percentile(account_values, outfile):
     index = 0
     sorted_regular_list = sorted(account_values["regular"])
     sorted_margin_list = sorted(account_values["margin"])
     assert len(sorted_regular_list) == len(sorted_margin_list), "Regular and margin lists not the same length"
     upper_index = len(sorted_regular_list) - 1
-    print ""
-    print "Margin vs. regular % at percentiles 0 to 100:"
+    outfile.write("\n")
+    outfile.write("Margin vs. regular % at percentiles 0 to 100:\n")
     for percentile in range(100):
         index = int((percentile/100.0)*upper_index)
         if sorted_regular_list[index] > 0: # prevent divide-by-zero errors
-            print "{}%".format(int((100.0 * sorted_margin_list[index]) / sorted_regular_list[index])) ,
+            outfile.write( "{}% ".format(int((100.0 * sorted_margin_list[index]) / sorted_regular_list[index])) )
 
 def write_file_table(account_values, account_types, outfile):
     outfile.write("<table>\n")

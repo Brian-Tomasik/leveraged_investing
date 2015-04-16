@@ -43,7 +43,7 @@
     <Compile Include="plots.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="print_and_write.py">
+    <Compile Include="write_results.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="simulate_leveraged_etf.py" />

@@ -18,7 +18,7 @@ def graph_results(account_values, num_samples, outfilepath):
         pyplot.xlabel("Present value of savings ($)")
         pyplot.ylabel("Frequency out of " + str(num_samples) + " runs")
         pyplot.savefig(outfilepath + "_hist_" + type)
-        pyplot.clf()
+        pyplot.close()
 
 def graph_historical_margin_to_assets_ratios(collection_of_ratios, avg_ratios, outfilepath):
     num_days = len(avg_ratios)
@@ -32,7 +32,7 @@ def graph_historical_margin_to_assets_ratios(collection_of_ratios, avg_ratios, o
     pyplot.xlabel("Years since beginning")
     pyplot.ylabel("Margin-to-assets ratio")
     pyplot.savefig(outfilepath + "_indMTA")
-    pyplot.clf()
+    pyplot.close()
 
     # Plot average trajectory
     pyplot.plot(x_axis, avg_ratios)
@@ -40,7 +40,7 @@ def graph_historical_margin_to_assets_ratios(collection_of_ratios, avg_ratios, o
     pyplot.xlabel("Years since beginning")
     pyplot.ylabel("Average margin-to-assets ratio")
     pyplot.savefig(outfilepath + "_avgMTA")
-    pyplot.clf()
+    pyplot.close()
 
 def graph_historical_wealth_trajectories(wealth_histories, outfilepath):
     num_days = len(wealth_histories[0])
@@ -54,4 +54,4 @@ def graph_historical_wealth_trajectories(wealth_histories, outfilepath):
     pyplot.xlabel("Years since beginning")
     pyplot.ylabel("Wealth ($)")
     pyplot.savefig(outfilepath + "_wealthtraj")
-    pyplot.clf()
+    pyplot.close()
