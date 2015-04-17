@@ -5,42 +5,53 @@ import Investor
 import Market
 import BrokerageAccount
 import TaxRates
+import Taxes
 import numpy
 import copy
-from multiprocessing import Process
+import math
+from multiprocessing import Process, Queue
 
 # TODO: if lots of trading happens, consider counting trading fees
 
 DAYS_PER_YEAR = 365
 SATURDAY = 6
 SUNDAY = 0
+TAX_LOSS_HARVEST_DAY = 360 # day number 360 in late Dec
+TAX_DAY = 60 # day of tax payments/refund assuming you get your refund around March 1; ignoring payments during the year...
 TINY_NUMBER = .000001
+THRESHOLD_FOR_TAX_CONVERGENCE = 50
 
 def one_run(investor,market,verbosity):
     days_from_start_to_donation_date = int(DAYS_PER_YEAR * investor.years_until_donate)
-    regular_account = BrokerageAccount.BrokerageAccount(0,0,0)
-    margin_account = BrokerageAccount.BrokerageAccount(0,0,investor.broker_max_margin_to_assets_ratio)
-    matched_401k_account = BrokerageAccount.BrokerageAccount(0,0,0)
+    accounts = dict()
+    accounts["regular"] = BrokerageAccount.BrokerageAccount(0,0,0)
+    accounts["margin"] = BrokerageAccount.BrokerageAccount(0,0,investor.broker_max_margin_to_assets_ratio)
+    accounts["matched401k"] = BrokerageAccount.BrokerageAccount(0,0,0)
+    taxes = dict()
+    for type in ["regular", "margin", "matched401k"]:
+        taxes[type] = Taxes.Taxes(investor.tax_rates)
     interest_and_salary_every_num_days = 30
     interest_and_salary_every_fraction_of_year = float(interest_and_salary_every_num_days) / DAYS_PER_YEAR
 
     # Record history over lifetime of investment
     historical_margin_to_assets_ratios = numpy.zeros(days_from_start_to_donation_date)
     historical_margin_wealth = numpy.zeros(days_from_start_to_donation_date)
+    historical_carried_taxes = numpy.zeros(days_from_start_to_donation_date)
 
     for day in range(days_from_start_to_donation_date):
-        # Record historical margin-to-assets ratio for future reference
-        historical_margin_to_assets_ratios[day] = margin_account.margin_to_assets()
-        historical_margin_wealth[day] = margin_account.assets
+        # Record historical info for future reference
+        historical_margin_to_assets_ratios[day] = accounts["margin"].margin_to_assets(taxes["margin"])
+        historical_margin_wealth[day] = accounts["margin"].assets
+        historical_carried_taxes[day] = taxes["margin"].total_gain_or_loss()
 
         # Stock market changes on weekdays
         if (day % 7 != SATURDAY) and (day % 7 != SUNDAY):
             random_daily_return = market.random_daily_return(day)
 
-            regular_account.update_asset_prices(random_daily_return)
+            accounts["regular"].update_asset_prices(random_daily_return)
 
-            margin_account.update_asset_prices(random_daily_return)
-            margin_account.mandatory_rebalance(day, investor.tax_rates)
+            accounts["margin"].update_asset_prices(random_daily_return)
+            accounts["margin"].mandatory_rebalance(day, taxes["margin"])
             """Interactive Brokers (IB) forces you to stay within the mandated
             margin-to-assets ratio, probably on a day-by-day basis. The above
             function call simulates IB selling any positions
@@ -49,7 +60,7 @@ def one_run(investor,market,verbosity):
             in this simulation voluntarily maintains a max margin-to-assets
             ratio somewhat below the broker-imposed limit."""
 
-            matched_401k_account.update_asset_prices(random_daily_return)
+            accounts["matched401k"].update_asset_prices(random_daily_return)
 
         # check if we should get paid and defray interest
         if day % interest_and_salary_every_num_days == 0:
@@ -61,10 +72,10 @@ def one_run(investor,market,verbosity):
                     print "Day " + str(day) + ", year " + str(years_elapsed) ,
 
             # regular account just buys ETF
-            regular_account.buy_ETF(pay, day)
+            accounts["regular"].buy_ETF_at_fixed_ratio(pay, day)
 
             # matched 401k account buys ETF with employee and employer funds
-            matched_401k_account.buy_ETF(pay * (1+investor.match_percent_from_401k/100.0), day)
+            accounts["matched401k"].buy_ETF_at_fixed_ratio(pay * (1+investor.match_percent_from_401k/100.0), day)
 
             # The next steps are for the margin account. It
             # 1. pays interest
@@ -73,71 +84,107 @@ def one_run(investor,market,verbosity):
             # 4. buys new ETF with the remaining $
 
             # 1. pay interest
-            interest = margin_account.compute_interest(market.annual_margin_interest_rate,interest_and_salary_every_fraction_of_year)
+            interest = accounts["margin"].compute_interest(market.annual_margin_interest_rate,interest_and_salary_every_fraction_of_year)
             pay_after_interest = pay - interest
             if pay_after_interest <= 0:
-                margin_account.margin += (interest - pay) # amount of interest remaining
-                margin_account.voluntary_rebalance(day, investor.tax_rates) # pay for the interest with equity
+                accounts["margin"].margin += (interest - pay) # amount of interest remaining
+                accounts["margin"].voluntary_rebalance(day, taxes["margin"]) # pay for the interest with equity
                 #print """I didn't think hard about this case, since it's rare, so check back if I ever enter it. It's also bad tax-wise to rebalance, so try to avoid doing this."""
                 # It's bad to rebalance using equity because of 1. capital-gains tax 2. transactions costs 3. bid-ask spreads
                 # if this happens, no money left to 2. pay principal, 3. pay down margin if it's over limit, or 4. buy ETF
             else:
                 # 2. pay some principal
                 number_of_pay_periods_until_donation_date = (days_from_start_to_donation_date - day) / interest_and_salary_every_num_days
-                amount_of_principal_to_repay = util.per_period_annuity_payment_of_principal(margin_account.margin, number_of_pay_periods_until_donation_date,market.annual_margin_interest_rate, investor.pay_principal_throughout)
+                amount_of_principal_to_repay = util.per_period_annuity_payment_of_principal(accounts["margin"].margin, number_of_pay_periods_until_donation_date,market.annual_margin_interest_rate, investor.pay_principal_throughout)
                 if amount_of_principal_to_repay > pay_after_interest:
-                    margin_account.margin -= pay_after_interest
-                    margin_account.voluntary_rebalance(day, investor.tax_rates) # pay for the principal with equity
+                    accounts["margin"].margin -= pay_after_interest
+                    accounts["margin"].voluntary_rebalance(day, taxes["margin"]) # pay for the principal with equity
                     #print "WARNING: You're paying for principal with equity. This incurs tax costs and so should be minimized!"
                     # It's bad to rebalance using equity because of 1. capital-gains tax 2. transactions costs 3. bid-ask spreads
                 else:
-                    margin_account.margin -= amount_of_principal_to_repay
+                    accounts["margin"].margin -= amount_of_principal_to_repay
                     pay_after_interest_and_principal = pay_after_interest - amount_of_principal_to_repay
                     # 3. pay down margin if it's over limit
-                    amount_to_pay_for_margin_call = margin_account.debt_to_pay_off_to_restore_voluntary_max_margin_to_assets_ratio()
+                    amount_to_pay_for_margin_call = accounts["margin"].debt_to_pay_off_to_restore_voluntary_max_margin_to_assets_ratio(taxes["margin"])
                     if amount_to_pay_for_margin_call > pay_after_interest_and_principal:
                         # pay what we can
-                        margin_account.margin -= pay_after_interest_and_principal
+                        accounts["margin"].margin -= pay_after_interest_and_principal
                         # use equity for the rest
-                        margin_account.voluntary_rebalance(day, investor.tax_rates)
+                        accounts["margin"].voluntary_rebalance(day, taxes["margin"])
                     else:
                         # just pay off margin call
-                        margin_account.margin -= amount_to_pay_for_margin_call
+                        accounts["margin"].margin -= amount_to_pay_for_margin_call
                         pay_after_interest_and_principal_and_margincall = pay_after_interest_and_principal - amount_to_pay_for_margin_call
                         # 4. buy some ETF
-                        margin_account.buy_ETF(pay_after_interest_and_principal_and_margincall, day)
+                        accounts["margin"].buy_ETF_at_fixed_ratio(pay_after_interest_and_principal_and_margincall, day)
             
             # If we're rebalancing upwards to increase leverage when it's too low, do that.
             if investor.rebalance_monthly_to_increase_leverage:
-                margin_account.rebalance_to_increase_leverage(day)
+                accounts["margin"].rebalance_to_increase_leverage(day, taxes["margin"])
 
             # Possibly get laid off or return to work
             investor.randomly_update_employment_status_this_month()
+        
+        if day % DAYS_PER_YEAR == TAX_DAY:
+            for type in ["regular", "margin", "matched401k"]:
+                bill_or_refund = taxes[type].process_taxes()
+                if bill_or_refund > 0: # have to pay IRS bill
+                    accounts[type].margin += bill_or_refund
+                    accounts[type].voluntary_rebalance(day, taxes[type])
+                    """The above operation to pay taxes by selling securities works
+                    for any account type because for the non-margin accounts, the max
+                    margin-to-assets ratio is zero, so the margin we add should be 
+                    removed by rebalancing. To confirm that, I add the following assertion."""
+                    if type in ["regular", "matched401k"]:
+                        assert accounts[type].margin < TINY_NUMBER, "Margin wasn't all eliminated from non-margin accounts. :("
+                elif bill_or_refund < 0: # got IRS refund
+                    accounts[type].buy_ETF_at_fixed_ratio(-bill_or_refund, day) # use the tax refund to buy more shares
+                else:
+                    pass
 
-    # Now that we've donated, finish up
-    margin_account.pay_off_all_margin(days_from_start_to_donation_date, investor.tax_rates)
+        if day % DAYS_PER_YEAR == TAX_LOSS_HARVEST_DAY:
+            for type in ["regular", "margin", "matched401k"]:
+                accounts[type].tax_loss_harvest(day, taxes[type])
 
-    if regular_account.assets < TINY_NUMBER:
-        print "WARNING: In this simulation round, the regular account ended with only ${}.".format(regular_account.assets)
+    """Now that we've donated, finish up. We need to pay off all margin debt. In
+    the process of buying/selling, we incur capital-gains taxes (positive or negative).
+    As a result of that, we need to sell/buy more. That may incur more taxes, necessitating
+    repeating the cycle until convergence. We pretend it's tax day just to close out the
+    tax issues, even though it's not actually tax day."""
+    accounts["margin"].pay_off_all_margin(days_from_start_to_donation_date, taxes["margin"])
+    bill_or_refund = taxes["margin"].process_taxes()
+    while bill_or_refund > THRESHOLD_FOR_TAX_CONVERGENCE:
+        accounts["margin"].margin += bill_or_refund
+        accounts["margin"].pay_off_all_margin(days_from_start_to_donation_date, taxes["margin"])
+        bill_or_refund = taxes["margin"].process_taxes()
+    if bill_or_refund < 0:
+        accounts["margin"].buy_ETF_without_margin(-bill_or_refund, days_from_start_to_donation_date) # can't use margin anymore because we're done paying off loans
+
+    if accounts["regular"].assets < TINY_NUMBER:
+        print "WARNING: In this simulation round, the regular account ended with only ${}.".format(accounts["regular"].assets)
 
     # Return present values of the account balances
-    return (market.real_present_value(regular_account.assets,investor.years_until_donate),
-            market.real_present_value(margin_account.assets,investor.years_until_donate),
-            market.real_present_value(matched_401k_account.assets,investor.years_until_donate),
-            historical_margin_to_assets_ratios, historical_margin_wealth)
+    historical_margin_wealth = map(lambda wealth: market.real_present_value(wealth,investor.years_until_donate), historical_margin_wealth)
+    return (market.real_present_value(accounts["regular"].assets,investor.years_until_donate),
+            market.real_present_value(accounts["margin"].assets,investor.years_until_donate),
+            market.real_present_value(accounts["matched401k"].assets,investor.years_until_donate),
+            historical_margin_to_assets_ratios, historical_margin_wealth, 
+            historical_carried_taxes)
 
-def run_samples(investor,market,verbosity,num_samples,outfilepath):
+def run_samples(investor,market,num_samples=1000,outfilepath=None,output_queue=None,verbosity=1):
     account_values = dict()
     account_types = ["regular", "margin", "matched401k"]
     NUM_HISTORIES_TO_PLOT = 20
     PRINT_PROGRESS_EVERY_ITERATIONS = 10
     margin_to_assets_ratio_histories = []
     wealth_histories = []
+    carried_tax_histories = []
     running_average_margin_to_assets_ratios = None
     for type in account_types:
         account_values[type] = []
     for sample in range(num_samples):
-        (regular_val, margin_val, matched_401k_val, margin_to_assets_ratios, margin_wealth) = one_run(investor,market,verbosity)
+        (regular_val, margin_val, matched_401k_val, margin_to_assets_ratios, 
+         margin_wealth, carried_taxes) = one_run(investor,market,verbosity)
         account_values["regular"].append(regular_val)
         account_values["margin"].append(margin_val)
         account_values["matched401k"].append(matched_401k_val)
@@ -146,6 +193,8 @@ def run_samples(investor,market,verbosity,num_samples,outfilepath):
             margin_to_assets_ratio_histories.append(margin_to_assets_ratios)
         if len(wealth_histories) < NUM_HISTORIES_TO_PLOT:
             wealth_histories.append(margin_wealth)
+        if len(carried_tax_histories) < NUM_HISTORIES_TO_PLOT:
+            carried_tax_histories.append(carried_taxes)
         if running_average_margin_to_assets_ratios is None:
             running_average_margin_to_assets_ratios = copy.copy(margin_to_assets_ratios)
         else:
@@ -157,173 +206,142 @@ def run_samples(investor,market,verbosity,num_samples,outfilepath):
 
     avg_margin_to_assets_ratios = running_average_margin_to_assets_ratios / num_samples
 
-    with open(outfilepath + ".txt", "w") as outfile:
-        write_results.write_file_table(account_values, account_types, outfile)
-        outfile.write("\n")
-        write_results.write_means(account_values, investor.years_until_donate, outfile)
-        write_results.write_percentiles(account_values, outfile)
-        write_results.write_winner_for_each_percentile(account_values, outfile)
+    if output_queue:
+        numpy_regular = numpy.array(account_values["regular"])
+        numpy_margin = numpy.array(account_values["margin"])
+        ratio_of_means = numpy.mean(numpy_margin)/numpy.mean(numpy_regular)
+        ratio_of_medians = numpy.median(numpy_margin)/numpy.median(numpy_regular)
+        ratio_of_expected_utilities = numpy.mean(map(math.sqrt, numpy_margin))/numpy.mean(map(math.sqrt, numpy_regular))
+        N_to_1_leverage = util.max_margin_to_assets_ratio_to_N_to_1_leverage(investor.broker_max_margin_to_assets_ratio)
+        assert N_to_1_leverage >= 1, "N_to_1_leverage is < 1"
+        output_queue.put( (N_to_1_leverage, ratio_of_means, ratio_of_medians, ratio_of_expected_utilities) )
+
+    if outfilepath:
+        with open(outfilepath + ".txt", "w") as outfile:
+            write_results.write_file_table(account_values, account_types, outfile)
+            outfile.write("\n")
+            write_results.write_means(account_values, investor.years_until_donate, outfile)
+            write_results.write_percentiles(account_values, outfile)
+            write_results.write_winner_for_each_percentile(account_values, outfile)
         
-    plots.graph_results(account_values, num_samples, outfilepath)
-    plots.graph_historical_margin_to_assets_ratios(margin_to_assets_ratio_histories, avg_margin_to_assets_ratios, outfilepath)
-    plots.graph_historical_wealth_trajectories(wealth_histories, outfilepath)
+        plots.graph_results(account_values, num_samples, outfilepath)
+        plots.graph_historical_margin_to_assets_ratios(margin_to_assets_ratio_histories, avg_margin_to_assets_ratios, outfilepath)
+        plots.graph_historical_wealth_trajectories(wealth_histories, outfilepath)
+        plots.graph_carried_taxes_trajectories(carried_tax_histories, outfilepath)
+    
+    # TODO: return (mean_%_better, median%better)
 
-def sweep_scenarios():
-    QUICK_TEST = True
+def args_for_this_scenario(scenario_name, num_trials, outdir_name):
+    """Give scenario name, return args to use for running it."""
 
-    if QUICK_TEST:
-        YEARS = 1
+    # Get default values
+    default_investor = Investor.Investor()
+    default_market = Market.Market()
+
+    if scenario_name == "Default":
+        return (default_investor,default_market,num_trials,outdir_name + "\default")
+    elif scenario_name == "Rebalance to increase leverage":
+        investor = Investor.Investor(rebalance_monthly_to_increase_leverage=True,
+                                     pay_principal_throughout=False)
+        return (investor,default_market,num_trials,outdir_name + "\inclev")
+    elif scenario_name == "Use VIX data":
+        market = Market.Market(use_VIX_data_for_volatility=True)
+        return (default_investor,market,num_trials,outdir_name + "\VIX")
+    elif scenario_name == "Don't pay principal until end":
+        investor = Investor.Investor(pay_principal_throughout=False)
+        return (investor,default_market,num_trials,outdir_name + "\princ_end")
+    elif scenario_name == "Annual sigma = .4":
+        market = Market.Market(annual_sigma=.4)
+        return (default_investor,market,num_trials,outdir_name + "\sig4")
+    elif scenario_name == "Annual mu = .07":
+        market = Market.Market(annual_mu=.07)
+        return (default_investor,market,num_trials,outdir_name + "\mu07")
+    elif scenario_name == "Annual margin interest rate = .03":
+        market = Market.Market(annual_margin_interest_rate=.03)
+        return (default_investor,market,num_trials,outdir_name + "\int_r03")
+    elif scenario_name == "Donate after 10 years":
+        investor = Investor.Investor(years_until_donate=10)
+        return (investor,default_market,num_trials,outdir_name + "\yrs10")
     else:
-        YEARS = 30
-    MU = .054
-    SIGMA = .22
-    INTEREST_RATE = .015
-    INFLATION_RATE = .03
-    USE_VIX_DATA = False
-    STARTING_ANNUAL_INCOME = 30000
-    INCOME_GROWTH_PERCENT = 2
-    MATCH_FOR_401K = 50
-    SHORT_TERM_CAP_GAINS = .28
-    LONG_TERM_CAP_GAINS = .15
-    STATE_INCOME_TAX = .05
-    REBALANCE_MONTHLY_TO_INCREASE_LEVERAGE = False
-    PAY_PRINCIPAL_THROUGHOUT = True
-    MAX_MARGIN_TO_ASSETS_RATIO = .5
-    MONTHLY_PROBABILITY_OF_LAYOFF = .01
-    MONTHLY_PROBABILITY_FIND_WORK_AFTER_LAID_OFF = .2
-    #NUM_TRIALS = 1000
-    NUM_TRIALS = 2
-    VERBOSITY = 1
+        raise Exception(scenario_name + " is not a known scenario type.")
 
-    tax_rates = TaxRates.TaxRates(SHORT_TERM_CAP_GAINS,LONG_TERM_CAP_GAINS,STATE_INCOME_TAX)
+def sweep_scenarios(use_multiprocessing, quick_test=True):
+    if quick_test:
+        NUM_TRIALS = 2
+    else:
+        NUM_TRIALS = 1000
 
-    print "\n\n\nDefault scenario"
-    investor = Investor.Investor(YEARS, STARTING_ANNUAL_INCOME, 
-                                    INCOME_GROWTH_PERCENT, MATCH_FOR_401K, 
-                                    tax_rates, REBALANCE_MONTHLY_TO_INCREASE_LEVERAGE, 
-                                    PAY_PRINCIPAL_THROUGHOUT, MAX_MARGIN_TO_ASSETS_RATIO, 
-                                    MONTHLY_PROBABILITY_OF_LAYOFF, MONTHLY_PROBABILITY_FIND_WORK_AFTER_LAID_OFF)
-    market = Market.Market(MU,SIGMA,INTEREST_RATE,INFLATION_RATE,USE_VIX_DATA)
-    Process(target=run_samples, 
-            args=(investor,market,VERBOSITY,
-                  NUM_TRIALS,"out\default_{}".format(QUICK_TEST))).start()
+    outdir_name = util.create_timestamped_dir("swp") # concise way of writing "sweep scenarios"
 
-    print "\n\n\nRebalance to increase leverage"
-    investor = Investor.Investor(YEARS, STARTING_ANNUAL_INCOME, 
-                                    INCOME_GROWTH_PERCENT, MATCH_FOR_401K, 
-                                    tax_rates, True, 
-                                    False, MAX_MARGIN_TO_ASSETS_RATIO, 
-                                    MONTHLY_PROBABILITY_OF_LAYOFF, MONTHLY_PROBABILITY_FIND_WORK_AFTER_LAID_OFF)
-    market = Market.Market(MU,SIGMA,INTEREST_RATE,INFLATION_RATE,USE_VIX_DATA)
-    Process(target=run_samples, 
-            args=(investor,market,VERBOSITY,
-                  NUM_TRIALS,"out\inclev_{}".format(QUICK_TEST))).start()
+    # Scenarios
+    scenarios_to_run = ["Rebalance to increase leverage", 
+                        "Default", "Use VIX data", 
+                        "Don't pay principal until end", 
+                        "Annual sigma = .4", "Annual mu = .07", 
+                        "Annual margin interest rate = .03", 
+                        "Donate after 10 years"]
 
-    print "\n\n\nUse VIX data"
-    investor = Investor.Investor(YEARS, STARTING_ANNUAL_INCOME, 
-                                    INCOME_GROWTH_PERCENT, MATCH_FOR_401K, 
-                                    tax_rates, REBALANCE_MONTHLY_TO_INCREASE_LEVERAGE, 
-                                    PAY_PRINCIPAL_THROUGHOUT, MAX_MARGIN_TO_ASSETS_RATIO, 
-                                    MONTHLY_PROBABILITY_OF_LAYOFF, MONTHLY_PROBABILITY_FIND_WORK_AFTER_LAID_OFF)
-    market = Market.Market(MU,SIGMA,INTEREST_RATE,INFLATION_RATE,True)
-    Process(target=run_samples, 
-            args=(investor,market,VERBOSITY,
-                  NUM_TRIALS,"out\VIX_{}".format(QUICK_TEST))).start()
+    # Run scenarios
+    processes = []
+    for scenario in scenarios_to_run:
+        print "\n\n" + scenario
+        p = Process(target=run_samples,
+                    args=args_for_this_scenario(scenario,NUM_TRIALS,outdir_name))
+        p.start()
+        if not use_multiprocessing:
+            p.join()
+        processes.append(p)
 
-    print "\n\n\nDon't pay principal until end"
-    investor = Investor.Investor(YEARS, STARTING_ANNUAL_INCOME, 
-                                    INCOME_GROWTH_PERCENT, MATCH_FOR_401K, 
-                                    tax_rates, REBALANCE_MONTHLY_TO_INCREASE_LEVERAGE, 
-                                    False, MAX_MARGIN_TO_ASSETS_RATIO, 
-                                    MONTHLY_PROBABILITY_OF_LAYOFF, MONTHLY_PROBABILITY_FIND_WORK_AFTER_LAID_OFF)
-    market = Market.Market(MU,SIGMA,INTEREST_RATE,INFLATION_RATE,USE_VIX_DATA)
-    Process(target=run_samples, 
-            args=(investor,market,VERBOSITY,
-                  NUM_TRIALS,"out\princ_end_{}".format(QUICK_TEST))).start()
+    # Wait for all processes to finish
+    for process in processes:
+        process.join()
 
-    print "\n\n\ntesting 3X leverage"
-    investor = Investor.Investor(YEARS, STARTING_ANNUAL_INCOME, 
-                                    INCOME_GROWTH_PERCENT, MATCH_FOR_401K, 
-                                    tax_rates, REBALANCE_MONTHLY_TO_INCREASE_LEVERAGE, 
-                                    PAY_PRINCIPAL_THROUGHOUT, .67, 
-                                    MONTHLY_PROBABILITY_OF_LAYOFF, MONTHLY_PROBABILITY_FIND_WORK_AFTER_LAID_OFF)
-    market = Market.Market(MU,SIGMA,INTEREST_RATE,INFLATION_RATE,USE_VIX_DATA)
-    Process(target=run_samples, 
-            args=(investor,market,VERBOSITY,
-                  NUM_TRIALS,"out\lev=3X_{}".format(QUICK_TEST))).start()
+def get_performance_vs_leverage_amount(use_multiprocessing, quick_test=True):
+    if quick_test:
+        NUM_TRIALS = 100#2
+    else:
+        NUM_TRIALS = 1000
 
-    print "\n\n\ntesting sigma"
-    investor = Investor.Investor(YEARS, STARTING_ANNUAL_INCOME, 
-                                    INCOME_GROWTH_PERCENT, MATCH_FOR_401K, 
-                                    tax_rates, REBALANCE_MONTHLY_TO_INCREASE_LEVERAGE, 
-                                    PAY_PRINCIPAL_THROUGHOUT, MAX_MARGIN_TO_ASSETS_RATIO, 
-                                    MONTHLY_PROBABILITY_OF_LAYOFF, MONTHLY_PROBABILITY_FIND_WORK_AFTER_LAID_OFF)
-    market = Market.Market(MU,.4,INTEREST_RATE,INFLATION_RATE,USE_VIX_DATA)
-    Process(target=run_samples, 
-            args=(investor,market,VERBOSITY,
-                  NUM_TRIALS,"out\sig4_{}".format(QUICK_TEST))).start()
+    output_queue = Queue() # multiprocessing queue
+    outdir_name = util.create_timestamped_dir("lev") # concise way of writing "test leverage amounts"
+    
+    RANGE_START = 1.0
+    RANGE_STOP = 4.0
+    STEP_SIZE = .25
+    num_steps = int((RANGE_STOP-RANGE_START)/STEP_SIZE)+1
+    processes = []
+    for N_to_1_leverage in numpy.linspace(RANGE_START, RANGE_STOP, num_steps):
+        max_margin_to_assets = util.N_to_1_leverage_to_max_margin_to_assets_ratio(N_to_1_leverage)
+        print "\n\n\nRebalance to increase leverage, max margin-to-assets ratio = ", max_margin_to_assets
+        investor = Investor.Investor(rebalance_monthly_to_increase_leverage=True, 
+                                     pay_principal_throughout=False, 
+                                     broker_max_margin_to_assets_ratio=max_margin_to_assets)
+        market = Market.Market()
+        max_margin_to_assets_without_decimal = int(max_margin_to_assets * 100)
+        p = Process(target=run_samples, 
+                args=(investor,market,NUM_TRIALS,
+                      outdir_name + "\inclev{}".format(max_margin_to_assets_without_decimal),
+                      output_queue))
+        p.start()
+        if not use_multiprocessing:
+            p.join()
+        processes.append(p)
+    
+    # Wait for all processes to finish
+    for process in processes:
+        process.join()
 
-    print "\n\n\ntesting mu"
-    investor = Investor.Investor(YEARS, STARTING_ANNUAL_INCOME, 
-                                    INCOME_GROWTH_PERCENT, MATCH_FOR_401K, 
-                                    tax_rates, REBALANCE_MONTHLY_TO_INCREASE_LEVERAGE, 
-                                    PAY_PRINCIPAL_THROUGHOUT, MAX_MARGIN_TO_ASSETS_RATIO, 
-                                    MONTHLY_PROBABILITY_OF_LAYOFF, MONTHLY_PROBABILITY_FIND_WORK_AFTER_LAID_OFF)
-    market = Market.Market(.07,SIGMA,INTEREST_RATE,INFLATION_RATE,USE_VIX_DATA)
-    Process(target=run_samples, 
-            args=(investor,market,VERBOSITY,
-                  NUM_TRIALS,"out\mu07_{}".format(QUICK_TEST))).start()
+    # Once they're done, plot them
+    plots.graph_trends_vs_leverage_amount(output_queue, outdir_name)
 
-    print "\n\n\ntesting interest rate"
-    investor = Investor.Investor(YEARS, STARTING_ANNUAL_INCOME, 
-                                    INCOME_GROWTH_PERCENT, MATCH_FOR_401K, 
-                                    tax_rates, REBALANCE_MONTHLY_TO_INCREASE_LEVERAGE, 
-                                    PAY_PRINCIPAL_THROUGHOUT, MAX_MARGIN_TO_ASSETS_RATIO, 
-                                    MONTHLY_PROBABILITY_OF_LAYOFF, MONTHLY_PROBABILITY_FIND_WORK_AFTER_LAID_OFF)
-    market = Market.Market(MU,SIGMA,.03,INFLATION_RATE,USE_VIX_DATA)
-    Process(target=run_samples, 
-            args=(investor,market,VERBOSITY,
-                  NUM_TRIALS,"out\int_r03_{}".format(QUICK_TEST))).start()
-
-    print "\n\n\ntesting 10 years"
-    investor = Investor.Investor(10, STARTING_ANNUAL_INCOME, 
-                                    INCOME_GROWTH_PERCENT, MATCH_FOR_401K, 
-                                    tax_rates, REBALANCE_MONTHLY_TO_INCREASE_LEVERAGE, 
-                                    PAY_PRINCIPAL_THROUGHOUT, MAX_MARGIN_TO_ASSETS_RATIO, 
-                                    MONTHLY_PROBABILITY_OF_LAYOFF, MONTHLY_PROBABILITY_FIND_WORK_AFTER_LAID_OFF)
-    market = Market.Market(MU,SIGMA,INTEREST_RATE,INFLATION_RATE,USE_VIX_DATA)
-    Process(target=run_samples, 
-            args=(investor,market,VERBOSITY,
-                  NUM_TRIALS,"out\yrs=10_{}".format(QUICK_TEST))).start()
-
-    print "\n\n\nBroker max margin-to-assets = .75"
-    investor = Investor.Investor(YEARS, STARTING_ANNUAL_INCOME, 
-                                    INCOME_GROWTH_PERCENT, MATCH_FOR_401K, 
-                                    tax_rates, REBALANCE_MONTHLY_TO_INCREASE_LEVERAGE, 
-                                    PAY_PRINCIPAL_THROUGHOUT, .75, 
-                                    MONTHLY_PROBABILITY_OF_LAYOFF, MONTHLY_PROBABILITY_FIND_WORK_AFTER_LAID_OFF)
-    market = Market.Market(MU,SIGMA,INTEREST_RATE,INFLATION_RATE,USE_VIX_DATA)
-    Process(target=run_samples, 
-            args=(investor,market,VERBOSITY,
-                  NUM_TRIALS,"out\lev75_{}".format(QUICK_TEST))).start()
-
-    print "\n\n\nBroker max margin-to-assets = .9"
-    investor = Investor.Investor(YEARS, STARTING_ANNUAL_INCOME, 
-                                    INCOME_GROWTH_PERCENT, MATCH_FOR_401K, 
-                                    tax_rates, REBALANCE_MONTHLY_TO_INCREASE_LEVERAGE, 
-                                    PAY_PRINCIPAL_THROUGHOUT, .9, 
-                                    MONTHLY_PROBABILITY_OF_LAYOFF, MONTHLY_PROBABILITY_FIND_WORK_AFTER_LAID_OFF)
-    market = Market.Market(MU,SIGMA,INTEREST_RATE,INFLATION_RATE,USE_VIX_DATA)
-    Process(target=run_samples, 
-            args=(investor,market,VERBOSITY,
-                  NUM_TRIALS,"out\lev90_{}".format(QUICK_TEST))).start()
+def run_one_variant():
+    outdir_name = util.create_timestamped_dir("one") # concise way of writing "one variant"
+    num_trials = 10#2
+    scenario = "Default"#"Rebalance to increase leverage"
+    args = args_for_this_scenario(scenario, num_trials, outdir_name)
+    run_samples(*args)
 
 if __name__ == "__main__":
-    DO_SWEEP = True
-    if DO_SWEEP:
-        sweep_scenarios()
-    else:
-        tax_rates = TaxRates.TaxRates(.28, .15, .05)
-        investor = Investor.Investor(1, 30000, 2, 50, tax_rates, False, True, .67, .01, .2)
-        market = Market.Market(.054,.22,.015,.03,True)
-        run_samples(investor,market,1,1000,None)
+    #sweep_scenarios(True,quick_test=True)
+    get_performance_vs_leverage_amount(True,quick_test=True)
+    #run_one_variant()

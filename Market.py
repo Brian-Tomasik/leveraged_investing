@@ -6,8 +6,8 @@ TRADING_DAYS_PER_YEAR = 252
 class Market(object):
     """Parameters about the behavior of the stock market and interest rates"""
 
-    def __init__(self, annual_mu, annual_sigma, annual_margin_interest_rate,
-                 inflation_rate, use_VIX_data_for_volatility):
+    def __init__(self, annual_mu=.054, annual_sigma=.22, annual_margin_interest_rate=.015,
+                 inflation_rate=.03, use_VIX_data_for_volatility=False):
         self.annual_mu = annual_mu
         self.annual_sigma = annual_sigma
         self.annual_margin_interest_rate = annual_margin_interest_rate

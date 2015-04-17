@@ -1,13 +1,14 @@
 import random
+import TaxRates
 
 class Investor(object):
     """Store parameters about how an investor behaves"""
 
-    def __init__(self, years_until_donate, initial_annual_income_for_investing, 
-                 annual_real_income_growth_percent, match_percent_from_401k,
-                 tax_rates, rebalance_monthly_to_increase_leverage, 
-                 pay_principal_throughout, broker_max_margin_to_assets_ratio,
-                 monthly_probability_of_layoff, monthly_probability_find_work_after_laid_off):
+    def __init__(self, years_until_donate=30, initial_annual_income_for_investing=30000, 
+                 annual_real_income_growth_percent=2, match_percent_from_401k=50,
+                 tax_rates=TaxRates.TaxRates(), rebalance_monthly_to_increase_leverage=False, 
+                 pay_principal_throughout=True, broker_max_margin_to_assets_ratio=.5,
+                 monthly_probability_of_layoff=.01, monthly_probability_find_work_after_laid_off=.2):
         self.years_until_donate = years_until_donate
         self.initial_annual_income_for_investing = initial_annual_income_for_investing
         self.annual_real_income_growth_percent = annual_real_income_growth_percent

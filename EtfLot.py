@@ -6,10 +6,10 @@ class EtfLot(object):
     for determining capital gains. Note that (http://www.investopedia.com/terms/l/lot.asp):
     'In terms of stocks, the lot is the number of shares you purchase in one transaction.'"""
 
-    def __init__(self, purchase_price, purchase_day):
-        self.__purchase_price = purchase_price
+    def __init__(self, purchase_price, fee_per_dollar_traded, purchase_day):
+        self.__purchase_price = purchase_price * (1-fee_per_dollar_traded)
         self.__purchase_day = purchase_day
-        self.__current_price = purchase_price
+        self.__current_price = self.__purchase_price
 
     @property
     def current_price(self):
@@ -19,28 +19,46 @@ class EtfLot(object):
         #self.__current_price *= (1+rate_of_return)
         self.__current_price *= math.exp(rate_of_return) # this is the technically correct way to update returns in a lognormal model, c.f.: http://www.columbia.edu/~ks20/FE-Notes/4700-07-Notes-GBM.pdf
 
-    def capital_gains_tax(self, day, tax_rates):
-        """What's the fraction of capital-gains tax paid per dollar of the lot that's sold?"""
-        capital_gain = self.__current_price - self.__purchase_price
-        if (day - self.__purchase_day) / DAYS_PER_YEAR > 1:
-            return (capital_gain * (tax_rates.long_term_cap_gains_rate+tax_rates.state_income_tax)) / self.__current_price
-        else:
-            return (capital_gain * (tax_rates.short_term_cap_gains_rate+tax_rates.state_income_tax)) / self.__current_price
+    def __capital_gain(self):
+        return self.__current_price - self.__purchase_price
 
-    def sell(self, cash_still_need_to_get, day, tax_rates):
-        """We want to take out some amount A of after-tax cash. If the tax rate
-        is T, that means we want to sell some amount S such that S(1-T) = A, i.e.,
-        S = A/(1-T). If S exceeds the amount of money in the lot, sell the whole lot
-        and return how much more cash still needs to be gotten."""
-        tax_rate = self.capital_gains_tax(day, tax_rates)
-        after_tax_value_of_this_security = (1-tax_rate) * self.__current_price
-        if after_tax_value_of_this_security > cash_still_need_to_get:
-            self.__current_price -= cash_still_need_to_get / (1-tax_rate) # this is how much we need to sell to get an after-tax payout of cash_still_need_to_get
+    def capital_gains_tax_rate(self, day, tax_rates):
+        """What's the fraction of capital-gains tax paid per dollar of the lot that's sold?"""
+        if (day - self.__purchase_day) / DAYS_PER_YEAR >= 1:
+            return ((self.__capital_gain() * (tax_rates.long_term_cap_gains_rate_plus_state())) / self.__current_price, "longterm")
+        else:
+            return ((self.__capital_gain() * (tax_rates.short_term_cap_gains_rate_plus_state())) / self.__current_price, "shortterm")
+
+    def sell(self, cash_still_need_to_get, fee_per_dollar_traded, day, taxes):
+        """Sell some or all of the lot to get needed $."""
+        (tax_rate, long_or_short) = self.capital_gains_tax_rate(day, taxes.tax_rates)
+        after_fee_value_of_lot = self.__current_price * (1-fee_per_dollar_traded)
+        if after_fee_value_of_lot > cash_still_need_to_get:
+            amount_to_sell = cash_still_need_to_get / (1-fee_per_dollar_traded) # selling this amount leaves us with an after-fee amount of cash_still_need_to_get
+            self.__current_price -= amount_to_sell
+            fraction_of_total_cap_gain_incurred = self.__capital_gain() * amount_to_sell / self.__current_price
+            self.__record_cap_gains(taxes, long_or_short, fraction_of_total_cap_gain_incurred)
             return (0, False) # tells the caller: (no more cash is needed, this lot is not empty)
         else: # sell the whole security
-            cash_still_needed_now = cash_still_need_to_get - after_tax_value_of_this_security
+            self.__record_cap_gains(taxes, long_or_short, self.__capital_gain())
+            cash_still_needed_now = cash_still_need_to_get - after_fee_value_of_lot
             self.__current_price = 0
             return (cash_still_needed_now, True) # tells the caller: (how much more cash is needed, this lot is empty)
+
+    def harvest(self, fee_per_dollar_traded, day, taxes):
+        """Sell the whole lot for tax-loss harvesting."""
+        (tax_rate, long_or_short) = self.capital_gains_tax_rate(day, taxes.tax_rates)
+        after_fee_value_of_lot = self.__current_price * (1-fee_per_dollar_traded)
+        self.__record_cap_gains(taxes, long_or_short, self.__capital_gain())
+        return after_fee_value_of_lot
+
+    def __record_cap_gains(self, taxes, long_or_short, amount_to_add):
+        if long_or_short == "longterm":
+            taxes.add_long_term_cap_gains(amount_to_add)
+        elif long_or_short == "shortterm":
+            taxes.add_short_term_cap_gains(amount_to_add)
+        else:
+            raise Exception("long_or_short doesn't match possible cases")
 
     def __repr__(self):
         return '{}: Purchased at {}, currently at {}'.format(self.__class__.__name__,

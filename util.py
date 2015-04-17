@@ -1,4 +1,29 @@
+from datetime import datetime
+import os
 import numpy
+
+def create_timestamped_dir(prefix):
+    # Create directory for results stamped with date/time to make it unique
+    timestamp = datetime.now().strftime('%d_%H_%M')
+    outdir_name = prefix + "_" + timestamp
+    os.mkdir(outdir_name) # let it fail if dir already exists
+    return outdir_name
+
+def N_to_1_leverage_to_max_margin_to_assets_ratio(N_to_1_leverage):
+    """
+    Record our leverage amount in N:1 terms. 2:1 leverage means up to half
+    of the assets can be loaned. 3:1 means up to 2/3 of them can be. So
+    N:1 leverage means the max margin-to-assets ratio R is (N-1)/N.
+    """
+    return (N_to_1_leverage-1)/float(N_to_1_leverage)
+
+def max_margin_to_assets_ratio_to_N_to_1_leverage(max_margin_to_assets_ratio):
+    """
+    Reverse the equation used for N_to_1_leverage_to_max_margin_to_assets_ratio .
+    In particular:  R = (N-1)/N  ==>  RN = N-1  ==>  1 = N - RN
+    ==>  1 = N(1-R)  ==>  N = 1/(1-R)
+    """
+    return 1/(1-max_margin_to_assets_ratio)
 
 def abs_fractional_difference(num1, num2):
     return abs((float(num1) - num2)/num2)
