@@ -1,6 +1,7 @@
 from datetime import datetime
 import os
 import numpy
+import math
 
 def create_timestamped_dir(prefix):
     # Create directory for results stamped with date/time to make it unique
@@ -24,6 +25,27 @@ def max_margin_to_assets_ratio_to_N_to_1_leverage(max_margin_to_assets_ratio):
     ==>  1 = N(1-R)  ==>  N = 1/(1-R)
     """
     return 1/(1-max_margin_to_assets_ratio)
+
+def stderr(numpy_array):
+    return numpy.std(numpy_array) / math.sqrt(len(numpy_array))
+
+def ratio_of_means_with_error_bars(numpy_array1, numpy_array2):
+    """Take two arrays and compute (mean of first)/(mean of second)
+    as well as the appropriate error bars for this ratio."""
+    mean1 = numpy.mean(numpy_array1)
+    mean2 = numpy.mean(numpy_array2)
+    stderr1 = stderr(numpy_array1)
+    stderr2 = stderr(numpy_array2)
+    """
+    "Uncertainties and Error Propagation - Part I of a manual on 
+    Uncertainties, Graphing, and the Vernier Caliper" by Vern Lindberg
+    http://www.rit.edu/cos/uphysics/uncertainties/Uncertaintiespart2.html says
+    if z = x/y, then using standard deviations (and I'll assume, standard errors):
+        error(z)/z = sqrt( (error(x)/x)^2 + (error(y)/y)^2 )
+    """
+    ratio = mean1/mean2
+    error_in_ratio = ratio * math.sqrt( (stderr1/mean1)**2 + (stderr2/mean2)**2 )
+    return (ratio, error_in_ratio)
 
 def abs_fractional_difference(num1, num2):
     return abs((float(num1) - num2)/num2)

@@ -6,11 +6,19 @@ TRADING_DAYS_PER_YEAR = 252
 class Market(object):
     """Parameters about the behavior of the stock market and interest rates"""
 
-    def __init__(self, annual_mu=.054, annual_sigma=.22, annual_margin_interest_rate=.015,
+    def __init__(self, annual_mu=.054, annual_sigma=.22, annual_margin_interest_rate=.03,
                  inflation_rate=.03, use_VIX_data_for_volatility=False):
         self.annual_mu = annual_mu
         self.annual_sigma = annual_sigma
         self.annual_margin_interest_rate = annual_margin_interest_rate
+        """Current margin interest rates are extremely low, such that Interactive Brokers
+        offers ~1.5%. But interest rates in general are extremely low in 2015, and this
+        isn't true historically: http://www.fedprimerate.com/libor/libor_rates_history.htm
+        3% seems like a more reasonable average over the past 10-15 years. Long-run margin
+        interest rates are what matter for long-run margin-investing plans. As a result,
+        the default settings of this program will be overly conservative for short-term
+        margin investing."""
+
         self.__inflation_rate = inflation_rate
         self.__use_VIX_data_for_volatility = use_VIX_data_for_volatility
         self.__VIX_data = None

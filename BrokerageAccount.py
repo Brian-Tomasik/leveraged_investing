@@ -1,13 +1,25 @@
 import Assets
 
-EPSILON = .0001
+EPSILON = .001 # give some wiggle room for inexact calculations, such as might result from not counting trading fees and stuff
 MIN_ADDITIONAL_PURCHASE_AMOUNT = 500
-FEE_PER_DOLLAR_TRADED = .000035
+
+INTERACTIVE_BROKERS_TRADING_FEE_PER_DOLLAR = .000035
 """Trading fees for Interactive Brokers are $.0035 per share
 (https://www.interactivebrokers.com/en/index.php?f=commission&p=stocks2)
 and currently, SPY is trading at over $200/share (http://finance.yahoo.com/q?s=SPY).
 Suppose for the sake of conservatism that SPY were $100/share. Then buying/selling
 $1 of SPY would be .01 shares and hence would cost $.000035 in broker fees."""
+
+BID_ASK_EFFECTIVE_FEE_PER_DOLLAR = .0001/2
+"""For SPY, the bid-ask spread is about .01% or .0001, according to
+http://www.morningstar.com/etfs/ARCX/SPY/quote.html
+As an example, suppose you buy $10,000 worth of SPY. You then turn it around and
+sell it at $9,999, given the bid-ask spread. During the round trip between buying
+and selling, you lost $1. In other words, the effective "fee" per dollar of transactions
+was $1 / ($10,000 + $9,999), which is basically .0001/2"""
+
+FEE_PER_DOLLAR_TRADED = INTERACTIVE_BROKERS_TRADING_FEE_PER_DOLLAR + BID_ASK_EFFECTIVE_FEE_PER_DOLLAR
+
 
 class BrokerageAccount(object):
     """Store parameters about how an investor's brokerage account"""
@@ -69,13 +81,53 @@ class BrokerageAccount(object):
 
     def voluntary_rebalance(self, day, taxes):
         """Restore our voluntarily self-imposed max margin-to-assets ratio."""
-        self.rebalance(day, taxes, self.__personal_max_margin_to_assets_ratio)
+        self.rebalance(day, taxes, self.__personal_max_margin_to_assets_ratio, True)
 
-    def mandatory_rebalance(self, day, taxes):
-        """Restore our broker-required max margin-to-assets ratio."""
-        self.rebalance(day, taxes, self.__broker_max_margin_to_assets_ratio)
+    def mandatory_rebalance(self, day, taxes, 
+                            does_broker_liquidation_sell_tax_favored_first):
+        """Restore our broker-required max margin-to-assets ratio.
+        
+        Interactive Brokers (IB) has a page that shows an example of how their
+        margin requirements work:
+        https://www.interactivebrokers.com/en/index.php?f=margin&p=overview3
+        I'll show that it's equivalent to the method I'm using in this simulation,
+        keeping in mind that my simulationd doesn't distinguish initial vs. 
+        maintainence margin. Note that I'm also not considering 
+        Special Memorandum Account (SMA) regulations yet....
 
-    def rebalance(self, day, taxes, max_margin_to_assets_ratio):
+        Translating IB terminology to mine:
+        IB's Securities Market Value == self.assets
+        IB's negative values of Cash == positive values of self.margin
+        IB's Equity with Loan Value (ELV) == self.assets - self.margin
+        IB talks about margin requirements opposite to how I do. I talk about maximum
+            allowed margin-to-asset ratios, while IB talks about minimum allowed
+            (asset-margin)/asset ratios. For example, when talking about 4X leverage,
+            a person might have assets = 4, margin = 3. So I would say that's a 
+            max margin-to-assets ratio of .75, while IB would say it's a ratio of .25.
+            Maintaining margin/assets <= R  is equivalent to maintaining 
+            -margin/assets >= -R, which is equivalent to maintaining 
+            1-(margin/assets) >= 1-R, i.e., (assets-margin)/assets >= 1-R.
+        IB Initial Margin (IM) and Maintenance Margin (MM) are equal in my simulation
+            because I'm not distinguishing IM vs. MM amounts. Just call them M. IB says
+            that for 4X leverage, M = .25 * assets. Hence, a requirement to maintain
+            (assets-margin)/assets >= .25 means a requirement to maintain 
+            (assets-margin) >= .25 * assets, i.e., to maintain (assets-margin) >= M.
+        IB's Available Funds and Excess Liquidity are (for IM==MM) defined as ELV - M. In
+            my terminology, that's (assets-margin) - (threshold for assets-margin). In other
+            words, ELV - M >= 0  <==>  ELV >= M  <==>  assets-margin >= M. So maintaining
+            Excess Liquidity >= 0 is equivalent to imposing the margin requirement on the 
+            account in the way that I do.
+        If I were writing this code over again from scratch, I probably would have used
+        IB's terminology so that my wording would have been more standard.
+                
+        In another section ("Example: How Much Stock Do We Liquidate?") of the above-linked page,
+        IB explains how they liquidate at least exactly enough funds to keep
+        the account exactly in line with its margin requirements, which is the same thing I've done here.
+        """
+        self.rebalance(day, taxes, self.__broker_max_margin_to_assets_ratio, 
+                       does_broker_liquidation_sell_tax_favored_first)
+
+    def rebalance(self, day, taxes, max_margin_to_assets_ratio, sell_best_for_taxes_first):
         """Restore us to a margin-to-assets ratio R within the limit (say, .5). Our 
         current margin amount is M and assets amount is A. We need to sell
         some assets to pay off some debt. To do this, we sell some amount S
@@ -89,8 +141,15 @@ class BrokerageAccount(object):
             # there can be tax breaks from selling losses (which I unrealistically
             # but for simplicity assume are taken immediately rather than at 
             # tax time next year)
-            self.__assets.sell(amount_of_cash_needed, FEE_PER_DOLLAR_TRADED, day, taxes)
+            self.__assets.sell(amount_of_cash_needed, FEE_PER_DOLLAR_TRADED, day, taxes, 
+                               sell_best_for_taxes_first)
             self.margin -= amount_of_cash_needed
+            if self.margin_to_assets(taxes) > (1+EPSILON) * max_margin_to_assets_ratio:
+                print "violation"
+                print day
+                print self.margin
+                print self.assets
+                print self.margin_to_assets(taxes)
             assert self.margin_to_assets(taxes) <= (1+EPSILON) * max_margin_to_assets_ratio
 
     def buy_ETF_at_fixed_ratio(self, money_on_hand, day):
@@ -133,5 +192,5 @@ class BrokerageAccount(object):
 
     def pay_off_all_margin(self, day, taxes):
         assert self.assets >= self.margin, "More debt than equity!"
-        self.__assets.sell(self.margin, FEE_PER_DOLLAR_TRADED, day, taxes)
+        self.__assets.sell(self.margin, FEE_PER_DOLLAR_TRADED, day, taxes, True)
         self.margin = 0

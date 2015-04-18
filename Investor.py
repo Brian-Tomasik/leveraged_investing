@@ -7,8 +7,9 @@ class Investor(object):
     def __init__(self, years_until_donate=30, initial_annual_income_for_investing=30000, 
                  annual_real_income_growth_percent=2, match_percent_from_401k=50,
                  tax_rates=TaxRates.TaxRates(), rebalance_monthly_to_increase_leverage=False, 
-                 pay_principal_throughout=True, broker_max_margin_to_assets_ratio=.5,
-                 monthly_probability_of_layoff=.01, monthly_probability_find_work_after_laid_off=.2):
+                 pay_principal_throughout=False, broker_max_margin_to_assets_ratio=.5,
+                 monthly_probability_of_layoff=.01, monthly_probability_find_work_after_laid_off=.2,
+                 does_broker_liquidation_sell_tax_favored_first=False, do_tax_loss_harvesting=True):
         self.years_until_donate = years_until_donate
         self.initial_annual_income_for_investing = initial_annual_income_for_investing
         self.annual_real_income_growth_percent = annual_real_income_growth_percent
@@ -24,6 +25,8 @@ class Investor(object):
         self.__monthly_probability_of_layoff = monthly_probability_of_layoff
         self.__monthly_probability_find_work_after_laid_off = monthly_probability_find_work_after_laid_off
         self.__num_times_laid_off = 0
+        self.__does_broker_liquidation_sell_tax_favored_first = does_broker_liquidation_sell_tax_favored_first
+        self.__do_tax_loss_harvesting = do_tax_loss_harvesting
 
     @property
     def years_until_donate(self):
@@ -80,6 +83,14 @@ class Investor(object):
     @laid_off.setter
     def laid_off(self, val):
         self.__laid_off = val
+
+    @property
+    def does_broker_liquidation_sell_tax_favored_first(self):
+        return self.__does_broker_liquidation_sell_tax_favored_first
+
+    @property
+    def do_tax_loss_harvesting(self):
+        return self.__do_tax_loss_harvesting
 
     def current_annual_income(self, years_elapsed, inflation_rate):
         if self.__laid_off:

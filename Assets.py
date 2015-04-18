@@ -1,4 +1,5 @@
 import operator
+import random
 import EtfLot
 
 class Assets(object):
@@ -21,18 +22,24 @@ class Assets(object):
             lot.update_price(rate_of_return)
 
     def __get_sorted_tax_rates_and_lots(self, day, taxes):
+        """Sort lots by most-tax-advantaged-to-sell first"""
         list_to_sort = [(lot.capital_gains_tax_rate(day, taxes.tax_rates), lot) for lot in self.__lots_list]
         list_to_sort.sort(key=operator.itemgetter(0))
         return list_to_sort
 
-    def sell(self, amount_of_net_cash_to_get_back, fee_per_dollar_traded, day, taxes):
-        """Sort lots according to which ones, if sold, incur least capital-gains tax.
+    def sell(self, amount_of_net_cash_to_get_back, fee_per_dollar_traded, day, taxes, 
+             sell_best_for_taxes_first):
+        """If sell_best_for_taxes_first is True, sort lots according to which ones, 
+        if sold, incur least capital-gains tax. Otherwise sort randomly.
         Since we're paying taxes, in order to get C dollars of after-tax cash back, we need 
         to sell more than C of actual ETFs."""
-        # Sort to put ETFs that would incur lowest capital-gains taxes first.
-        # Use decorate-sort-undecorate pattern because too complicated to use
-        # the capital_gains_tax function as a sort key.
-        self.__lots_list = [lot for tax, lot in self.__get_sorted_tax_rates_and_lots(day, taxes)]
+        if sell_best_for_taxes_first:
+            # Sort to put ETFs that would incur lowest capital-gains taxes first.
+            # Use decorate-sort-undecorate pattern because too complicated to use
+            # the capital_gains_tax function as a sort key.
+            self.__lots_list = [lot for tax, lot in self.__get_sorted_tax_rates_and_lots(day, taxes)]
+        else:
+            random.shuffle(self.__lots_list)
 
         # get cash
         cash_still_need_to_get = amount_of_net_cash_to_get_back

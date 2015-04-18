@@ -34,15 +34,19 @@ def write_winner_for_each_percentile(account_values, outfile):
 
 def write_file_table(account_values, account_types, outfile):
     outfile.write("<table>\n")
-    outfile.write("""<tr><td><i>Type</i></td> <td><i>Mean</i></td> <td><i>Median</i></td> <td><i>Min</i></td> <td><i>Max</i></td> <td><i>E[&radic;(wealth)]</i></td> <td><i>&sigma;<sub>log(wealth)</sub></i></td> </tr>\n""");
+    outfile.write("""<tr><td><i>Type</i></td> <td><i>Mean +/- stderr</i></td> <td><i>Median</i></td> <td><i>Min</i></td> <td><i>Max</i></td> <td><i>E[&radic;(wealth)] +/- stderr</i></td> <td><i>&sigma;<sub>log(wealth)</sub></i></td> </tr>\n""");
     for type in account_types:
         numpy_values = numpy.array(account_values[type])
         log_values = map(math.log, numpy_values+1) # The +1 here is so that the log() value will be at least 0
-        outfile.write("<tr><td><i>{}</i></td> <td>${:,}</td> <td>${:,}</td> <td>${:,}</td> <td>${:,}</td> <td>{:,}</td> <td>{:.2f}</td></tr>\n".format( 
+        sqrt_values = map(math.sqrt, numpy_values)
+        outfile.write("<tr><td><i>{}</i></td> <td>${:,} +/- ${:,}</td> <td>${:,}</td> <td>${:,}</td> <td>${:,}</td> <td>{:,} +/- {:,}</td> <td>{:.2f}</td></tr>\n".format( 
             return_pretty_name_for_type(type), 
-            int(numpy.mean(numpy_values)) , int(numpy.median(numpy_values)) , 
-            int(util.percentile(account_values[type], 0)) , int(util.percentile(account_values[type], 1)) ,
-            int(numpy.mean(map(math.sqrt, numpy_values))), numpy.std(log_values) ))
+            int(numpy.mean(numpy_values)) , int(util.stderr(numpy_values)), 
+            int(numpy.median(numpy_values)) , 
+            int(util.percentile(account_values[type], 0)) , 
+            int(util.percentile(account_values[type], 1)) ,
+            int(numpy.mean(sqrt_values)), int(util.stderr(sqrt_values)), 
+            numpy.std(log_values) ))
     outfile.write("</table>")
     outfile.write("\nMargin is better than regular {}% of the time.".format(int(100 * util.probability_x_better_than_y(account_values["margin"],account_values["regular"]))))
 

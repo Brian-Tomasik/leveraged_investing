@@ -80,7 +80,10 @@ def graph_trends_vs_leverage_amount(output_queue, outdir_name):
 
     # Get the axes
     attributes = dict()
-    KEYS = ["Ns", "(Mean wealth margin)/(Mean wealth regular)", "(Median wealth margin)/(Median wealth regular)", "(Expected utility margin)/(Expected utility regular)"]
+    KEYS = ["Ns", "(Mean wealth margin)/(Mean wealth regular)", 
+            "Error in means ratio", "(Median wealth margin)/(Median wealth regular)", 
+            "(Expected utility margin)/(Expected utility regular)", 
+            "Error in exp-util ratio"]
     for key in KEYS:
         attributes[key] = []
     for tuple in output_tuples:
@@ -90,10 +93,42 @@ def graph_trends_vs_leverage_amount(output_queue, outdir_name):
 
     # Plot the axes
     x_axis = attributes["Ns"]
-    for y_key in KEYS[1:]:
-        y_axis = attributes[y_key]
-        assert len(y_axis) == len(x_axis), "Inconsistent lengths of axes to be plotted"
-        pyplot.plot(x_axis, y_axis, label=y_key)
+    fig,(ax1)=pyplot.subplots(1,1)
+
+    key = "(Mean wealth margin)/(Mean wealth regular)"
+    y_axis = attributes[key]
+    yerr = attributes["Error in means ratio"]
+    ax1.errorbar(x_axis, y_axis, yerr=yerr, label=key)
+    min_y = min(y_axis)
+
+    key = "(Median wealth margin)/(Median wealth regular)"
+    y_axis = attributes[key]
+    ax1.plot(x_axis, y_axis, label=key)
+    min_y = min(min_y, min(y_axis))
+    max_med_or_EU = max(y_axis)
+
+    key = "(Expected utility margin)/(Expected utility regular)"
+    y_axis = attributes[key]
+    yerr = attributes["Error in exp-util ratio"]
+    ax1.errorbar(x_axis, y_axis, yerr=yerr, label=key)
+    min_y = min(min_y, min(y_axis))
+    max_med_or_EU = max(max_med_or_EU, max(y_axis))
+
+    # Set axes
+    pyplot.axis([min(x_axis)-.1, max(x_axis)+.1, 0, max_med_or_EU+1])
+
+    """
+    THIS DOESN'T SEEM TO WORK...
+    # Here's logic to remove error bars from the legend.... 
+    # http://stackoverflow.com/questions/14297714/matplotlib-dont-show-errorbars-in-legend
+    # get handles
+    handles, labels = ax1.get_legend_handles_labels()
+    # remove the errorbars
+    handles = [h[0] for h in handles] # GIVES AN EXCEPTION: 'Line2D' object does not support indexing
+    # use them in the legend
+    ax1.legend(handles, labels)
+    """
+    
     pyplot.title("Margin performance vs. amount of leverage")
     pyplot.xlabel("Amount of leverage (e.g., 2 means 2X leverage)")
     pyplot.ylabel("Ratios of margin account's value over regular account's value")
