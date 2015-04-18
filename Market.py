@@ -7,7 +7,9 @@ class Market(object):
     """Parameters about the behavior of the stock market and interest rates"""
 
     def __init__(self, annual_mu=.054, annual_sigma=.22, annual_margin_interest_rate=.03,
-                 inflation_rate=.03, use_VIX_data_for_volatility=False):
+                 inflation_rate=.03, use_VIX_data_for_volatility=False, 
+                 medium_black_swan_prob=.003, annual_sigma_for_medium_black_swan=1.4,
+                 large_black_swan_prob=.0001, annual_sigma_for_large_black_swan=4.1,):
         self.annual_mu = annual_mu
         self.annual_sigma = annual_sigma
         self.annual_margin_interest_rate = annual_margin_interest_rate
@@ -23,6 +25,10 @@ class Market(object):
         self.__use_VIX_data_for_volatility = use_VIX_data_for_volatility
         self.__VIX_data = None
         self.__num_days_VIX_data = 0
+        self.__medium_black_swan_prob = medium_black_swan_prob
+        self.__annual_sigma_for_medium_black_swan = annual_sigma_for_medium_black_swan
+        self.__large_black_swan_prob = large_black_swan_prob
+        self.__annual_sigma_for_large_black_swan = annual_sigma_for_large_black_swan
 
         # Get VIX data if needed
         if self.__use_VIX_data_for_volatility:
@@ -76,7 +82,18 @@ class Market(object):
             """ ^ Cycle through the VIX data in order, repeating after we hit the end"""
         else:
             sigma_to_use = self.annual_sigma
-        return sigma_to_use * random.gauss(0,1) * math.sqrt(delta_t) + self.annual_mu * delta_t
+        mu_to_use = self.annual_mu
+
+        # See if we have black swans
+        rand_float = random.random()
+        if rand_float < self.__large_black_swan_prob:
+            sigma_to_use = self.__annual_sigma_for_large_black_swan
+            mu_to_use = 0
+        elif rand_float < (self.__large_black_swan_prob + self.__medium_black_swan_prob):
+            sigma_to_use = self.__annual_sigma_for_medium_black_swan
+            mu_to_use = 0
+
+        return sigma_to_use * random.gauss(0,1) * math.sqrt(delta_t) + mu_to_use * delta_t
         """
         The above is a GBM for stock; for an example of this equation, see the first equation 
         in section 7.1 of 'Path-dependence of Leveraged ETF returns', 

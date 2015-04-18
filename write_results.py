@@ -32,7 +32,7 @@ def write_winner_for_each_percentile(account_values, outfile):
         if sorted_regular_list[index] > 0: # prevent divide-by-zero errors
             outfile.write( "{}% ".format(int((100.0 * sorted_margin_list[index]) / sorted_regular_list[index])) )
 
-def write_file_table(account_values, account_types, outfile):
+def write_file_table(account_values, account_types, bankruptcy_fraction, outfile):
     outfile.write("<table>\n")
     outfile.write("""<tr><td><i>Type</i></td> <td><i>Mean +/- stderr</i></td> <td><i>Median</i></td> <td><i>Min</i></td> <td><i>Max</i></td> <td><i>E[&radic;(wealth)] +/- stderr</i></td> <td><i>&sigma;<sub>log(wealth)</sub></i></td> </tr>\n""");
     for type in account_types:
@@ -48,7 +48,10 @@ def write_file_table(account_values, account_types, outfile):
             int(numpy.mean(sqrt_values)), int(util.stderr(sqrt_values)), 
             numpy.std(log_values) ))
     outfile.write("</table>")
-    outfile.write("\nMargin is better than regular {}% of the time.".format(int(100 * util.probability_x_better_than_y(account_values["margin"],account_values["regular"]))))
+    outfile.write("\nMargin is better than regular {}% of the time. Margin resulted in bankruptcy {}% of the time.".format(
+        int(100 * util.probability_x_better_than_y(
+            account_values["margin"],account_values["regular"])), 
+        int(100 * bankruptcy_fraction) ))
 
 def return_pretty_name_for_type(type):
     if type == "regular":
@@ -56,6 +59,6 @@ def return_pretty_name_for_type(type):
     elif type == "margin":
         return "Margin"
     elif type == "matched401k":
-        return "Regular+50% match"
+        return "Regular + 50% match"
     else:
         raise Exception("Given type not valid")

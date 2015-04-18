@@ -48,16 +48,17 @@ def one_run(investor,market,verbosity):
 
             accounts["regular"].update_asset_prices(random_daily_return)
 
-            accounts["margin"].update_asset_prices(random_daily_return)
-            accounts["margin"].mandatory_rebalance(
-                day, taxes["margin"], investor.does_broker_liquidation_sell_tax_favored_first)
-            """Interactive Brokers (IB) forces you to stay within the mandated
-            margin-to-assets ratio, (I think) on a day-by-day basis. The above
-            function call simulates IB selling any positions
-            as needed to restore the margin-to-assets ratio. Because IB
-            is so strict about staying within the limits, the margin investor
-            in this simulation voluntarily maintains a max margin-to-assets
-            ratio somewhat below the broker-imposed limit."""
+            if not investor.margin_account_bankrupt:
+                accounts["margin"].update_asset_prices(random_daily_return)
+                investor.margin_account_bankrupt = accounts["margin"].mandatory_rebalance(
+                    day, taxes["margin"], investor.does_broker_liquidation_sell_tax_favored_first)
+                """Interactive Brokers (IB) forces you to stay within the mandated
+                margin-to-assets ratio, (I think) on a day-by-day basis. The above
+                function call simulates IB selling any positions
+                as needed to restore the margin-to-assets ratio. Because IB
+                is so strict about staying within the limits, the margin investor
+                in this simulation voluntarily maintains a max margin-to-assets
+                ratio somewhat below the broker-imposed limit."""
 
             accounts["matched401k"].update_asset_prices(random_daily_return)
 
@@ -76,49 +77,51 @@ def one_run(investor,market,verbosity):
             # matched 401k account buys ETF with employee and employer funds
             accounts["matched401k"].buy_ETF_at_fixed_ratio(pay * (1+investor.match_percent_from_401k/100.0), day)
 
-            # The next steps are for the margin account. It
-            # 1. pays interest
-            # 2. pays some principal on loans
-            # 3. pay down margin if it's over limit
-            # 4. buys new ETF with the remaining $
+            if not investor.margin_account_bankrupt:
+                # The next steps are for the margin account. It
+                # 1. pays interest
+                # 2. pays some principal on loans
+                # 3. pay down margin if it's over limit
+                # 4. buys new ETF with the remaining $
 
-            # 1. pay interest
-            interest = accounts["margin"].compute_interest(market.annual_margin_interest_rate,interest_and_salary_every_fraction_of_year)
-            pay_after_interest = pay - interest
-            if pay_after_interest <= 0:
-                accounts["margin"].margin += (interest - pay) # amount of interest remaining
-                accounts["margin"].voluntary_rebalance(day, taxes["margin"]) # pay for the interest with equity
-                #print """I didn't think hard about this case, since it's rare, so check back if I ever enter it. It's also bad tax-wise to rebalance, so try to avoid doing this."""
-                # It's bad to rebalance using equity because of 1. capital-gains tax 2. transactions costs 3. bid-ask spreads
-                # if this happens, no money left to 2. pay principal, 3. pay down margin if it's over limit, or 4. buy ETF
-            else:
-                # 2. pay some principal
-                number_of_pay_periods_until_donation_date = (days_from_start_to_donation_date - day) / interest_and_salary_every_num_days
-                amount_of_principal_to_repay = util.per_period_annuity_payment_of_principal(accounts["margin"].margin, number_of_pay_periods_until_donation_date,market.annual_margin_interest_rate, investor.pay_principal_throughout)
-                if amount_of_principal_to_repay > pay_after_interest:
-                    accounts["margin"].margin -= pay_after_interest
-                    accounts["margin"].voluntary_rebalance(day, taxes["margin"]) # pay for the principal with equity
-                    #print "WARNING: You're paying for principal with equity. This incurs tax costs and so should be minimized!"
+                # 1. pay interest
+                interest = accounts["margin"].compute_interest(market.annual_margin_interest_rate,interest_and_salary_every_fraction_of_year)
+                pay_after_interest = pay - interest
+                if pay_after_interest <= 0:
+                    accounts["margin"].margin += (interest - pay) # amount of interest remaining
+                    investor.margin_account_bankrupt = accounts["margin"].voluntary_rebalance(
+                        day, taxes["margin"]) # pay for the interest with equity
+                    #print """I didn't think hard about this case, since it's rare, so check back if I ever enter it. It's also bad tax-wise to rebalance, so try to avoid doing this."""
                     # It's bad to rebalance using equity because of 1. capital-gains tax 2. transactions costs 3. bid-ask spreads
+                    # if this happens, no money left to 2. pay principal, 3. pay down margin if it's over limit, or 4. buy ETF
                 else:
-                    accounts["margin"].margin -= amount_of_principal_to_repay
-                    pay_after_interest_and_principal = pay_after_interest - amount_of_principal_to_repay
-                    # 3. pay down margin if it's over limit
-                    amount_to_pay_for_margin_call = accounts["margin"].debt_to_pay_off_to_restore_voluntary_max_margin_to_assets_ratio(taxes["margin"])
-                    if amount_to_pay_for_margin_call > pay_after_interest_and_principal:
-                        # pay what we can
-                        accounts["margin"].margin -= pay_after_interest_and_principal
-                        # use equity for the rest
-                        accounts["margin"].voluntary_rebalance(day, taxes["margin"])
+                    # 2. pay some principal, if we're dong that
+                    number_of_pay_periods_until_donation_date = (days_from_start_to_donation_date - day) / interest_and_salary_every_num_days
+                    amount_of_principal_to_repay = util.per_period_annuity_payment_of_principal(accounts["margin"].margin, number_of_pay_periods_until_donation_date,market.annual_margin_interest_rate, investor.pay_principal_throughout)
+                    if amount_of_principal_to_repay > pay_after_interest:
+                        accounts["margin"].margin -= pay_after_interest
+                        investor.margin_account_bankrupt = accounts["margin"].voluntary_rebalance(day, taxes["margin"]) # pay for the principal with equity
+                        #print "WARNING: You're paying for principal with equity. This incurs tax costs and so should be minimized!"
+                        # It's bad to rebalance using equity because of 1. capital-gains tax 2. transactions costs 3. bid-ask spreads
                     else:
-                        # just pay off margin call
-                        accounts["margin"].margin -= amount_to_pay_for_margin_call
-                        pay_after_interest_and_principal_and_margincall = pay_after_interest_and_principal - amount_to_pay_for_margin_call
-                        # 4. buy some ETF
-                        accounts["margin"].buy_ETF_at_fixed_ratio(pay_after_interest_and_principal_and_margincall, day)
+                        accounts["margin"].margin -= amount_of_principal_to_repay
+                        pay_after_interest_and_principal = pay_after_interest - amount_of_principal_to_repay
+                        # 3. pay down margin if it's over limit
+                        amount_to_pay_for_margin_call = accounts["margin"].debt_to_pay_off_to_restore_voluntary_max_margin_to_assets_ratio(taxes["margin"])
+                        if amount_to_pay_for_margin_call > pay_after_interest_and_principal:
+                            # pay what we can
+                            accounts["margin"].margin -= pay_after_interest_and_principal
+                            # use equity for the rest
+                            investor.margin_account_bankrupt = accounts["margin"].voluntary_rebalance(day, taxes["margin"])
+                        else:
+                            # just pay off margin call
+                            accounts["margin"].margin -= amount_to_pay_for_margin_call
+                            pay_after_interest_and_principal_and_margincall = pay_after_interest_and_principal - amount_to_pay_for_margin_call
+                            # 4. buy some ETF
+                            accounts["margin"].buy_ETF_at_fixed_ratio(pay_after_interest_and_principal_and_margincall, day)
             
             # If we're rebalancing upwards to increase leverage when it's too low, do that.
-            if investor.rebalance_monthly_to_increase_leverage:
+            if investor.rebalance_monthly_to_increase_leverage and not investor.margin_account_bankrupt:
                 accounts["margin"].rebalance_to_increase_leverage(day, taxes["margin"])
 
             # Possibly get laid off or return to work
@@ -126,38 +129,46 @@ def one_run(investor,market,verbosity):
         
         if day % DAYS_PER_YEAR == TAX_DAY:
             for type in ["regular", "margin", "matched401k"]:
-                bill_or_refund = taxes[type].process_taxes()
-                if bill_or_refund > 0: # have to pay IRS bill
-                    accounts[type].margin += bill_or_refund
-                    accounts[type].voluntary_rebalance(day, taxes[type])
-                    """The above operation to pay taxes by selling securities works
-                    for any account type because for the non-margin accounts, the max
-                    margin-to-assets ratio is zero, so the margin we add should be 
-                    removed by rebalancing. To confirm that, I add the following assertion."""
-                    if type in ["regular", "matched401k"]:
-                        assert accounts[type].margin < TINY_NUMBER, "Margin wasn't all eliminated from non-margin accounts. :("
-                elif bill_or_refund < 0: # got IRS refund
-                    accounts[type].buy_ETF_at_fixed_ratio(-bill_or_refund, day) # use the tax refund to buy more shares
-                else:
-                    pass
+                if type is not "margin" or not investor.margin_account_bankrupt:
+                    bill_or_refund = taxes[type].process_taxes()
+                    if bill_or_refund > 0: # have to pay IRS bill
+                        accounts[type].margin += bill_or_refund
+                        did_we_go_bankrupt = accounts[type].voluntary_rebalance(day, taxes[type])
+                        """The above operation to pay taxes by selling securities works
+                        for any account type because for the non-margin accounts, the max
+                        margin-to-assets ratio is zero, so the margin we add should be 
+                        removed by rebalancing. To confirm that, I add the following assertion."""
+                        if type is not "margin":
+                            assert accounts[type].margin < TINY_NUMBER, "Margin wasn't all eliminated from non-margin accounts. :("
+                        else:
+                            investor.margin_account_bankrupt = did_we_go_bankrupt
+                            """We only keep track of whether the margin account is
+                            bankrupt because the other types can't go bankrupt"""
+                    elif bill_or_refund < 0: # got IRS refund
+                        accounts[type].buy_ETF_at_fixed_ratio(-bill_or_refund, day) # use the tax refund to buy more shares
+                    else:
+                        pass
 
         if investor.do_tax_loss_harvesting and day % DAYS_PER_YEAR == TAX_LOSS_HARVEST_DAY:
             for type in ["regular", "margin", "matched401k"]:
-                accounts[type].tax_loss_harvest(day, taxes[type])
+                if type is not "margin" or not investor.margin_account_bankrupt:
+                    accounts[type].tax_loss_harvest(day, taxes[type])
 
-    """Now that we've donated, finish up. We need to pay off all margin debt. In
-    the process of buying/selling, we incur capital-gains taxes (positive or negative).
-    As a result of that, we need to sell/buy more. That may incur more taxes, necessitating
-    repeating the cycle until convergence. We pretend it's tax day just to close out the
-    tax issues, even though it's not actually tax day."""
-    accounts["margin"].pay_off_all_margin(days_from_start_to_donation_date, taxes["margin"])
-    bill_or_refund = taxes["margin"].process_taxes()
-    while bill_or_refund > THRESHOLD_FOR_TAX_CONVERGENCE:
-        accounts["margin"].margin += bill_or_refund
-        accounts["margin"].pay_off_all_margin(days_from_start_to_donation_date, taxes["margin"])
-        bill_or_refund = taxes["margin"].process_taxes()
-    if bill_or_refund < 0:
-        accounts["margin"].buy_ETF_without_margin(-bill_or_refund, days_from_start_to_donation_date) # can't use margin anymore because we're done paying off loans
+    if not investor.margin_account_bankrupt:
+        """Now that we've donated, finish up. We need to pay off all margin debt. In
+        the process of buying/selling, we incur capital-gains taxes (positive or negative).
+        As a result of that, we need to sell/buy more. That may incur more taxes, necessitating
+        repeating the cycle until convergence. We pretend it's tax day just to close out the
+        tax issues, even though it's not actually tax day."""
+        investor.margin_account_bankrupt = accounts["margin"].pay_off_all_margin(days_from_start_to_donation_date, taxes["margin"])
+        if not investor.margin_account_bankrupt:
+            bill_or_refund = taxes["margin"].process_taxes()
+            while bill_or_refund > THRESHOLD_FOR_TAX_CONVERGENCE and not investor.margin_account_bankrupt:
+                accounts["margin"].margin += bill_or_refund
+                investor.margin_account_bankrupt = accounts["margin"].pay_off_all_margin(days_from_start_to_donation_date, taxes["margin"])
+                bill_or_refund = taxes["margin"].process_taxes()
+            if bill_or_refund < 0 and not investor.margin_account_bankrupt:
+                accounts["margin"].buy_ETF_without_margin(-bill_or_refund, days_from_start_to_donation_date) # can't use margin anymore because we're done paying off loans
 
     if accounts["regular"].assets < TINY_NUMBER:
         print "WARNING: In this simulation round, the regular account ended with only ${}.".format(accounts["regular"].assets)
@@ -168,7 +179,7 @@ def one_run(investor,market,verbosity):
             market.real_present_value(accounts["margin"].assets,investor.years_until_donate),
             market.real_present_value(accounts["matched401k"].assets,investor.years_until_donate),
             historical_margin_to_assets_ratios, historical_margin_wealth, 
-            historical_carried_taxes)
+            historical_carried_taxes, investor.margin_account_bankrupt)
 
 def run_samples(investor,market,num_samples=1000,outfilepath=None,output_queue=None,verbosity=1):
     account_values = dict()
@@ -179,11 +190,13 @@ def run_samples(investor,market,num_samples=1000,outfilepath=None,output_queue=N
     wealth_histories = []
     carried_tax_histories = []
     running_average_margin_to_assets_ratios = None
+    num_margin_bankruptcies = 0
     for type in account_types:
         account_values[type] = []
     for sample in range(num_samples):
         (regular_val, margin_val, matched_401k_val, margin_to_assets_ratios, 
-         margin_wealth, carried_taxes) = one_run(investor,market,verbosity)
+         margin_wealth, carried_taxes, margin_account_bankrupt) = one_run(
+             investor,market,verbosity)
         account_values["regular"].append(regular_val)
         account_values["margin"].append(margin_val)
         account_values["matched401k"].append(matched_401k_val)
@@ -198,6 +211,8 @@ def run_samples(investor,market,num_samples=1000,outfilepath=None,output_queue=N
             running_average_margin_to_assets_ratios = copy.copy(margin_to_assets_ratios)
         else:
             running_average_margin_to_assets_ratios += margin_to_assets_ratios
+        if margin_account_bankrupt:
+            num_margin_bankruptcies += 1
 
         if verbosity > 0:
             if sample % PRINT_PROGRESS_EVERY_ITERATIONS == 0:
@@ -219,7 +234,7 @@ def run_samples(investor,market,num_samples=1000,outfilepath=None,output_queue=N
 
     if outfilepath:
         with open(outfilepath + ".txt", "w") as outfile:
-            write_results.write_file_table(account_values, account_types, outfile)
+            write_results.write_file_table(account_values, account_types, float(num_margin_bankruptcies)/num_samples, outfile)
             outfile.write("\n")
             write_results.write_means(account_values, investor.years_until_donate, outfile)
             write_results.write_percentiles(account_values, outfile)
@@ -242,9 +257,10 @@ def args_for_this_scenario(scenario_name, num_trials, outdir_name):
     if scenario_name == "Default":
         return (default_investor,default_market,num_trials,outdir_name + "\default")
     elif scenario_name == "No unemployment or inflation":
-        investor = Investor.Investor(monthly_probability_of_layoff=0)
+        investor = Investor.Investor(monthly_probability_of_layoff=0,
+                                     do_tax_loss_harvesting=False)
         market = Market.Market(inflation_rate=0)
-        return (investor,default_market,num_trials,outdir_name + "\inclev")
+        return (investor,market,num_trials,outdir_name + "\uit")
     elif scenario_name == "Rebalance to increase leverage":
         investor = Investor.Investor(rebalance_monthly_to_increase_leverage=True)
         return (investor,default_market,num_trials,outdir_name + "\inclev")
@@ -261,13 +277,15 @@ def args_for_this_scenario(scenario_name, num_trials, outdir_name):
         return (default_investor,market,num_trials,outdir_name + "\VIX")
     elif scenario_name == "Pay down principal throughout investment period":
         investor = Investor.Investor(pay_principal_throughout=True)
-        return (investor,default_market,num_trials,outdir_name + "\princ_end")
+        return (investor,default_market,num_trials,outdir_name + "\princthru")
     elif scenario_name == "Annual sigma = .4":
         market = Market.Market(annual_sigma=.4)
         return (default_investor,market,num_trials,outdir_name + "\sig4")
     elif scenario_name == "Annual sigma = 0":
-        market = Market.Market(annual_sigma=0)
-        return (default_investor,market,num_trials,outdir_name + "\sig0")
+        market = Market.Market(annual_sigma=0,medium_black_swan_prob=0,
+                               large_black_swan_prob=0)
+        investor = Investor.Investor(monthly_probability_of_layoff=0)
+        return (investor,market,num_trials,outdir_name + "\novar")
     elif scenario_name == "Annual mu = .07":
         market = Market.Market(annual_mu=.07)
         return (default_investor,market,num_trials,outdir_name + "\mu07")
@@ -317,7 +335,7 @@ def sweep_scenarios(use_multiprocessing, quick_test=True):
 
 def get_performance_vs_leverage_amount(use_multiprocessing, quick_test=True):
     if quick_test:
-        NUM_TRIALS = 2
+        NUM_TRIALS = 4
     else:
         NUM_TRIALS = 1000
 
@@ -354,14 +372,14 @@ def get_performance_vs_leverage_amount(use_multiprocessing, quick_test=True):
 
 def run_one_variant():
     outdir_name = util.create_timestamped_dir("one") # concise way of writing "one variant"
-    num_trials = 50#2
+    num_trials = 2
     #scenario = "Rebalance to increase leverage"
-    #scenario = "Default"
-    scenario = "Rebalance to increase leverage, no tax-loss harvesting"
+    scenario = "Default"
+    #scenario = "Rebalance to increase leverage, no tax-loss harvesting"
     args = args_for_this_scenario(scenario, num_trials, outdir_name)
     run_samples(*args)
 
 if __name__ == "__main__":
-    sweep_scenarios(False,quick_test=False)
-    #get_performance_vs_leverage_amount(True,quick_test=False)
+    #sweep_scenarios(True,quick_test=False)
+    get_performance_vs_leverage_amount(True,quick_test=False)
     #run_one_variant()

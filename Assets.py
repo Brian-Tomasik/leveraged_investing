@@ -33,6 +33,7 @@ class Assets(object):
         if sold, incur least capital-gains tax. Otherwise sort randomly.
         Since we're paying taxes, in order to get C dollars of after-tax cash back, we need 
         to sell more than C of actual ETFs."""
+        go_bankrupt = False
         if sell_best_for_taxes_first:
             # Sort to put ETFs that would incur lowest capital-gains taxes first.
             # Use decorate-sort-undecorate pattern because too complicated to use
@@ -44,10 +45,17 @@ class Assets(object):
         # get cash
         cash_still_need_to_get = amount_of_net_cash_to_get_back
         while cash_still_need_to_get > 0:
-            (cash_still_need_to_get, lot_emptied) = self.__lots_list[0].sell(
-                cash_still_need_to_get, fee_per_dollar_traded, day, taxes)
-            if lot_emptied:
-                self.__lots_list.pop(0)
+            if self.__lots_list:
+                (cash_still_need_to_get, lot_emptied) = self.__lots_list[0].sell(
+                    cash_still_need_to_get, fee_per_dollar_traded, day, taxes)
+                if lot_emptied:
+                    self.__lots_list.pop(0)
+            else: # list is empty; we have no more securities, but we need cash! we go bankrupt
+                go_bankrupt = True
+                assert self.total_assets() == 0, "Total assets aren't 0 despite bankruptcy."
+                break
+        
+        return go_bankrupt
 
     def tax_loss_harvest(self, fee_per_dollar_traded, day, taxes):
         lots_to_harvest = [lot for tax, lot in self.__get_sorted_tax_rates_and_lots(day, taxes) if tax < 0]

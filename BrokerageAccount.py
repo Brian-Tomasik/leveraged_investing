@@ -1,6 +1,10 @@
 import Assets
 
-EPSILON = .001 # give some wiggle room for inexact calculations, such as might result from not counting trading fees and stuff
+EPSILON = .001
+# give some wiggle room for inexact calculations, such as might result
+# from not counting trading fees and stuff; for this reason, EPSILON is 
+# higher than FEE_PER_DOLLAR_TRADED, defined later
+
 MIN_ADDITIONAL_PURCHASE_AMOUNT = 500
 
 INTERACTIVE_BROKERS_TRADING_FEE_PER_DOLLAR = .000035
@@ -63,11 +67,14 @@ class BrokerageAccount(object):
     def margin_to_assets(self, taxes):
         """Include positive capital-gains taxes in "margin" because even if it's not owed to the
         broker now, it will come due within a year, and we need to keep an eye on it."""
-        margin_plus_positive_taxes = self.__margin_plus_positive_taxes(taxes)
-        if abs(margin_plus_positive_taxes-0) < EPSILON:
+        if self.assets == 0:
             return 0
         else:
-            return float(margin_plus_positive_taxes)/self.assets
+            margin_plus_positive_taxes = self.__margin_plus_positive_taxes(taxes)
+            if abs(margin_plus_positive_taxes-0) < EPSILON:
+                return 0
+            else:
+                return float(margin_plus_positive_taxes)/self.assets
 
     def debt_to_pay_off_to_restore_voluntary_max_margin_to_assets_ratio(self, taxes):
         """How much debt D would we need to pay off with added cash C to
@@ -81,7 +88,7 @@ class BrokerageAccount(object):
 
     def voluntary_rebalance(self, day, taxes):
         """Restore our voluntarily self-imposed max margin-to-assets ratio."""
-        self.rebalance(day, taxes, self.__personal_max_margin_to_assets_ratio, True)
+        return self.rebalance(day, taxes, self.__personal_max_margin_to_assets_ratio, True)
 
     def mandatory_rebalance(self, day, taxes, 
                             does_broker_liquidation_sell_tax_favored_first):
@@ -124,7 +131,7 @@ class BrokerageAccount(object):
         IB explains how they liquidate at least exactly enough funds to keep
         the account exactly in line with its margin requirements, which is the same thing I've done here.
         """
-        self.rebalance(day, taxes, self.__broker_max_margin_to_assets_ratio, 
+        return self.rebalance(day, taxes, self.__broker_max_margin_to_assets_ratio, 
                        does_broker_liquidation_sell_tax_favored_first)
 
     def rebalance(self, day, taxes, max_margin_to_assets_ratio, sell_best_for_taxes_first):
@@ -135,13 +142,14 @@ class BrokerageAccount(object):
         in fees and get S in cash to pay down margin debt. We need to set S
         such that (M-S)/(A-S-FS) = R  ==>  M-S = AR - SR - FSR  ==>
         M - AR = S - SR - FSR  ==>  M - AR = (1-R-FR)S  ==>  S = (M-AR)/(1-R-FR)"""
+        go_bankrupt = False
         if self.margin_to_assets(taxes) > (1+EPSILON) * max_margin_to_assets_ratio:
             amount_of_cash_needed = (self.__margin_plus_positive_taxes(taxes) - self.assets * max_margin_to_assets_ratio) / (1 - max_margin_to_assets_ratio - FEE_PER_DOLLAR_TRADED * max_margin_to_assets_ratio)
             # rough amount to sell may differ from actual amount sold because
             # there can be tax breaks from selling losses (which I unrealistically
             # but for simplicity assume are taken immediately rather than at 
             # tax time next year)
-            self.__assets.sell(amount_of_cash_needed, FEE_PER_DOLLAR_TRADED, day, taxes, 
+            go_bankrupt = self.__assets.sell(amount_of_cash_needed, FEE_PER_DOLLAR_TRADED, day, taxes, 
                                sell_best_for_taxes_first)
             self.margin -= amount_of_cash_needed
             if self.margin_to_assets(taxes) > (1+EPSILON) * max_margin_to_assets_ratio:
@@ -151,6 +159,7 @@ class BrokerageAccount(object):
                 print self.assets
                 print self.margin_to_assets(taxes)
             assert self.margin_to_assets(taxes) <= (1+EPSILON) * max_margin_to_assets_ratio
+        return go_bankrupt
 
     def buy_ETF_at_fixed_ratio(self, money_on_hand, day):
         """Say the user added M dollars. We should buy an amount of ETF
@@ -192,5 +201,6 @@ class BrokerageAccount(object):
 
     def pay_off_all_margin(self, day, taxes):
         assert self.assets >= self.margin, "More debt than equity!"
-        self.__assets.sell(self.margin, FEE_PER_DOLLAR_TRADED, day, taxes, True)
+        go_bankrupt = self.__assets.sell(self.margin, FEE_PER_DOLLAR_TRADED, day, taxes, True)
         self.margin = 0
+        return go_bankrupt

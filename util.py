@@ -44,7 +44,18 @@ def ratio_of_means_with_error_bars(numpy_array1, numpy_array2):
         error(z)/z = sqrt( (error(x)/x)^2 + (error(y)/y)^2 )
     """
     ratio = mean1/mean2
-    error_in_ratio = ratio * math.sqrt( (stderr1/mean1)**2 + (stderr2/mean2)**2 )
+    if mean1 == 0:
+        error_in_ratio = ratio * (stderr2/mean2)
+        """
+        The above evaluates to 0 if mean1==0 because then ratio==0, even though
+        this isn't really right logically. The ratio could still have error even if
+        mean1 == 0. The error in that case would be error(x)/(y+error(y)). I haven't figured
+        out what the appropriate propagation-of-error formula is here, but fortunately,
+        mean1 is almost never 0. That would mean 100% bankruptcy, which doesn't really
+        happen given the parameter settings I have unless you were leveraged 50X or something.
+        """
+    else:
+        error_in_ratio = ratio * math.sqrt( (stderr1/mean1)**2 + (stderr2/mean2)**2 )
     return (ratio, error_in_ratio)
 
 def abs_fractional_difference(num1, num2):
