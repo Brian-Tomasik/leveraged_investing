@@ -55,7 +55,7 @@ def ratio_of_means_with_error_bars(numpy_array1, numpy_array2):
         happen given the parameter settings I have unless you were leveraged 50X or something.
         """
     else:
-        error_in_ratio = ratio * math.sqrt( (stderr1/mean1)**2 + (stderr2/mean2)**2 )
+        error_in_ratio = abs(ratio) * math.sqrt( (stderr1/mean1)**2 + (stderr2/mean2)**2 )
     return (ratio, error_in_ratio)
 
 def abs_fractional_difference(num1, num2):

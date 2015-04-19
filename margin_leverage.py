@@ -38,7 +38,7 @@ def one_run(investor,market,verbosity):
 
     for day in range(days_from_start_to_donation_date):
         # Record historical info for future reference
-        historical_margin_to_assets_ratios[day] = accounts["margin"].margin_to_assets(taxes["margin"])
+        historical_margin_to_assets_ratios[day] = accounts["margin"].margin_to_assets()
         historical_margin_wealth[day] = accounts["margin"].assets
         historical_carried_taxes[day] = taxes["margin"].total_gain_or_loss()
 
@@ -122,13 +122,13 @@ def one_run(investor,market,verbosity):
             
             # If we're rebalancing upwards to increase leverage when it's too low, do that.
             if investor.rebalance_monthly_to_increase_leverage and not investor.margin_account_bankrupt:
-                accounts["margin"].rebalance_to_increase_leverage(day, taxes["margin"])
+                accounts["margin"].voluntary_rebalance_to_increase_leverage(day, taxes["margin"])
 
             # Possibly get laid off or return to work
             investor.randomly_update_employment_status_this_month()
         
         if day % DAYS_PER_YEAR == TAX_DAY:
-            for type in ["regular", "margin", "matched401k"]:
+            for type in ["regular", "margin"]: # No "matched401k" because 401k accounts don't pay taxes!
                 if type is not "margin" or not investor.margin_account_bankrupt:
                     bill_or_refund = taxes[type].process_taxes()
                     if bill_or_refund > 0: # have to pay IRS bill
@@ -150,7 +150,7 @@ def one_run(investor,market,verbosity):
                         pass
 
         if investor.do_tax_loss_harvesting and day % DAYS_PER_YEAR == TAX_LOSS_HARVEST_DAY:
-            for type in ["regular", "margin", "matched401k"]:
+            for type in ["regular", "margin"]: # No "matched401k" because its gains/losses aren't taxed!
                 if type is not "margin" or not investor.margin_account_bankrupt:
                     accounts[type].tax_loss_harvest(day, taxes[type])
 
@@ -256,11 +256,16 @@ def args_for_this_scenario(scenario_name, num_trials, outdir_name):
 
     if scenario_name == "Default":
         return (default_investor,default_market,num_trials,outdir_name + "\default")
-    elif scenario_name == "No unemployment or inflation":
+    elif scenario_name == "No unemployment or inflation or taxes or black swans":
+        tax_rates = TaxRates.TaxRates(short_term_cap_gains_rate=0,
+                                      long_term_cap_gains_rate=0,
+                                      state_income_tax=0)
         investor = Investor.Investor(monthly_probability_of_layoff=0,
+                                     tax_rates=tax_rates,
                                      do_tax_loss_harvesting=False)
-        market = Market.Market(inflation_rate=0)
-        return (investor,market,num_trials,outdir_name + "\uit")
+        market = Market.Market(inflation_rate=0,medium_black_swan_prob=0,
+                               large_black_swan_prob=0)
+        return (investor,market,num_trials,outdir_name + "\uitb")
     elif scenario_name == "Rebalance to increase leverage":
         investor = Investor.Investor(rebalance_monthly_to_increase_leverage=True)
         return (investor,default_market,num_trials,outdir_name + "\inclev")
@@ -285,7 +290,7 @@ def args_for_this_scenario(scenario_name, num_trials, outdir_name):
         market = Market.Market(annual_sigma=0,medium_black_swan_prob=0,
                                large_black_swan_prob=0)
         investor = Investor.Investor(monthly_probability_of_layoff=0)
-        return (investor,market,num_trials,outdir_name + "\novar")
+        return (investor,market,num_trials,outdir_name + "\sig0")
     elif scenario_name == "Annual mu = .07":
         market = Market.Market(annual_mu=.07)
         return (default_investor,market,num_trials,outdir_name + "\mu07")
@@ -298,7 +303,7 @@ def args_for_this_scenario(scenario_name, num_trials, outdir_name):
     else:
         raise Exception(scenario_name + " is not a known scenario type.")
 
-def sweep_scenarios(use_multiprocessing, quick_test=True):
+def sweep_scenarios(use_multiprocessing=False, quick_test=True):
     if quick_test:
         NUM_TRIALS = 2
     else:
@@ -307,7 +312,7 @@ def sweep_scenarios(use_multiprocessing, quick_test=True):
     outdir_name = util.create_timestamped_dir("swp") # concise way of writing "sweep scenarios"
 
     # Scenarios
-    scenarios_to_run = ["No unemployment or inflation", 
+    scenarios_to_run = ["No unemployment or inflation or taxes or black swans", 
                         "Rebalance to increase leverage, favored tax ordering when liquidate", 
                         "Rebalance to increase leverage, no tax-loss harvesting", 
                         "Annual sigma = 0",
@@ -333,9 +338,10 @@ def sweep_scenarios(use_multiprocessing, quick_test=True):
     for process in processes:
         process.join()
 
-def get_performance_vs_leverage_amount(use_multiprocessing, quick_test=True):
+def get_performance_vs_leverage_amount(use_multiprocessing=False, quick_test=True,
+                                       increase_leverage_monthly=False):
     if quick_test:
-        NUM_TRIALS = 4
+        NUM_TRIALS = 100
     else:
         NUM_TRIALS = 1000
 
@@ -343,20 +349,19 @@ def get_performance_vs_leverage_amount(use_multiprocessing, quick_test=True):
     outdir_name = util.create_timestamped_dir("lev") # concise way of writing "test leverage amounts"
     
     RANGE_START = 1.0
-    RANGE_STOP = 4.0
-    STEP_SIZE = .25
+    RANGE_STOP = 10.0
+    STEP_SIZE = .5
     num_steps = int((RANGE_STOP-RANGE_START)/STEP_SIZE)+1
     processes = []
     for N_to_1_leverage in numpy.linspace(RANGE_START, RANGE_STOP, num_steps):
         max_margin_to_assets = util.N_to_1_leverage_to_max_margin_to_assets_ratio(N_to_1_leverage)
         print "\n\n\nRebalance to increase leverage, max margin-to-assets ratio = ", max_margin_to_assets
-        #investor = Investor.Investor(rebalance_monthly_to_increase_leverage=True, broker_max_margin_to_assets_ratio=max_margin_to_assets)
-        investor = Investor.Investor(broker_max_margin_to_assets_ratio=max_margin_to_assets)
+        investor = Investor.Investor(rebalance_monthly_to_increase_leverage=increase_leverage_monthly, broker_max_margin_to_assets_ratio=max_margin_to_assets)
         market = Market.Market()
         max_margin_to_assets_without_decimal = int(max_margin_to_assets * 100)
         p = Process(target=run_samples, 
                 args=(investor,market,NUM_TRIALS,
-                      outdir_name + "\inclev{}".format(max_margin_to_assets_without_decimal),
+                      outdir_name + "\{}_{}_{}".format(increase_leverage_monthly, NUM_TRIALS, max_margin_to_assets_without_decimal),
                       output_queue))
         p.start()
         if not use_multiprocessing:
@@ -380,6 +385,7 @@ def run_one_variant():
     run_samples(*args)
 
 if __name__ == "__main__":
-    #sweep_scenarios(True,quick_test=False)
-    get_performance_vs_leverage_amount(True,quick_test=False)
+    #sweep_scenarios(use_multiprocessing=False,quick_test=True)
+    get_performance_vs_leverage_amount(use_multiprocessing=False,quick_test=False,
+                                       increase_leverage_monthly=True)
     #run_one_variant()

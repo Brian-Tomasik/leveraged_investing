@@ -1,10 +1,11 @@
 import random
 import math
+import numpy
 from InvestmentComparison import InvestmentComparison
 
 # TODO: ADD TAXES to leveraged fund
 
-USE_CONTINUOUS_COMPOUNDING = False # There's less deviation from theory without continuous compounding....
+USE_CONTINUOUS_COMPOUNDING = True # There's less deviation from theory without continuous compounding....
 
 # ~252 trading days per year: http://en.wikipedia.org/wiki/Trading_day
 def one_run(params):
@@ -13,9 +14,18 @@ def one_run(params):
     regular_price = params.initial_value
     leveraged_price = params.initial_value
     delta_t = 1.0/params.trading_days_per_year
+
+    daily_returns_so_far = numpy.array([])
+
     for day in range(total_days):
         # update fund prices
-        daily_return = params.annual_sigma * random.gauss(0,1) * math.sqrt(delta_t) + params.annual_mu * delta_t #GBM for stock; for an example of this equation, see the first equation in section 7.1 of 'Path-dependence of Leveraged ETF returns', http://www.math.nyu.edu/faculty/avellane/LeveragedETF20090515.pdf; remember that yearly_sigma = daily_sigma * sqrt(252), so given that delta_t = 1/252, then daily_sigma = yearly_sigma * sqrt(delta_t)
+        daily_return = params.annual_sigma * random.gauss(0,1) * math.sqrt(delta_t) + params.annual_mu * delta_t
+        """This is GBM for stock; for an example of this equation, see the first equation 
+        in section 7.1 of 'Path-dependence of Leveraged ETF returns', 
+        http://www.math.nyu.edu/faculty/avellane/LeveragedETF20090515.pdf ; 
+        remember that yearly_sigma = daily_sigma * sqrt(252), so given that delta_t = 1/252, 
+        then daily_sigma = yearly_sigma * sqrt(delta_t)"""
+        daily_returns_so_far = numpy.append(daily_returns_so_far, daily_return)
 
         if USE_CONTINUOUS_COMPOUNDING:
             regular_price *= math.exp(daily_return)
@@ -25,32 +35,39 @@ def one_run(params):
             leveraged_price *= (1+params.leverage_ratio*daily_return - ((params.leverage_ratio-1) * params.annual_leverage_interest_rate + params.annual_leverage_expense_ratio) * delta_t) # see equation (1) in section 2.1 of "Path-dependence of Leveraged ETF returns", http://www.math.nyu.edu/faculty/avellane/LeveragedETF20090515.pdf
 
         # Check prices against theoretical formula to make sure simulation is on track
-        theoretical_value = formula_for_L_over_S_to_the_beta(params)
-        actual_value = (leveraged_price/params.initial_value) / (regular_price/params.initial_value)**2 # dividing by initial_value cancels out, but I'm doing so for the sake of clarity, to align with the formula in the write-up
+        theoretical_value = formula_for_L_over_S_to_the_beta(params, numpy.var(daily_returns_so_far)*total_days)
+        actual_value = (leveraged_price/params.initial_value) / (regular_price/params.initial_value)**params.leverage_ratio # dividing by initial_value cancels out, but I'm doing so for the sake of clarity, to align with the formula in the write-up
         frac_diff = abs_fractional_difference(theoretical_value, actual_value)
         assert frac_diff < .35, "Simulated value doesn't match theoretical value; fractional difference is " + str(frac_diff)
-    return (regular_price,leveraged_price)
+    return (regular_price,leveraged_price,numpy.var(daily_returns_so_far)*total_days)
 
-def formula_for_L_over_S_to_the_beta(params):
-    """This formula comes from my write-up document. It's easily derived from equation (4) in section 2.1 of "Path-dependence of Leveraged ETF returns", http://www.math.nyu.edu/faculty/avellane/LeveragedETF20090515.pdf"""
-    return math.exp(params.years_held * (.5 * (params.leverage_ratio - params.leverage_ratio**2) * params.annual_sigma**2 + (1-params.leverage_ratio) * params.annual_leverage_interest_rate - params.annual_leverage_expense_ratio))
+def formula_for_L_over_S_to_the_beta(params, realized_variance):
+    """This formula comes from my write-up document. It's easily derived from equation (4) 
+    in section 2.1 of "Path-dependence of Leveraged ETF returns ", 
+    http://www.math.nyu.edu/faculty/avellane/LeveragedETF20090515.pdf"""
+    return math.exp( .5 * (params.leverage_ratio - params.leverage_ratio**2) * realized_variance + params.years_held * ((1-params.leverage_ratio) * params.annual_leverage_interest_rate - params.annual_leverage_expense_ratio))
 
-def formula_for_alpha(params,S_T):
-    """alpha is defined in my write-up, and this formula comes from there. alpha is (L_t/L_0)/(S_T/S_0)"""
-    Y = (S_T/params.initial_value)**(1.0/params.years_held) - 1
-    return (math.exp((params.leverage_ratio-1)*Y + .5 * (params.leverage_ratio - params.leverage_ratio**2)*params.annual_sigma**2 + (1-params.leverage_ratio)*params.annual_leverage_interest_rate - params.annual_leverage_expense_ratio))**params.years_held
+def formula_for_alpha(params,S_T,final_realized_variance):
+    """alpha is defined in my write-up at 
+    http://reducing-suffering.org/do-leveraged-etfs-have-higher-long-run-returns/
+    and this formula comes from there. alpha is (L_t/L_0)/(S_T/S_0)"""
+    if USE_CONTINUOUS_COMPOUNDING:
+        mu = math.log(S_T/params.initial_value)/params.years_held # math.log is natural log
+    else:
+        mu = (S_T/params.initial_value)**(1.0/params.years_held) - 1
+    return (math.exp( (params.leverage_ratio-1)*mu + .5 * (params.leverage_ratio - params.leverage_ratio**2)*final_realized_variance/params.years_held + (1-params.leverage_ratio)*params.annual_leverage_interest_rate - params.annual_leverage_expense_ratio ))**params.years_held
 
-def run_trials(params,num_trials=1000,allowable_deviation_from_theory=.01,debug=False):
+def run_trials(params,num_trials=1000,allowable_deviation_from_theory=.05,debug=False):
     """Run through many simulated asset histories to accumulate aggregate performance distributional statistics"""
     regular_prices = []
     leveraged_prices = []
     num_prices_omitted = 0
     for trial in range(num_trials):
         # compute simulated prices
-        regular_price,leveraged_price = one_run(params)
+        regular_price,leveraged_price,final_realized_variance = one_run(params)
         
         # Check results against theory
-        theoretical_alpha = formula_for_alpha(params,regular_price)
+        theoretical_alpha = formula_for_alpha(params,regular_price,final_realized_variance)
         actual_alpha = (leveraged_price/params.initial_value)/(regular_price/params.initial_value)
         frac_diff = abs_fractional_difference(theoretical_alpha, actual_alpha)
                 
@@ -98,7 +115,7 @@ def percentile(list, percentile_as_fraction):
 
 if __name__ == "__main__":
     params = InvestmentComparison(years_held=1,trading_days_per_year=252,
-                                  annual_mu=.056,annual_sigma=.22,leverage_ratio=2,
+                                  annual_mu=.054,annual_sigma=.22,leverage_ratio=2,
                                   initial_value=100,annual_leverage_interest_rate=.0137,
                                   annual_leverage_expense_ratio=.0089)
-    run_trials(params)
+    run_trials(params,num_trials=1000,allowable_deviation_from_theory=.05,debug=False)

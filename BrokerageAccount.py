@@ -64,7 +64,16 @@ class BrokerageAccount(object):
     def __margin_plus_positive_taxes(self, taxes):
         return self.margin + max(taxes.current_estimate_of_tax_bill_or_refund(), 0) # Don't count negative taxes because the broker doesn't count that, and we need to stay within broker limits
 
-    def margin_to_assets(self, taxes):
+    def margin_to_assets(self):
+        if self.assets == 0:
+            return 0
+        else:
+            if abs(self.margin-0) < EPSILON:
+                return 0
+            else:
+                return float(self.margin)/self.assets
+
+    def margin_to_assets_include_tax_liabilities(self, taxes):
         """Include positive capital-gains taxes in "margin" because even if it's not owed to the
         broker now, it will come due within a year, and we need to keep an eye on it."""
         if self.assets == 0:
@@ -81,14 +90,14 @@ class BrokerageAccount(object):
         get us back to having a margin-to-assets ratio within the limit R?
         Let A be assets. If we're currently over the limit, we want to set
         C such that (D-C)/A = R  ==>  D-C = AR  ==>  C = D-AR"""
-        if self.margin_to_assets(taxes) <= (1+EPSILON) * self.__personal_max_margin_to_assets_ratio:
+        if self.margin_to_assets_include_tax_liabilities(taxes) <= (1+EPSILON) * self.__personal_max_margin_to_assets_ratio:
             return 0
         else:
             return self.margin - self.assets * self.__personal_max_margin_to_assets_ratio
 
     def voluntary_rebalance(self, day, taxes):
         """Restore our voluntarily self-imposed max margin-to-assets ratio."""
-        return self.rebalance(day, taxes, self.__personal_max_margin_to_assets_ratio, True)
+        return self.rebalance(day, taxes, self.__personal_max_margin_to_assets_ratio, True, True)
 
     def mandatory_rebalance(self, day, taxes, 
                             does_broker_liquidation_sell_tax_favored_first):
@@ -131,10 +140,11 @@ class BrokerageAccount(object):
         IB explains how they liquidate at least exactly enough funds to keep
         the account exactly in line with its margin requirements, which is the same thing I've done here.
         """
-        return self.rebalance(day, taxes, self.__broker_max_margin_to_assets_ratio, 
-                       does_broker_liquidation_sell_tax_favored_first)
+        return self.rebalance(day, taxes, self.__broker_max_margin_to_assets_ratio,
+                              False, does_broker_liquidation_sell_tax_favored_first)
 
-    def rebalance(self, day, taxes, max_margin_to_assets_ratio, sell_best_for_taxes_first):
+    def rebalance(self, day, taxes, max_margin_to_assets_ratio, include_taxes_in_margin_ratio_calculation, 
+                  sell_best_for_taxes_first):
         """Restore us to a margin-to-assets ratio R within the limit (say, .5). Our 
         current margin amount is M and assets amount is A. We need to sell
         some assets to pay off some debt. To do this, we sell some amount S
@@ -143,22 +153,24 @@ class BrokerageAccount(object):
         such that (M-S)/(A-S-FS) = R  ==>  M-S = AR - SR - FSR  ==>
         M - AR = S - SR - FSR  ==>  M - AR = (1-R-FR)S  ==>  S = (M-AR)/(1-R-FR)"""
         go_bankrupt = False
-        if self.margin_to_assets(taxes) > (1+EPSILON) * max_margin_to_assets_ratio:
-            amount_of_cash_needed = (self.__margin_plus_positive_taxes(taxes) - self.assets * max_margin_to_assets_ratio) / (1 - max_margin_to_assets_ratio - FEE_PER_DOLLAR_TRADED * max_margin_to_assets_ratio)
-            # rough amount to sell may differ from actual amount sold because
-            # there can be tax breaks from selling losses (which I unrealistically
-            # but for simplicity assume are taken immediately rather than at 
-            # tax time next year)
+        margin_to_assets = self.margin_to_assets_include_tax_liabilities(taxes) if include_taxes_in_margin_ratio_calculation else self.margin_to_assets()
+        margin = self.__margin_plus_positive_taxes(taxes) if include_taxes_in_margin_ratio_calculation else self.margin
+        num_loops = 0
+        while margin_to_assets > (1+EPSILON) * max_margin_to_assets_ratio:
+            """The only case where we should use this while loop more than one pass through is
+            if we're including upcoming tax liabilities in the margin-to-assets calculation and
+            if the process of selling securities increases those tax liabilities. This is very rare."""
+            amount_of_cash_needed = (margin - self.assets * max_margin_to_assets_ratio) / (1 - max_margin_to_assets_ratio - FEE_PER_DOLLAR_TRADED * max_margin_to_assets_ratio)
             go_bankrupt = self.__assets.sell(amount_of_cash_needed, FEE_PER_DOLLAR_TRADED, day, taxes, 
                                sell_best_for_taxes_first)
+            if go_bankrupt:
+                break
             self.margin -= amount_of_cash_needed
-            if self.margin_to_assets(taxes) > (1+EPSILON) * max_margin_to_assets_ratio:
-                print "violation"
-                print day
-                print self.margin
-                print self.assets
-                print self.margin_to_assets(taxes)
-            assert self.margin_to_assets(taxes) <= (1+EPSILON) * max_margin_to_assets_ratio
+            margin_to_assets = self.margin_to_assets_include_tax_liabilities(taxes) if include_taxes_in_margin_ratio_calculation else self.margin_to_assets()
+            margin = self.__margin_plus_positive_taxes(taxes) if include_taxes_in_margin_ratio_calculation else self.margin
+            num_loops += 1
+            if num_loops == 10:
+                print "Looped at least 10 times when trying to sell enough securities to rebalance..."
         return go_bankrupt
 
     def buy_ETF_at_fixed_ratio(self, money_on_hand, day):
@@ -179,13 +191,13 @@ class BrokerageAccount(object):
     def compute_interest(self, annual_interest_rate, fraction_of_year_elapsed):
         return self.margin * ((1+annual_interest_rate)**fraction_of_year_elapsed - 1)
 
-    def rebalance_to_increase_leverage(self, day, taxes):
+    def voluntary_rebalance_to_increase_leverage(self, day, taxes):
         """Suppose we have margin M, assets A, and a voluntary personally
         imposed max margin-to-assets ratio R. If M/A < R, we want to 
         take out additional debt D and use it to buy more stocks such that
         (M+D)/(A+D) = R  ==>  M+D = AR+DR  ==>  M-AR = DR-D  ==>  
         M-AR = D(R-1)  ==>  D = (M-AR)/(R-1) = (AR-M)/(1-R)"""
-        if self.margin_to_assets(taxes) < (1-EPSILON) * self.__personal_max_margin_to_assets_ratio:
+        if self.margin_to_assets_include_tax_liabilities(taxes) < (1-EPSILON) * self.__personal_max_margin_to_assets_ratio:
             additional_debt = (self.assets * self.__personal_max_margin_to_assets_ratio - self.__margin_plus_positive_taxes(taxes)) / (1-self.__personal_max_margin_to_assets_ratio)
             if additional_debt >= MIN_ADDITIONAL_PURCHASE_AMOUNT: # due to transactions costs, we shouldn't bother buying new ETF shares if we only have a trivial amount of money for the purchase
                 self.margin += additional_debt
