@@ -75,27 +75,27 @@ def run_trials(params,num_trials=1000,allowable_deviation_from_theory=.05,debug=
         if frac_diff > allowable_deviation_from_theory:
             num_prices_omitted += 1
             if debug:
-                print "WARNING! Alpha deviates from theory by " + str(int(frac_diff * 100)) + "%: regular price = " + str(int(regular_price)) + " and leveraged price = " + str(int(leveraged_price))
+                print "WARNING! Alpha deviates from theory by " + str(int(round(frac_diff * 100,0))) + "%: regular price = " + str(int(round(regular_price,0))) + " and leveraged price = " + str(int(round(leveraged_price,0)))
         else:
             if debug:
-                print "Alpha only deviates from theory by " + str(int(frac_diff * 100)) + "%: regular price = " + str(int(regular_price)) + " and leveraged price = " + str(int(leveraged_price))
+                print "Alpha only deviates from theory by " + str(int(round(frac_diff * 100,0))) + "%: regular price = " + str(int(round(regular_price,0))) + " and leveraged price = " + str(int(round(leveraged_price,0)))
             regular_prices.append(regular_price)
             leveraged_prices.append(leveraged_price)
         
         # Periodically print how many trials along we are
         if trial % 500 == 0:
             percent_complete = 100 * float(trial)/num_trials
-            print str(int(percent_complete)) + "% done"
+            print str(int(round(percent_complete,0))) + "% done"
     
     # Print results
     print ""
-    print str(int(100 * num_prices_omitted/num_trials)) + "% of simulated values omitted due to deviating more than " + str(int(allowable_deviation_from_theory * 100)) + "% from theory."
-    print "Mean regular = " + str(int(mean(regular_prices))) + "\tMean leveraged = " + str(int(mean(leveraged_prices)))
-    print "0th percentile regular = " + str(int(percentile(regular_prices, 0))) + "\t0th percentile leveraged = " + str(int(percentile(leveraged_prices, 0)))
-    print "25th percentile regular = " + str(int(percentile(regular_prices, .25))) + "\t25th percentile leveraged = " + str(int(percentile(leveraged_prices, .25)))
-    print "50th percentile regular = " + str(int(percentile(regular_prices, .5))) + "\t50th percentile leveraged = " + str(int(percentile(leveraged_prices, .5)))
-    print "75th percentile regular = " + str(int(percentile(regular_prices, .75))) + "\t75th percentile leveraged = " + str(int(percentile(leveraged_prices, .75)))
-    print "100th percentile regular = " + str(int(percentile(regular_prices, 1))) + "\t100th percentile leveraged = " + str(int(percentile(leveraged_prices, 1)))
+    print str(int(round(100 * num_prices_omitted/num_trials,0))) + "% of simulated values omitted due to deviating more than " + str(int(round(allowable_deviation_from_theory * 100,0))) + "% from theory."
+    print "Mean regular = " + str(int(round(mean(regular_prices),0))) + "\tMean leveraged = " + str(int(round(mean(leveraged_prices),0)))
+    print "0th percentile regular = " + str(int(round(percentile(regular_prices, 0),0))) + "\t0th percentile leveraged = " + str(int(round(percentile(leveraged_prices, 0),0)))
+    print "25th percentile regular = " + str(int(round(percentile(regular_prices, .25),0))) + "\t25th percentile leveraged = " + str(int(round(percentile(leveraged_prices, .25),0)))
+    print "50th percentile regular = " + str(int(round(percentile(regular_prices, .5),0))) + "\t50th percentile leveraged = " + str(int(round(percentile(leveraged_prices, .5),0)))
+    print "75th percentile regular = " + str(int(round(percentile(regular_prices, .75),0))) + "\t75th percentile leveraged = " + str(int(round(percentile(leveraged_prices, .75),0)))
+    print "100th percentile regular = " + str(int(round(percentile(regular_prices, 1),0))) + "\t100th percentile leveraged = " + str(int(round(percentile(leveraged_prices, 1),0)))
     print ""
 
 def abs_fractional_difference(num1, num2):
@@ -109,7 +109,7 @@ def percentile(list, percentile_as_fraction):
     assert len(list) > 0, "List is empty"
     assert percentile_as_fraction >= 0 and percentile_as_fraction <= 1, "Percentile as fraction value isn't between 0 and 1"
     list.sort()
-    index_of_value_to_return = int(len(list) * percentile_as_fraction)
+    index_of_value_to_return = int(round(len(list) * percentile_as_fraction,0))
     index_of_value_to_return = min(index_of_value_to_return, len(list)-1) # ensure that we don't go out of bounds
     return list[index_of_value_to_return]
 

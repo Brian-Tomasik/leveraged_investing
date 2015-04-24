@@ -33,14 +33,37 @@ class EtfLot(object):
         """Sell some or all of the lot to get needed $."""
         (tax_rate, long_or_short) = self.capital_gains_tax_rate(day, taxes.tax_rates)
         after_fee_value_of_lot = self.__current_price * (1-fee_per_dollar_traded)
+        cur_price_before_sell_any_portion = self.__current_price
+
         if after_fee_value_of_lot > cash_still_need_to_get:
             amount_to_sell = cash_still_need_to_get / (1-fee_per_dollar_traded) # selling this amount leaves us with an after-fee amount of cash_still_need_to_get
             self.__current_price -= amount_to_sell
-            fraction_of_total_cap_gain_incurred = self.__capital_gain() * amount_to_sell / self.__current_price
+            if self.__current_price < .1:
+               print "WARNING! Stock price is only", self.__current_price
+            fraction_of_total_cap_gain_incurred = self.__capital_gain() * amount_to_sell / cur_price_before_sell_any_portion
+            assert abs(fraction_of_total_cap_gain_incurred) <= abs(self.__capital_gain()), "Fractional capital gain is too big!"
             self.__record_cap_gains(taxes, long_or_short, fraction_of_total_cap_gain_incurred)
+            
+            """
+            # debugging
+            if abs(fraction_of_total_cap_gain_incurred) > 0:
+                print "day = ", day
+                print "cap gain = ", self.__capital_gain()
+                print "fraction_of_total_cap_gain_incurred = ", fraction_of_total_cap_gain_incurred
+                print "total_gain_or_loss = ", taxes.total_gain_or_loss()
+            """
+
             return (0, False) # tells the caller: (no more cash is needed, this lot is not empty)
         else: # sell the whole security
             self.__record_cap_gains(taxes, long_or_short, self.__capital_gain())
+
+            """
+            # debugging
+            print "day = ", day
+            print "cap gain = ", self.__capital_gain()
+            print "total_gain_or_loss = ", taxes.total_gain_or_loss()
+            """
+
             cash_still_needed_now = cash_still_need_to_get - after_fee_value_of_lot
             self.__current_price = 0
             return (cash_still_needed_now, True) # tells the caller: (how much more cash is needed, this lot is empty)

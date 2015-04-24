@@ -122,6 +122,11 @@ def one_run(investor,market,verbosity):
             
             # If we're rebalancing upwards to increase leverage when it's too low, do that.
             if investor.rebalance_monthly_to_increase_leverage and not investor.margin_account_bankrupt:
+                """
+                # debugging
+                print "day = ", day
+                print "assets = ", accounts["margin"].assets
+                """
                 accounts["margin"].voluntary_rebalance_to_increase_leverage(day, taxes["margin"])
 
             # Possibly get laid off or return to work
@@ -185,7 +190,7 @@ def run_samples(investor,market,num_samples=1000,outfilepath=None,output_queue=N
     account_values = dict()
     account_types = ["regular", "margin", "matched401k"]
     NUM_HISTORIES_TO_PLOT = 20
-    PRINT_PROGRESS_EVERY_ITERATIONS = 10
+    PRINT_PROGRESS_EVERY_ITERATIONS = 500
     margin_to_assets_ratio_histories = []
     wealth_histories = []
     carried_tax_histories = []
@@ -297,9 +302,12 @@ def args_for_this_scenario(scenario_name, num_trials, outdir_name):
     elif scenario_name == "Annual margin interest rate = .015":
         market = Market.Market(annual_margin_interest_rate=.015)
         return (default_investor,market,num_trials,outdir_name + "\int_r015")
-    elif scenario_name == "Donate after 10 years":
-        investor = Investor.Investor(years_until_donate=10)
-        return (investor,default_market,num_trials,outdir_name + "\yrs10")
+    elif scenario_name == "Donate after 5 years":
+        investor = Investor.Investor(years_until_donate=5)
+        return (investor,default_market,num_trials,outdir_name + "\yrs5")
+    elif scenario_name == "Donate after 30 years":
+        investor = Investor.Investor(years_until_donate=30)
+        return (investor,default_market,num_trials,outdir_name + "\yrs30")
     else:
         raise Exception(scenario_name + " is not a known scenario type.")
 
@@ -307,7 +315,7 @@ def sweep_scenarios(use_multiprocessing=False, quick_test=True):
     if quick_test:
         NUM_TRIALS = 2
     else:
-        NUM_TRIALS = 1000
+        NUM_TRIALS = 3000
 
     outdir_name = util.create_timestamped_dir("swp") # concise way of writing "sweep scenarios"
 
@@ -321,7 +329,7 @@ def sweep_scenarios(use_multiprocessing=False, quick_test=True):
                         "Pay down principal throughout investment period", 
                         "Annual sigma = .4", "Annual mu = .07", 
                         "Annual margin interest rate = .015", 
-                        "Donate after 10 years"]
+                        "Donate after 5 years", "Donate after 30 years"]
 
     # Run scenarios
     processes = []
@@ -339,26 +347,30 @@ def sweep_scenarios(use_multiprocessing=False, quick_test=True):
         process.join()
 
 def get_performance_vs_leverage_amount(use_multiprocessing=False, quick_test=True,
-                                       increase_leverage_monthly=False):
+                                       increase_leverage_monthly=False,
+                                       exclude_black_swans=False):
     if quick_test:
         NUM_TRIALS = 100
     else:
-        NUM_TRIALS = 1000
+        NUM_TRIALS = 3000
 
     output_queue = Queue() # multiprocessing queue
     outdir_name = util.create_timestamped_dir("lev") # concise way of writing "test leverage amounts"
     
     RANGE_START = 1.0
-    RANGE_STOP = 10.0
-    STEP_SIZE = .5
+    RANGE_STOP = 5.0
+    STEP_SIZE = .25
     num_steps = int((RANGE_STOP-RANGE_START)/STEP_SIZE)+1
     processes = []
     for N_to_1_leverage in numpy.linspace(RANGE_START, RANGE_STOP, num_steps):
         max_margin_to_assets = util.N_to_1_leverage_to_max_margin_to_assets_ratio(N_to_1_leverage)
         print "\n\n\nRebalance to increase leverage, max margin-to-assets ratio = ", max_margin_to_assets
         investor = Investor.Investor(rebalance_monthly_to_increase_leverage=increase_leverage_monthly, broker_max_margin_to_assets_ratio=max_margin_to_assets)
-        market = Market.Market()
-        max_margin_to_assets_without_decimal = int(max_margin_to_assets * 100)
+        if exclude_black_swans:
+            market = Market.Market(medium_black_swan_prob=0,large_black_swan_prob=0)
+        else:
+            market = Market.Market()            
+        max_margin_to_assets_without_decimal = int(round(max_margin_to_assets * 100,0))
         p = Process(target=run_samples, 
                 args=(investor,market,NUM_TRIALS,
                       outdir_name + "\{}_{}_{}".format(increase_leverage_monthly, NUM_TRIALS, max_margin_to_assets_without_decimal),
@@ -377,15 +389,14 @@ def get_performance_vs_leverage_amount(use_multiprocessing=False, quick_test=Tru
 
 def run_one_variant():
     outdir_name = util.create_timestamped_dir("one") # concise way of writing "one variant"
-    num_trials = 2
-    #scenario = "Rebalance to increase leverage"
-    scenario = "Default"
+    num_trials = 1
+    scenario = "Rebalance to increase leverage"
+    #scenario = "Default"
     #scenario = "Rebalance to increase leverage, no tax-loss harvesting"
     args = args_for_this_scenario(scenario, num_trials, outdir_name)
     run_samples(*args)
 
 if __name__ == "__main__":
-    #sweep_scenarios(use_multiprocessing=False,quick_test=True)
-    get_performance_vs_leverage_amount(use_multiprocessing=False,quick_test=False,
-                                       increase_leverage_monthly=True)
+    sweep_scenarios(use_multiprocessing=False,quick_test=False)
+    #get_performance_vs_leverage_amount(use_multiprocessing=False,quick_test=False,increase_leverage_monthly=False,exclude_black_swans=False)
     #run_one_variant()

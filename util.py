@@ -5,7 +5,7 @@ import math
 
 def create_timestamped_dir(prefix):
     # Create directory for results stamped with date/time to make it unique
-    timestamp = datetime.now().strftime('%d_%H_%M')
+    timestamp = datetime.now().strftime('%d_%H_%M_%S')
     outdir_name = prefix + "_" + timestamp
     os.mkdir(outdir_name) # let it fail if dir already exists
     return outdir_name
@@ -69,7 +69,7 @@ def percentile(list, percentile_as_fraction):
     assert len(list) > 0, "List is empty"
     assert percentile_as_fraction >= 0 and percentile_as_fraction <= 1, "Percentile as fraction value isn't between 0 and 1"
     list.sort()
-    index_of_value_to_return = int(len(list) * percentile_as_fraction)
+    index_of_value_to_return = int(round(len(list) * percentile_as_fraction,0))
     index_of_value_to_return = min(index_of_value_to_return, len(list)-1) # ensure that we don't go out of bounds
     return list[index_of_value_to_return]
 

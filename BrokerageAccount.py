@@ -14,13 +14,19 @@ and currently, SPY is trading at over $200/share (http://finance.yahoo.com/q?s=S
 Suppose for the sake of conservatism that SPY were $100/share. Then buying/selling
 $1 of SPY would be .01 shares and hence would cost $.000035 in broker fees."""
 
-BID_ASK_EFFECTIVE_FEE_PER_DOLLAR = .0001/2
-"""For SPY, the bid-ask spread is about .01% or .0001, according to
+BID_ASK_EFFECTIVE_FEE_PER_DOLLAR = .0005/2
+"""This parameter should be set as 1/2 the typical bid-ask spread as a fraction of total price.
+As an example: For SPY, the bid-ask spread in Apr 2015 was about .01% or .0001, according to
 http://www.morningstar.com/etfs/ARCX/SPY/quote.html
-As an example, suppose you buy $10,000 worth of SPY. You then turn it around and
+Suppose you buy $10,000 worth of SPY. You then turn it around and
 sell it at $9,999, given the bid-ask spread. During the round trip between buying
 and selling, you lost $1. In other words, the effective "fee" per dollar of transactions
-was $1 / ($10,000 + $9,999), which is basically .0001/2"""
+was $1 / ($10,000 + $9,999), which is basically .0001/2
+
+However, SPY is heavily traded, and most other securities have higher spreads. I calculated
+for some foreign ETFs spreads of .0003, .0007, .001, and even .01 ! To average over these
+different possibilities, I set the parameter as .0005/2
+"""
 
 FEE_PER_DOLLAR_TRADED = INTERACTIVE_BROKERS_TRADING_FEE_PER_DOLLAR + BID_ASK_EFFECTIVE_FEE_PER_DOLLAR
 

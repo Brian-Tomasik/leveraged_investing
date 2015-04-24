@@ -16,7 +16,7 @@ def graph_results(account_values, num_samples, outfilepath):
         graph_bins = numpy.linspace(bin_min, bin_max, num_bins)
         pyplot.hist(numpy_array, bins=graph_bins, alpha=alpha_for_pyplot, color="r")
         pyplot.title("Distribution of results for " + type + " investing")
-        pyplot.xlabel("Present value of savings ($)")
+        pyplot.xlabel("Real present value of donated $")
         pyplot.ylabel("Frequency out of " + str(num_samples) + " runs")
         pyplot.savefig(outfilepath + "_hist_" + type)
         pyplot.close()
@@ -53,7 +53,7 @@ def graph_historical_wealth_trajectories(wealth_histories, outfilepath):
         pyplot.plot(x_axis, individual)
     pyplot.title("Wealth trajectories vs. year of simulation")
     pyplot.xlabel("Years since beginning")
-    pyplot.ylabel("Wealth ($)")
+    pyplot.ylabel("Real present value of donated $")
     pyplot.savefig(outfilepath + "_wealthtraj")
     pyplot.close()
 
@@ -65,7 +65,7 @@ def graph_carried_taxes_trajectories(carried_tax_histories, outfilepath):
     for individual in carried_tax_histories:
         assert len(individual) == num_days, "Inconsistent number of days in history vectors"
         pyplot.plot(x_axis, individual)
-    pyplot.title("Carried-tax trajectories vs. year of simulation")
+    pyplot.title("Carried capital gains/losses vs. year of simulation")
     pyplot.xlabel("Years since beginning")
     pyplot.ylabel("Carried short+long-term taxes ($)")
     pyplot.savefig(outfilepath + "_carrtax")
