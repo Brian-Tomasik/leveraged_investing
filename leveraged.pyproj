@@ -5,7 +5,7 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>{e79e0767-973b-46c9-99c6-1cb3727d4ad3}</ProjectGuid>
     <ProjectHome />
-    <StartupFile>margin_leverage.py</StartupFile>
+    <StartupFile>write_essay.py</StartupFile>
     <SearchPath />
     <WorkingDirectory>.</WorkingDirectory>
     <OutputPath>.</OutputPath>
@@ -44,6 +44,9 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="TaxRates.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="write_essay.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="write_results.py">

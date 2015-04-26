@@ -18,6 +18,14 @@ class TaxRates(object):
         return self.short_term_cap_gains_rate_plus_state()
 
     @property
+    def short_term_cap_gains_rate(self):
+        return self.__short_term_cap_gains_rate
+
+    @property
+    def long_term_cap_gains_rate(self):
+        return self.__long_term_cap_gains_rate
+
+    @property
     def state_income_tax(self):
         """Since most states don't distinguish short- vs. long-term 
         capital gains (see http://www.aaii.com/journal/article/capital-pains-rules-for-capital-losses.touch ,

@@ -3,9 +3,12 @@ import os
 import numpy
 import math
 
+def format_as_dollar_string(float_or_int_amount):
+    return "${:,}".format(int(round(float_or_int_amount,0)))
+
 def create_timestamped_dir(prefix):
     # Create directory for results stamped with date/time to make it unique
-    timestamp = datetime.now().strftime('%d_%H_%M_%S')
+    timestamp = datetime.now().strftime('%dd%Hh%Mm%Ss')
     outdir_name = prefix + "_" + timestamp
     os.mkdir(outdir_name) # let it fail if dir already exists
     return outdir_name

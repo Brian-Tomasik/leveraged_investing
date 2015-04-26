@@ -2,6 +2,7 @@ import numpy
 import util
 import operator
 from matplotlib import pyplot
+from os import path
 
 DAYS_PER_YEAR = 365
 
@@ -67,9 +68,12 @@ def graph_carried_taxes_trajectories(carried_tax_histories, outfilepath):
         pyplot.plot(x_axis, individual)
     pyplot.title("Carried capital gains/losses vs. year of simulation")
     pyplot.xlabel("Years since beginning")
-    pyplot.ylabel("Carried short+long-term taxes ($)")
-    pyplot.savefig(outfilepath + "_carrtax")
+    pyplot.ylabel("Carried short+long-term capital gains/losses ($)")
+    pyplot.savefig(outfilepath + "_carrcg")
     pyplot.close()
+
+def optimal_leverage_graph_prefix():
+    return "aaa_graph" # add "aaa_" to put it first alphabetically so it's easier to find
 
 def graph_trends_vs_leverage_amount(output_queue, outdir_name):
     # Sort the queue by the N leverage value
@@ -133,5 +137,5 @@ def graph_trends_vs_leverage_amount(output_queue, outdir_name):
     pyplot.xlabel("Amount of leverage (e.g., 2 means 2X leverage)")
     pyplot.ylabel("Ratios of margin account's value over regular account's value")
     pyplot.legend()
-    pyplot.savefig("{}\{}".format(outdir_name,"graph"))
+    pyplot.savefig(path.join(outdir_name,optimal_leverage_graph_prefix()))
     pyplot.close()

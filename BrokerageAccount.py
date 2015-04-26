@@ -1,4 +1,5 @@
 import Assets
+import util
 
 EPSILON = .001
 # give some wiggle room for inexact calculations, such as might result
@@ -30,27 +31,33 @@ different possibilities, I set the parameter as .0005/2
 
 FEE_PER_DOLLAR_TRADED = INTERACTIVE_BROKERS_TRADING_FEE_PER_DOLLAR + BID_ASK_EFFECTIVE_FEE_PER_DOLLAR
 
+INITIAL_PERSONAL_MAX_MARGIN_TO_ASSETS_RELATIVE_TO_BROKER_MAX = .9
+
 
 class BrokerageAccount(object):
     """Store parameters about how an investor's brokerage account"""
 
-    def __init__(self, margin, assets, broker_max_margin_to_assets_ratio):
+    def __init__(self, margin, assets, broker_max_margin_to_assets_ratio, taper_off_leverage_toward_end):
         self.__margin = margin # amount of debt
         self.__assets = Assets.Assets() # list of the ETFs you own
         self.__broker_max_margin_to_assets_ratio = broker_max_margin_to_assets_ratio
-        self.__personal_max_margin_to_assets_ratio = self.personal_ratio_given_broker_ratio(self.__broker_max_margin_to_assets_ratio)
+        self.__taper_off_leverage_toward_end = taper_off_leverage_toward_end
 
-    def personal_ratio_given_broker_ratio(self, broker_max_margin_to_assets_ratio):
+    def personal_max_margin_to_assets_ratio(self, years_remaining):
         """Keep a personal max margin-to-assets ratio below the broker ratio so that
         you can rebalance on your own terms rather than having the broker constantly
-        force you to rebalance."""
-        return broker_max_margin_to_assets_ratio * .9
-        """
-        if broker_max_margin_to_assets_ratio <= .5:
-            return broker_max_margin_to_assets_ratio * .9
+        force you to rebalance.
+        Also, reduce leverage amount toward the end of the investing time period if 
+        leverage used to be high."""
+        initial_ratio_for_when_not_near_end = self.__broker_max_margin_to_assets_ratio * INITIAL_PERSONAL_MAX_MARGIN_TO_ASSETS_RELATIVE_TO_BROKER_MAX
+        if years_remaining <= 5 and self.__taper_off_leverage_toward_end:
+            two_to_one_leverage_margin_to_assets = util.N_to_1_leverage_to_max_margin_to_assets_ratio(2.0)
+            return min(two_to_one_leverage_margin_to_assets, initial_ratio_for_when_not_near_end)
+        elif years_remaining <= 10 and self.__taper_off_leverage_toward_end:
+            three_to_one_leverage_margin_to_assets = util.N_to_1_leverage_to_max_margin_to_assets_ratio(3.0)
+            return min(three_to_one_leverage_margin_to_assets, initial_ratio_for_when_not_near_end)
         else:
-            return broker_max_margin_to_assets_ratio * .9 # be more conservative when leverage is higher
-        """
+            return initial_ratio_for_when_not_near_end
 
     @property
     def margin(self):
@@ -91,19 +98,19 @@ class BrokerageAccount(object):
             else:
                 return float(margin_plus_positive_taxes)/self.assets
 
-    def debt_to_pay_off_to_restore_voluntary_max_margin_to_assets_ratio(self, taxes):
+    def debt_to_pay_off_to_restore_voluntary_max_margin_to_assets_ratio(self, taxes, years_remaining):
         """How much debt D would we need to pay off with added cash C to
         get us back to having a margin-to-assets ratio within the limit R?
         Let A be assets. If we're currently over the limit, we want to set
         C such that (D-C)/A = R  ==>  D-C = AR  ==>  C = D-AR"""
-        if self.margin_to_assets_include_tax_liabilities(taxes) <= (1+EPSILON) * self.__personal_max_margin_to_assets_ratio:
+        if self.margin_to_assets_include_tax_liabilities(taxes) <= (1+EPSILON) * self.personal_max_margin_to_assets_ratio(years_remaining):
             return 0
         else:
-            return self.margin - self.assets * self.__personal_max_margin_to_assets_ratio
+            return self.margin - self.assets * self.personal_max_margin_to_assets_ratio(years_remaining)
 
-    def voluntary_rebalance(self, day, taxes):
+    def voluntary_rebalance(self, day, taxes, years_remaining):
         """Restore our voluntarily self-imposed max margin-to-assets ratio."""
-        return self.rebalance(day, taxes, self.__personal_max_margin_to_assets_ratio, True, True)
+        return self.rebalance(day, taxes, self.personal_max_margin_to_assets_ratio(years_remaining), True, True)
 
     def mandatory_rebalance(self, day, taxes, 
                             does_broker_liquidation_sell_tax_favored_first):
@@ -179,16 +186,16 @@ class BrokerageAccount(object):
                 print "Looped at least 10 times when trying to sell enough securities to rebalance..."
         return go_bankrupt
 
-    def buy_ETF_at_fixed_ratio(self, money_on_hand, day):
+    def buy_ETF_at_fixed_ratio(self, money_on_hand, day, years_remaining):
         """Say the user added M dollars. We should buy an amount of ETF
         using a loan amount of L such that L/(L+M) is the desired ratio R.
         L/(L+M) = R  ==>  L = LR + MR  ==>  L - LR = MR  ==>  L(1-R) = MR
         ==>  L = MR/(1-R)."""
         if money_on_hand > 0:
-            loan = money_on_hand * self.__personal_max_margin_to_assets_ratio / (1 - self.__personal_max_margin_to_assets_ratio)
+            loan = money_on_hand * self.personal_max_margin_to_assets_ratio(years_remaining) / (1 - self.personal_max_margin_to_assets_ratio(years_remaining))
             self.margin += loan
             self.__assets.buy_new_lot(money_on_hand + loan, FEE_PER_DOLLAR_TRADED, day)
-            # This is no longer true:   assert self.margin_to_assets() <= (1+EPSILON) * self.__personal_max_margin_to_assets_ratio, "This assertion should also be true if the account started out within its margin limits."
+            # This is no longer true:   assert self.margin_to_assets() <= (1+EPSILON) * self.personal_max_margin_to_assets_ratio(years_remaining), "This assertion should also be true if the account started out within its margin limits."
 
     def buy_ETF_without_margin(self, money_on_hand, day):
         if money_on_hand > 0:
@@ -197,14 +204,14 @@ class BrokerageAccount(object):
     def compute_interest(self, annual_interest_rate, fraction_of_year_elapsed):
         return self.margin * ((1+annual_interest_rate)**fraction_of_year_elapsed - 1)
 
-    def voluntary_rebalance_to_increase_leverage(self, day, taxes):
+    def voluntary_rebalance_to_increase_leverage(self, day, taxes, years_remaining):
         """Suppose we have margin M, assets A, and a voluntary personally
         imposed max margin-to-assets ratio R. If M/A < R, we want to 
         take out additional debt D and use it to buy more stocks such that
         (M+D)/(A+D) = R  ==>  M+D = AR+DR  ==>  M-AR = DR-D  ==>  
         M-AR = D(R-1)  ==>  D = (M-AR)/(R-1) = (AR-M)/(1-R)"""
-        if self.margin_to_assets_include_tax_liabilities(taxes) < (1-EPSILON) * self.__personal_max_margin_to_assets_ratio:
-            additional_debt = (self.assets * self.__personal_max_margin_to_assets_ratio - self.__margin_plus_positive_taxes(taxes)) / (1-self.__personal_max_margin_to_assets_ratio)
+        if self.margin_to_assets_include_tax_liabilities(taxes) < (1-EPSILON) * self.personal_max_margin_to_assets_ratio(years_remaining):
+            additional_debt = (self.assets * self.personal_max_margin_to_assets_ratio(years_remaining) - self.__margin_plus_positive_taxes(taxes)) / (1-self.personal_max_margin_to_assets_ratio(years_remaining))
             if additional_debt >= MIN_ADDITIONAL_PURCHASE_AMOUNT: # due to transactions costs, we shouldn't bother buying new ETF shares if we only have a trivial amount of money for the purchase
                 self.margin += additional_debt
                 self.__assets.buy_new_lot(additional_debt, FEE_PER_DOLLAR_TRADED, day)

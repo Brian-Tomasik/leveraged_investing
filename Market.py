@@ -9,7 +9,7 @@ class Market(object):
     def __init__(self, annual_mu=.054, annual_sigma=.22, annual_margin_interest_rate=.03,
                  inflation_rate=.03, use_VIX_data_for_volatility=False, 
                  medium_black_swan_prob=.004, annual_sigma_for_medium_black_swan=1.1,
-                 large_black_swan_prob=.0001, annual_sigma_for_large_black_swan=4.1,):
+                 large_black_swan_prob=.0001, annual_sigma_for_large_black_swan=4.1):
         self.annual_mu = annual_mu
         self.annual_sigma = annual_sigma
         self.annual_margin_interest_rate = annual_margin_interest_rate

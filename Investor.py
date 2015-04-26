@@ -4,10 +4,10 @@ import TaxRates
 class Investor(object):
     """Store parameters about how an investor behaves"""
 
-    def __init__(self, years_until_donate=15, initial_annual_income_for_investing=30000, 
+    def __init__(self, years_until_donate=1, initial_annual_income_for_investing=30000, 
                  annual_real_income_growth_percent=2, match_percent_from_401k=50,
-                 margin_account_bankrupt=False,
-                 tax_rates=TaxRates.TaxRates(), rebalance_monthly_to_increase_leverage=False, 
+                 margin_account_bankrupt=False, taper_off_leverage_toward_end=True,
+                 tax_rates=TaxRates.TaxRates(), rebalance_monthly_to_increase_leverage=True, 
                  pay_principal_throughout=False, broker_max_margin_to_assets_ratio=.5,
                  monthly_probability_of_layoff=.01, monthly_probability_find_work_after_laid_off=.2,
                  does_broker_liquidation_sell_tax_favored_first=False, do_tax_loss_harvesting=True):
@@ -23,6 +23,7 @@ class Investor(object):
         zero even though technically, if someone went bankrupt, s/he could still invest
         some with future income...."""
 
+        self.__taper_off_leverage_toward_end = taper_off_leverage_toward_end
         self.__tax_rates = tax_rates
 
         assert not (rebalance_monthly_to_increase_leverage and pay_principal_throughout), "If you're paying principal throughout the history, then you don't want to undo all that work by rebalancing monthly to increase leverage!"
@@ -78,6 +79,10 @@ class Investor(object):
         self.__margin_account_bankrupt = val
 
     @property
+    def taper_off_leverage_toward_end(self):
+        return self.__taper_off_leverage_toward_end
+
+    @property
     def tax_rates(self):
         return self.__tax_rates
 
@@ -92,6 +97,10 @@ class Investor(object):
     @property
     def broker_max_margin_to_assets_ratio(self):
         return self.__broker_max_margin_to_assets_ratio
+
+    @broker_max_margin_to_assets_ratio.setter
+    def broker_max_margin_to_assets_ratio(self, val):
+        self.__broker_max_margin_to_assets_ratio = val
 
     @property
     def laid_off(self):
