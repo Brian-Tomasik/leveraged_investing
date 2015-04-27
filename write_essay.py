@@ -25,7 +25,7 @@ REPLACE_STR_FRONT = "<REPLACE>"
 REPLACE_STR_END = "</REPLACE>"
 TIMESTAMP_FORMAT = '%Y%b%d_%Hh%Mm%Ss'
 
-def write_essay(skeleton, outfile, prev_path, num_trials, 
+def write_essay(skeleton, outfile, cur_working_dir, num_trials, 
                 use_local_image_file_paths, approx_num_simultaneous_processes,
                 data_already_exists, timestamp):
     """The following are the markers in the text that indicate
@@ -36,7 +36,7 @@ def write_essay(skeleton, outfile, prev_path, num_trials,
 
     # Compute the results if they don't already exist.
     if not data_already_exists:
-        margin_leverage.optimal_leverage_for_all_scenarios(num_trials, False, prev_path, 
+        margin_leverage.optimal_leverage_for_all_scenarios(num_trials, False, cur_working_dir, 
                                                            approx_num_simultaneous_processes=approx_num_simultaneous_processes)
 
     """Read and parse the results."""
@@ -53,7 +53,7 @@ def write_essay(skeleton, outfile, prev_path, num_trials,
 
         # Navigate to the right folder and paths
         folder_for_this_scenario = margin_leverage.dir_prefix_for_optimal_leverage_specific_scenario(scenario)
-        path_to_folder_for_this_scenario = os.path.join(prev_path,folder_for_this_scenario)
+        path_to_folder_for_this_scenario = os.path.join(cur_working_dir,folder_for_this_scenario)
         optimal_leverage_graph = os.path.join(path_to_folder_for_this_scenario,plots.optimal_leverage_graph_prefix() + ".png")
         prefix_for_default_results_files = os.path.join(path_to_folder_for_this_scenario,file_prefix_for_default_MTA)
 
@@ -67,26 +67,26 @@ def write_essay(skeleton, outfile, prev_path, num_trials,
         """Next, possibly copy images to the HTML output folder
         if we need images for this scenario"""
         output_text = add_figures("optimal_leverage_graph", output_text, optimal_leverage_graph, 
-                                  prev_path, use_local_image_file_paths, abbrev, timestamp)
+                                  cur_working_dir, use_local_image_file_paths, abbrev, timestamp)
         # Now add other figures, for the default margin-to-assets amount
         for graph_type in ["hist_margin", "wealthtraj", "avgMTA", "indMTA", "carrcg"]:
             path_to_current_figure = "{}_{}.png".format(prefix_for_default_results_files, 
                                                         graph_type)
             output_text = add_figures(graph_type, output_text, path_to_current_figure, 
-                                      prev_path, use_local_image_file_paths, abbrev, timestamp)
+                                      cur_working_dir, use_local_image_file_paths, abbrev, timestamp)
 
         """Now scenario-specific content: Default scenario"""
         if scenario == "Default":
-            (amount_better_mean, percent_better_mean) = how_much_better_is_margin_in_thousands_of_dollars(results_table_contents, "Mean +/- stderr")
+            (amount_better_mean, percent_better_mean) = how_much_better_is_margin_in_thousands_of_dollars(results_table_contents, "Mean &plusmn; stderr")
             output_text = output_text.replace(REPLACE_STR_FRONT + "margin_better_than_regular_thousands_of_dollars" + REPLACE_STR_END, str(amount_better_mean))
             output_text = output_text.replace(REPLACE_STR_FRONT + "margin_better_than_regular_percent" + REPLACE_STR_END, str(percent_better_mean))
             output_text = output_text.replace(REPLACE_STR_FRONT + "(1+margin_advantage)(1-long_term_cap_gains)" + REPLACE_STR_END, 
                                               str(round(margin_advantage_less_long_term_cap_gains(percent_better_mean),2)))
             (amount_better_median, percent_better_median) = how_much_better_is_margin_in_thousands_of_dollars(results_table_contents, "Median")
             output_text = output_text.replace(REPLACE_STR_FRONT + "margin_better_than_regular_median_percent" + REPLACE_STR_END, str(percent_better_median))
-            (amount_better_EU, percent_better_EU) = how_much_better_is_margin_in_thousands_of_dollars(results_table_contents, "E[&radic;(wealth)] +/- stderr")
+            (amount_better_EU, percent_better_EU) = how_much_better_is_margin_in_thousands_of_dollars(results_table_contents, "E[&radic;(wealth)] &plusmn; stderr")
             output_text = output_text.replace(REPLACE_STR_FRONT + "margin_better_than_regular_EU_percent" + REPLACE_STR_END, str(percent_better_EU))
-        elif scenario == "No unemployment or inflation or taxes or black swans":
+        elif scenario == "No unemployment or inflation or taxes or black swans, only paid in first month":
             output_text = add_theoretical_calculations_for_no_unemployment_etc(output_text, results_table_contents)
 
     
@@ -124,8 +124,8 @@ def add_investor_params_and_calculations(output_text):
         output_text = output_text.replace(REPLACE_STR_FRONT + param + REPLACE_STR_END, 
                                           str(getattr(default_investor,param)))
     
-    initial_income_properly_formatted = "${:,}".format(default_investor.initial_annual_income_for_investing)
-    output_text = output_text.replace(REPLACE_STR_FRONT + "initial_annual_income_for_investing" + REPLACE_STR_END, initial_income_properly_formatted)
+    initial_annual_income_properly_formatted = "${:,}".format(default_investor.initial_annual_income_for_investing)
+    output_text = output_text.replace(REPLACE_STR_FRONT + "initial_annual_income_for_investing" + REPLACE_STR_END, initial_annual_income_properly_formatted)
 
     broker_max_margin_to_assets_ratio_as_percent = int(round(default_investor.broker_max_margin_to_assets_ratio * 100,0))
     output_text = output_text.replace(REPLACE_STR_FRONT + "broker_max_margin_to_assets_ratio_as_percent" + REPLACE_STR_END, str(broker_max_margin_to_assets_ratio_as_percent))
@@ -236,7 +236,7 @@ def add_theoretical_calculations_for_no_unemployment_etc(output_text, no_unemplo
     default_market = Market.Market()
 
     # Theoretical vs. actual median
-    theoretical_median = theoretical_median_PV_ignoring_complications()
+    theoretical_median = default_investor.initial_annual_income_for_investing/12
     output_text = output_text.replace(REPLACE_STR_FRONT + "theoretical_median_PV_ignoring_complications" + REPLACE_STR_END, 
                                       util.format_as_dollar_string(theoretical_median))
     actual_median_string = parse_value_from_results_table(no_unemployment_etc_results_table_contents, "Regular","Median")
@@ -248,7 +248,7 @@ def add_theoretical_calculations_for_no_unemployment_etc(output_text, no_unemplo
     theoretical_mean = theoretical_median * math.exp(default_market.annual_sigma**2 * default_investor.years_until_donate/2)
     output_text = output_text.replace(REPLACE_STR_FRONT + "theoretical_mean_PV_ignoring_complications" + REPLACE_STR_END, 
                                       util.format_as_dollar_string(theoretical_mean))
-    actual_mean_string = parse_value_from_results_table(no_unemployment_etc_results_table_contents, "Regular","Mean +/- stderr")
+    actual_mean_string = parse_value_from_results_table(no_unemployment_etc_results_table_contents, "Regular","Mean &plusmn; stderr")
     actual_mean = get_mean_as_int_from_mean_plus_or_minus_stderr(actual_mean_string)
     output_text = output_text.replace(REPLACE_STR_FRONT + "actual_mean_ignoring_complications" + REPLACE_STR_END, 
                                       util.format_as_dollar_string(actual_mean))
@@ -279,6 +279,8 @@ def add_theoretical_calculations_for_no_unemployment_etc(output_text, no_unemplo
                                       actual_percent_times_margin_is_better)
     return output_text
 
+"""
+NOT USING THIS ANYMORE...
 def theoretical_median_PV_ignoring_complications():
     default_investor = Investor.Investor()
     default_market = Market.Market()
@@ -289,14 +291,15 @@ def theoretical_median_PV_ignoring_complications():
         discounted_cur_monthly_income = cur_monthly_income * math.exp(- default_market.annual_mu * (month / 12.0))
         total_PV += discounted_cur_monthly_income
     return total_PV
+"""
 
 def add_figures(graph_type, output_text, current_location_of_figure, 
-                prev_path, use_local_image_file_paths, scenario_abbrev, timestamp):
+                cur_working_dir, use_local_image_file_paths, scenario_abbrev, timestamp):
     placeholder_string_for_figure = REPLACE_STR_FRONT + "{}_{}".format(scenario_abbrev,graph_type) + REPLACE_STR_END
     if re.search(".*{}.*".format(placeholder_string_for_figure), output_text): # if yes, this figure appears in the HTML, so we should copy it and write the path to the figure
         # Copy the graph to be in the same folder as the essay HTML
         new_figure_file_name = "{}_{}_{}.png".format(scenario_abbrev, graph_type, timestamp)
-        copy_destination_for_graph = os.path.join(prev_path,new_figure_file_name)
+        copy_destination_for_graph = os.path.join(cur_working_dir,new_figure_file_name)
         shutil.copyfile(current_location_of_figure, copy_destination_for_graph)
 
         # Replace the path to the optimal-leverage graph in the HTML file
@@ -324,7 +327,7 @@ def how_much_better_is_margin_in_thousands_of_dollars(results_table_contents, co
     return (diff_in_thousands_of_dollars, percent_better)
 
 def get_mean_as_int_from_mean_plus_or_minus_stderr(input_string):
-    """Convert something like '$37,343 +/- $250' to 37343
+    """Convert something like '$37,343 &plusmn; $250' to 37343
     This also works for medians."""
     modified_string = input_string.replace("$","")
     modified_string = modified_string.replace(",","")
@@ -359,8 +362,8 @@ def parse_percent_times_margin_is_better(results_table_contents):
     return matches.group(1)
 
 if __name__ == "__main__":
-    #DATA_ALREADY_EXISTS_AND_HAS_THIS_TIMESTAMP = None
-    DATA_ALREADY_EXISTS_AND_HAS_THIS_TIMESTAMP = "2015Apr26_23h09m36s"
+    DATA_ALREADY_EXISTS_AND_HAS_THIS_TIMESTAMP = None
+    #DATA_ALREADY_EXISTS_AND_HAS_THIS_TIMESTAMP = "2015Apr26_23h09m36s"
     """if the above variable is non-None, it saves lots of computation and just computes the HTML 
     and copies the required figures from saved data"""
     data_already_exists = DATA_ALREADY_EXISTS_AND_HAS_THIS_TIMESTAMP is not None
@@ -392,8 +395,12 @@ if __name__ == "__main__":
 
         # Write file.
         with open(essay_path, "w") as outfile:
-            write_essay(skeleton, outfile, cur_folder, 30, LOCAL_FILE_PATHS_IN_HTML, 
-                        1, data_already_exists, timestamp)
+            #NUM_TRIALS = 100
+            NUM_TRIALS = 1
+            APPROX_NUM_SIMULTANEOUS_PROCESSES = 1
+            #APPROX_NUM_SIMULTANEOUS_PROCESSES = 2
+            write_essay(skeleton, outfile, cur_folder, NUM_TRIALS, LOCAL_FILE_PATHS_IN_HTML, 
+                        APPROX_NUM_SIMULTANEOUS_PROCESSES, data_already_exists, timestamp)
 
         """Once this is finished, you should have a timestamped folder with an essay HTML file and
         a bunch of figures. Just bulk upload the figures to WordPress and copy-paste

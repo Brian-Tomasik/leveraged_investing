@@ -34,12 +34,12 @@ def write_winner_for_each_percentile(account_values, outfile):
 
 def write_file_table(account_values, account_types, bankruptcy_fraction, outfile):
     outfile.write("<table>\n")
-    outfile.write("""<tr><td><i>Type</i></td> <td><i>Mean +/- stderr</i></td> <td><i>Median</i></td> <td><i>Min</i></td> <td><i>Max</i></td> <td><i>E[&radic;(wealth)] +/- stderr</i></td> <td><i>&sigma;<sub>log(wealth)</sub></i></td> </tr>\n""");
+    outfile.write("""<tr><td><i>Type</i></td> <td><i>Mean &plusmn; stderr</i></td> <td><i>Median</i></td> <td><i>Min</i></td> <td><i>Max</i></td> <td><i>E[&radic;(wealth)] &plusmn; stderr</i></td> <td><i>&sigma;<sub>log(wealth)</sub></i></td> </tr>\n""");
     for type in account_types:
         numpy_values = numpy.array(account_values[type])
         log_values = map(math.log, numpy_values+1) # The +1 here is so that the log() value will be at least 0
         sqrt_values = map(math.sqrt, numpy_values)
-        outfile.write("<tr><td><i>{}</i></td> <td>${:,} +/- ${:,}</td> <td>${:,}</td> <td>${:,}</td> <td>${:,}</td> <td>{:,} +/- {:,}</td> <td>{:.2f}</td></tr>\n".format( 
+        outfile.write("<tr><td><i>{}</i></td> <td>${:,} &plusmn; ${:,}</td> <td>${:,}</td> <td>${:,}</td> <td>${:,}</td> <td>{:,} &plusmn; {:,}</td> <td>{:.2f}</td></tr>\n".format( 
             return_pretty_name_for_type(type), 
             int(round(numpy.mean(numpy_values),0)) , int(round(util.stderr(numpy_values),0)), 
             int(round(numpy.median(numpy_values),0)) , 
@@ -49,8 +49,8 @@ def write_file_table(account_values, account_types, bankruptcy_fraction, outfile
             numpy.std(log_values) ))
     outfile.write("</table>")
     outfile.write("\nMargin is better than regular {}% of the time. Margin resulted in bankruptcy {}% of the time.".format(
-        int(round(100 * util.probability_x_better_than_y(
-            account_values["margin"],account_values["regular"]),0)), 
+        round(100 * util.probability_x_better_than_y(
+            account_values["margin"],account_values["regular"]),1), 
         int(round(100 * bankruptcy_fraction,0))))
 
 def return_pretty_name_for_type(type):

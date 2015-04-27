@@ -106,6 +106,40 @@ I wrote more about leveraged ETFs in "<a href="http://reducing-suffering.org/do-
 <li>The expense ratios may be ~1% for a service that you could basically replicate on your own with a 2X margin account.</li>
 </ul>
 
+<h3>Home mortgage</h3>
+
+A home mortgage is one of the most common form of leveraged investing (with another being college loans).
+
+<h4>Arguments for home mortgages:</h4>
+
+<ul>
+<li>Popular and safe method.</li>
+</ul>
+
+<h4>Arguments against home mortgages:</h4>
+
+<ul>
+<li><a href="http://www.bankrate.com/finance/mortgages/current-interest-rates.aspx" title="'Current Mortgage Interest Rates'">Mortgage interest rates</a> are higher than margin rates from Interactive Brokers.</li>
+</ul>
+
+Whether to get a home mortgage depends crucially on whether you want to buy a house in general. There's <a href="https://www.google.com/search?q=rent%20vs.%20buy">much discussion</a> on that question, and following are a few considerations:
+
+<h4>Arguments for buying a house/condo:</h4>
+
+<ul>
+<li><a href="http://www.bankrate.com/finance/money-guides/home-sale-capital-gains-1.aspx" title="'Capital gains and your home sale'">Exclusion from</a> $250K ($500K if married) of capital gains when you sell a house.</li>
+<li>Mortgage interest is deductible.</li>
+<li>You avoid paying taxes on "rent" to yourself, whereas a landlord pays taxes on rent from a tenant. For example, suppose a living space is worth $1000/month intrinsically. If you own it, you're "paying" yourself $1000/month of rent tax-free. If you instead rent it, since you want to get back $1000/month after taxes (assume a 28% tax rate), you have to charge your tenant $1280/month. Hence, the renter pays more. (Thanks to a friend for this point.)</li>
+</ul>
+
+<h4>Arguments against buying a house/condo:</h4>
+
+<ul>
+<li>Buying and selling is a lot of hassle if you move frequently.</li>
+<li>Have to take care of property taxes, repairs, and home improvements yourself.</li>
+<li>Real estate is plausibly a worse investment than stocks because people buy real estate partly as a consumption good, i.e., houses have positive "convenience yield". And historically, houses <a href="http://www.cbsnews.com/news/history-says-home-real-estate-is-a-bad-investment/" title="'History says home real estate is a bad investment'">have probably</a> underperformed stocks, though the difference in performance is much smaller when one considers savings from not paying rent.</li>
+</ul>
+
 <h2>Tentative conclusion among leverage methods</h2>
 
 Given what I know so far, buying index ETFs on margin looks like it has the least model uncertainty, i.e., is least likely to blow up for unexpected reasons. Margin buying is sometimes advocated even for normal investors, such as <a href="http://www.mathisen.ca/leveraging/leveraging.pdf" title="&quot;Understanding Investment Leverage&quot;">by Manulife Bank of Canada</a>. This increases my confidence that the strategy probably works.
@@ -197,19 +231,19 @@ I implemented the mixture of normal distributions by picking a random floating-p
 
 <h3>Results vs. theory</h3>
 
-To compare the simulation results against theory, it helps to strip away some of the complicating features of the simulation. The following numbers show what happens if unemployment, inflation, taxes, and black swans are ignored (set to 0):
+To compare the simulation results against theory, it helps to strip away some of the complicating features of the simulation. The following numbers show what happens if unemployment, inflation, taxes, and black swans are ignored (set to 0), and if the investor gets paid on only one occasion -- namely, her first pay period right when the simulation starts:
 
 <REPLACE>uitb_results_table</REPLACE>
 
-In a geometric Brownian motion framework for stock-price evolution, the final price S(t) of a security S after t years <a href="http://www.columbia.edu/~ks20/FE-Notes/4700-07-Notes-GBM.pdf" title="&quot;Geometric Brownian motion&quot;">is</a> the initial price, S(0), times exp(X(t)), where X(t) is a Brownian motion with annual drift &mu; and variance &sigma;<sup>2</sup>. Since X(t) is normally distributed, S(t)/S(0) = exp(X(t)) is lognormally distributed, i.e., ln(S(t)/S(0)) is normally distributed with mean &mu;t and variance &sigma;<sup>2</sup>t. For a <a href="https://en.wikipedia.org/wiki/Log-normal_distribution">lognormal distribution</a>, the median is exp(&mu;t), and the mean is exp(&mu;t + &sigma;<sup>2</sup>t/2). Hence, the median final value of wealth from investing should be S(0) exp(&mu;t), and the mean final value should be S(0) exp(&mu;t + &sigma;<sup>2</sup>t/2).
+In a geometric Brownian motion framework for stock-price evolution, the final price S(t) of a security S after t years <a href="http://www.columbia.edu/~ks20/FE-Notes/4700-07-Notes-GBM.pdf" title="&quot;Geometric Brownian motion&quot;">is</a> the initial price, S(0), times exp(X(t)), where X(t) is a Brownian motion with annual drift &mu; and variance &sigma;<sup>2</sup>. Since X(t) is normally distributed, S(t)/S(0) = exp(X(t)) is lognormally distributed, i.e., ln(S(t)/S(0)) is normally distributed with mean &mu;t and variance &sigma;<sup>2</sup>t. For a <a href="https://en.wikipedia.org/wiki/Log-normal_distribution">lognormal distribution</a>, the median is exp(&mu;t), and the mean is exp(&mu;t + &sigma;<sup>2</sup>t/2). Hence, the median final value of wealth from investing should be S(0) exp(&mu;t), and the mean final value should be S(0) exp(&mu;t + &sigma;<sup>2</sup>t/2). For more explanation, see <a href="https://books.google.com/books?id=DFJg_3PJ5ToC&pg=PA83&lpg=PA83&dq=%22geometric+brownian+motion%22+median&source=bl&ots=arNDISdxak&sig=wT1rLUBmWkHDqt2EmCBAw5KYOg8&hl=en&sa=X&ei=GFQ-Vb3fMNa1sQSv4YGwAw&ved=0CD0Q6AEwBA#v=onepage&q=%22geometric%20brownian%20motion%22%20median&f=false" title="'Statistics and Finance: An Introduction' by David Ruppert, p. 83">here</a>.
 
 When I reported my numbers in this simulation, I discounted with <a href="https://en.wikipedia.org/wiki/Compound_interest#Continuous_compounding">continuous interest</a> using an interest rate of &mu; = <REPLACE>annual_mu</REPLACE> per year and a time of t = <REPLACE>years_until_donate</REPLACE> years. That is, I multiplied the final amounts by exp(- <REPLACE>annual_mu</REPLACE> * <REPLACE>years_until_donate</REPLACE>). The reason to use continuous interest is that the geometric Brownian motion model assumes it, and since stock prices are compounded <REPLACE>trading_days_per_year</REPLACE> times per year, the return is approximately continuously compounded anyway. As a result of this discounting, we should actually observe that the median of the distribution will be S(0) exp(&mu;t) exp(-&mu;t) = S(0), while the mean should be S(0) exp(&mu;t + &sigma;<sup>2</sup>t/2) exp(-&mu;t) = S(0) exp(&sigma;<sup>2</sup>t/2).
 
-In the simulation, I used t = <REPLACE>years_until_donate</REPLACE> years, &mu; = <REPLACE>annual_mu</REPLACE> per year, and &sigma; = <REPLACE>annual_sigma</REPLACE>. There's not actually a single initial price S(0) because the securities are bought over time. However, we can pretend that the investor buys just one big initial security whose price equals the present value of purchases discounted at an interest rate of <REPLACE>annual_mu_as_percent</REPLACE>. An analytic formula for this discounted sum is messy, so I just computed it <a href="https://docs.google.com/spreadsheets/d/1STH-QEMwybDKrouTnNEWeXQXU9VK1SEmq_qNxPCdUTc/edit?usp=sharing">in a spreadsheet</a>. If we ignore periods of unemployment and inflation, the result is that S(0) = <REPLACE>theoretical_median_PV_ignoring_complications</REPLACE>. This is close to<span style="color:orange">CHECK THIS MANUALLY</span> the simulated median present value of savings for the regular account in the above table (<REPLACE>actual_median_ignoring_complications</REPLACE>).
+In the simulation, I used t = <REPLACE>years_until_donate</REPLACE> years, &mu; = <REPLACE>annual_mu</REPLACE> per year, &sigma; = <REPLACE>annual_sigma</REPLACE>, and S(0) = <REPLACE>theoretical_median_PV_ignoring_complications</REPLACE>.<!-- There's not actually a single initial price S(0) because the securities are bought over time. However, we can pretend that the investor buys just one big initial security whose price equals the present value of purchases discounted at an interest rate of <REPLACE>annual_mu_as_percent</REPLACE>. An analytic formula for this discounted sum is messy, so I just computed it <a href="https://docs.google.com/spreadsheets/d/1STH-QEMwybDKrouTnNEWeXQXU9VK1SEmq_qNxPCdUTc/edit?usp=sharing">in a spreadsheet</a>. If we ignore periods of unemployment and inflation, the result is that S(0) = <REPLACE>theoretical_median_PV_ignoring_complications</REPLACE>.--> The actual median from the above table, <REPLACE>actual_median_ignoring_complications</REPLACE>, is very close to<span style="color:orange">CHECK THIS MANUALLY</span> the theoretical value, S(0).
 
 The theoretical prediction for the mean of the regular account's present value is S(0) exp(&sigma;<sup>2</sup> * <REPLACE>years_until_donate</REPLACE>/2) = <REPLACE>theoretical_median_PV_ignoring_complications</REPLACE> exp(<REPLACE>annual_sigma</REPLACE><sup>2</sup> * <REPLACE>years_until_donate</REPLACE>/2) = <REPLACE>theoretical_mean_PV_ignoring_complications</REPLACE>. For some reason this is slightly bigger than<span style="color:orange">CHECK THIS MANUALLY</span> the actual mean value of the regular account's present value when I set probability of layoffs and inflation both to zero (<REPLACE>actual_mean_ignoring_complications</REPLACE> in the above table), but it's somewhat close.
 
-Since X(t) = ln(S(t)/S(0)) = ln(S(t)) - ln(S(0)), StdDev[X(t)] = StdDev[ln(S(t))]. In theory, StdDev[X(t)] should be just &sigma; * &radic;(<REPLACE>years_until_donate</REPLACE>) = <REPLACE>annual_sigma</REPLACE> * &radic;(<REPLACE>years_until_donate</REPLACE>) = <REPLACE>annual_sigma * sqrt(years_until_donate)</REPLACE>. In the simulations, I found StdDev[ln(S(t))] = &sigma;<sub>log(wealth)</sub> = <REPLACE>actual_sigma_of_log_wealth</REPLACE> for regular investing. This is a reasonably big discrepancy<span style="color:orange">CHECK THIS MANUALLY</span>, and I'm not sure what accounts for it.
+Since X(t) = ln(S(t)/S(0)) = ln(S(t)) - ln(S(0)), StdDev[X(t)] = StdDev[ln(S(t))]. In theory, StdDev[X(t)] should be just &sigma; * &radic;(<REPLACE>years_until_donate</REPLACE>) = <REPLACE>annual_sigma</REPLACE> * &radic;(<REPLACE>years_until_donate</REPLACE>) = <REPLACE>annual_sigma * sqrt(years_until_donate)</REPLACE>. In the simulations, I found StdDev[ln(S(t))] = &sigma;<sub>log(wealth)</sub> = <REPLACE>actual_sigma_of_log_wealth</REPLACE> for regular investing, which is again pretty close.<span style="color:orange">CHECK THIS MANUALLY</span>
 
 We can also calculate an approximate fraction of the time that margin should outperform non-margin investing. "<a href="http://www.mathisen.ca/leveraging/leveraging.pdf">Understanding Investment Leverage</a>" notes that margin performs better when the average stock/ETF returns exceed a "break-even" threshold. Assuming that capital-gains taxes and tax deductions aren't especially relevant, the break-even threshold should roughly be the margin interest rate -- call it r. In other words, the probability that margin beats non-margin for a given dollar invested is roughly the probability that the t-year returns of investing in the market beat the t-year accumulation of interest at rate r. Let X(t) be the random variable representing the accumulated t-year market return, and let Z be a standard-normal random variable. Then
 <blockquote>

@@ -10,7 +10,8 @@ class Investor(object):
                  tax_rates=TaxRates.TaxRates(), rebalance_monthly_to_increase_leverage=True, 
                  pay_principal_throughout=False, broker_max_margin_to_assets_ratio=.5,
                  monthly_probability_of_layoff=.01, monthly_probability_find_work_after_laid_off=.2,
-                 does_broker_liquidation_sell_tax_favored_first=False, do_tax_loss_harvesting=True):
+                 does_broker_liquidation_sell_tax_favored_first=False, do_tax_loss_harvesting=True,
+                 only_paid_in_first_month_of_sim=False):
         self.years_until_donate = years_until_donate
         self.initial_annual_income_for_investing = initial_annual_income_for_investing
         self.annual_real_income_growth_percent = annual_real_income_growth_percent
@@ -37,6 +38,7 @@ class Investor(object):
         self.__num_times_laid_off = 0
         self.__does_broker_liquidation_sell_tax_favored_first = does_broker_liquidation_sell_tax_favored_first
         self.__do_tax_loss_harvesting = do_tax_loss_harvesting
+        self.__only_paid_in_first_month_of_sim = only_paid_in_first_month_of_sim
 
     @property
     def years_until_donate(self):
@@ -126,8 +128,8 @@ class Investor(object):
     def do_tax_loss_harvesting(self):
         return self.__do_tax_loss_harvesting
 
-    def current_annual_income(self, years_elapsed, inflation_rate):
-        if self.__laid_off:
+    def current_annual_income(self, years_elapsed, day, inflation_rate):
+        if self.__laid_off or (self.__only_paid_in_first_month_of_sim and day > 0):
             return 0
         else:
             penalty_for_past_layoffs = max(.7, 1 - .05 * self.__num_times_laid_off)

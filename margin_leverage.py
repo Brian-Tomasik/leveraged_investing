@@ -70,7 +70,7 @@ def one_run(investor,market,verbosity):
 
         # check if we should get paid and defray interest
         if day % interest_and_salary_every_num_days == 0:
-            pay = investor.current_annual_income(years_elapsed, market.inflation_rate) * (float(interest_and_salary_every_num_days) / DAYS_PER_YEAR)
+            pay = investor.current_annual_income(years_elapsed, day, market.inflation_rate) * (float(interest_and_salary_every_num_days) / DAYS_PER_YEAR)
             
             if verbosity > 1:
                 if day % 1000 == 0:
@@ -286,6 +286,17 @@ def args_for_this_scenario(scenario_name, num_trials, outdir_name):
 
     if scenario_name == "Default":
         return (default_investor,default_market,num_trials,outpath)
+    elif scenario_name == "No unemployment or inflation or taxes or black swans, only paid in first month":
+        tax_rates = TaxRates.TaxRates(short_term_cap_gains_rate=0,
+                                      long_term_cap_gains_rate=0,
+                                      state_income_tax=0)
+        investor = Investor.Investor(monthly_probability_of_layoff=0,
+                                     tax_rates=tax_rates,
+                                     do_tax_loss_harvesting=False,
+                                     only_paid_in_first_month_of_sim=True)
+        market = Market.Market(inflation_rate=0,medium_black_swan_prob=0,
+                               large_black_swan_prob=0)
+        return (investor,market,num_trials,outpath)
     elif scenario_name == "No unemployment or inflation or taxes or black swans":
         tax_rates = TaxRates.TaxRates(short_term_cap_gains_rate=0,
                                       long_term_cap_gains_rate=0,
@@ -319,6 +330,12 @@ def args_for_this_scenario(scenario_name, num_trials, outdir_name):
     elif scenario_name == "Annual mu = .07":
         market = Market.Market(annual_mu=.07)
         return (default_investor,market,num_trials,outpath)
+    elif scenario_name == "Annual mu = .04":
+        market = Market.Market(annual_mu=.04)
+        return (default_investor,market,num_trials,outpath)
+    elif scenario_name == "Annual mu = -.02":
+        market = Market.Market(annual_mu=-.02)
+        return (default_investor,market,num_trials,outpath)
     elif scenario_name == "Annual margin interest rate = .015":
         market = Market.Market(annual_margin_interest_rate=.015)
         return (default_investor,market,num_trials,outpath)
@@ -342,6 +359,8 @@ def scenario_to_folder_abbreviation(scenario_name):
     """Return the abbreviation of a scenario's name for use in naming output files."""
     if scenario_name == "Default":
         return "default"
+    elif scenario_name == "No unemployment or inflation or taxes or black swans, only paid in first month":
+        return "uitbf"
     elif scenario_name == "No unemployment or inflation or taxes or black swans":
         return "uitb"
     elif scenario_name == "Don't rebalance monthly":
@@ -358,6 +377,10 @@ def scenario_to_folder_abbreviation(scenario_name):
         return "sig0"
     elif scenario_name == "Annual mu = .07":
         return "mu07"
+    elif scenario_name == "Annual mu = .04":
+        return "mu04"
+    elif scenario_name == "Annual mu = -.02":
+        return "mu02minus"
     elif scenario_name == "Annual margin interest rate = .015":
         return "int_r015"
     elif scenario_name == "Donate after 5 years":
@@ -373,7 +396,8 @@ def scenario_to_folder_abbreviation(scenario_name):
 
 def get_all_scenarios_list():
     """Return all the scenarios (http://knowyourmeme.com/memes/x-all-the-y)"""
-    return ["No unemployment or inflation or taxes or black swans",
+    return ["No unemployment or inflation or taxes or black swans, only paid in first month",
+            "No unemployment or inflation or taxes or black swans",
             "Default",
             "Don't taper off leverage toward end", 
             "Favored tax ordering when liquidate", 
@@ -381,7 +405,10 @@ def get_all_scenarios_list():
             "Don't rebalance monthly", 
             "Use VIX data", 
             "Pay down principal throughout investment period", 
-            "Annual sigma = .4", "Annual mu = .07", 
+            "Annual sigma = .4", 
+            "Annual mu = .07",
+            "Annual mu = .04",
+            "Annual mu = -.02", 
             "Annual margin interest rate = .015", 
             "Donate after 5 years", "Donate after 30 years",
             "Don't rebalance monthly and don't taper off leverage toward end"]
@@ -429,14 +456,14 @@ def file_prefix_for_optimal_leverage_specific_scenario(max_margin_to_assets):
     return "MaxMTApct{}".format(max_margin_to_assets_without_decimal)
 
 def get_performance_vs_leverage_amount_by_scenario(scenario_name, num_trials, 
-                                                   use_timestamped_dirs, prev_path, 
+                                                   use_timestamped_dirs, cur_working_dir, 
                                                    approx_num_simultaneous_processes):
     print "\n\n==Getting optimal leverage for scenario = {}==".format(scenario_name)
 
     output_queue = Queue() # multiprocessing queue
 
     dir_prefix = dir_prefix_for_optimal_leverage_specific_scenario(scenario_name)
-    dir = path.join(prev_path, dir_prefix)
+    dir = path.join(cur_working_dir, dir_prefix)
     if use_timestamped_dirs:
         outdir_name = util.create_timestamped_dir(dir)
     else:
@@ -475,22 +502,26 @@ def get_performance_vs_leverage_amount_by_scenario(scenario_name, num_trials,
     # Once they're done, plot them
     plots.graph_trends_vs_leverage_amount(output_queue, outdir_name)
 
-def optimal_leverage_for_all_scenarios(num_trials, use_timestamped_dirs, prev_path="",
-                                       approx_num_simultaneous_processes=False):
+def optimal_leverage_for_all_scenarios(num_trials, use_timestamped_dirs, cur_working_dir,
+                                       approx_num_simultaneous_processes):
     """Get graphs of optimal leverage over all scenarios. This may take days/weeks to 
     finish running!"""
     for scenario_name in get_all_scenarios_list():
-        get_performance_vs_leverage_amount_by_scenario(scenario_name,num_trials,use_timestamped_dirs,prev_path,approx_num_simultaneous_processes)
+        get_performance_vs_leverage_amount_by_scenario(scenario_name,num_trials,
+                                                       use_timestamped_dirs,cur_working_dir,
+                                                       approx_num_simultaneous_processes)
 
 def run_one_variant(num_trials):
     outdir_name = util.create_timestamped_dir("one") # concise way of writing "one variant"
     #scenario = "Rebalance to increase leverage"
-    scenario = "Favored tax ordering when liquidate"
-    #scenario = "Default"
+    #scenario = "Favored tax ordering when liquidate"
+    #scenario = "No unemployment or inflation or taxes or black swans, only paid in first month"
+    #scenario = "No unemployment or inflation or taxes or black swans"
+    scenario = "Default"
     #scenario = "Rebalance to increase leverage, no tax-loss harvesting"
     args = args_for_this_scenario(scenario, num_trials, outdir_name)
     run_samples(*args)
 
 if __name__ == "__main__":
-    sweep_scenarios(1,1)
-    #run_one_variant(1)
+    #sweep_scenarios(1,1)
+    run_one_variant(100)
