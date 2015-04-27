@@ -64,6 +64,12 @@ def ratio_of_means_with_error_bars(numpy_array1, numpy_array2):
 def abs_fractional_difference(num1, num2):
     return abs((float(num1) - num2)/num2)
 
+def round_decimal_to_given_num_of_sig_figs(decimal_less_than_1, sig_figs):
+    """Inspired by http://stackoverflow.com/questions/3410976/how-to-round-a-number-to-significant-figures-in-python/3413529#3413529"""
+    assert decimal_less_than_1 < 1.0, "This function is only built for decimals less than 1.0"
+    this_many_zeros_after_decimal_before_first_digit = abs(int(math.floor(math.log10(decimal_less_than_1))) + 1)
+    return round(decimal_less_than_1, this_many_zeros_after_decimal_before_first_digit+sig_figs)
+
 def mean(list):
     assert len(list) > 0, "List is empty"
     return sum(list)/len(list)

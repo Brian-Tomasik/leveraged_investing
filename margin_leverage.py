@@ -12,6 +12,7 @@ import math
 import os
 from os import path
 from multiprocessing import Process, Queue
+import time
 
 DAYS_PER_YEAR = 365
 SATURDAY = 6
@@ -180,7 +181,7 @@ def one_run(investor,market,verbosity):
                 accounts["margin"].buy_ETF_without_margin(-bill_or_refund, days_from_start_to_donation_date) # can't use margin anymore because we're done paying off loans
 
     if accounts["regular"].assets < TINY_NUMBER:
-        print "WARNING: In this simulation round, the regular account ended with only ${}.".format(accounts["regular"].assets)
+        print "WARNING: In this simulation round, the regular account ended with only ${}.".format(accounts["regular"].assets) ,
 
     # Return present values of the account balances
     historical_margin_wealth = map(lambda wealth: market.real_present_value(wealth,investor.years_until_donate), historical_margin_wealth)
@@ -194,7 +195,7 @@ def run_samples(investor,market,num_samples=1000,outfilepath=None,output_queue=N
     account_values = dict()
     account_types = ["regular", "margin", "matched401k"]
     NUM_HISTORIES_TO_PLOT = 20
-    PRINT_PROGRESS_EVERY_ITERATIONS = 500
+    PRINT_PROGRESS_AFTER_THESE_PERCENTS_DONE = sorted([.01, .1, .25, .5, .9])
     margin_to_assets_ratio_histories = []
     wealth_histories = []
     carried_tax_histories = []
@@ -202,6 +203,8 @@ def run_samples(investor,market,num_samples=1000,outfilepath=None,output_queue=N
     num_margin_bankruptcies = 0
     for type in account_types:
         account_values[type] = []
+
+    start_time = time.time()
     for sample in range(num_samples):
         (regular_val, margin_val, matched_401k_val, margin_to_assets_ratios, 
          margin_wealth, carried_taxes, margin_account_bankrupt) = one_run(
@@ -224,8 +227,18 @@ def run_samples(investor,market,num_samples=1000,outfilepath=None,output_queue=N
             num_margin_bankruptcies += 1
 
         if verbosity > 0:
-            if sample % PRINT_PROGRESS_EVERY_ITERATIONS == 0:
-                print "Finished sample " + str(sample)
+            if sample == 1:
+                stop_time = time.time()
+                est_hours_to_complete_this_function = (stop_time-start_time)*num_samples/(60*60)
+                print "Estimated hours to complete this round = %f" % est_hours_to_complete_this_function
+
+            if PRINT_PROGRESS_AFTER_THESE_PERCENTS_DONE:
+                iter_threshold_for_next_percent = PRINT_PROGRESS_AFTER_THESE_PERCENTS_DONE[0] * num_samples
+                if sample >= iter_threshold_for_next_percent:
+                    print "%s%% done  " % int(round(100.0 * sample/num_samples,0)) ,
+                    while PRINT_PROGRESS_AFTER_THESE_PERCENTS_DONE and PRINT_PROGRESS_AFTER_THESE_PERCENTS_DONE[0] * num_samples <= sample:
+                        PRINT_PROGRESS_AFTER_THESE_PERCENTS_DONE.pop(0)
+    print ""
 
     avg_margin_to_assets_ratios = running_average_margin_to_assets_ratios / num_samples
 
@@ -373,12 +386,7 @@ def get_all_scenarios_list():
             "Donate after 5 years", "Donate after 30 years",
             "Don't rebalance monthly and don't taper off leverage toward end"]
 
-def sweep_scenarios(use_multiprocessing=False, quick_test=True):
-    if quick_test:
-        NUM_TRIALS = 1
-    else:
-        NUM_TRIALS = 3000
-
+def sweep_scenarios(approx_num_simultaneous_processes, num_trials):
     outdir_name = util.create_timestamped_dir("swp") # concise way of writing "sweep scenarios"
 
     # Scenarios
@@ -386,18 +394,31 @@ def sweep_scenarios(use_multiprocessing=False, quick_test=True):
 
     # Run scenarios
     processes = []
+    process_num = 1
     for scenario in scenarios_to_run:
         print "\n\n" + scenario
         p = Process(target=run_samples,
-                    args=args_for_this_scenario(scenario,NUM_TRIALS,outdir_name))
+                    args=args_for_this_scenario(scenario,num_trials,outdir_name))
         p.start()
-        if not use_multiprocessing:
+        if enough_processes_running(process_num,approx_num_simultaneous_processes):
             p.join()
         processes.append(p)
+        process_num += 1
 
     # Wait for all processes to finish
     for process in processes:
         process.join()
+
+def enough_processes_running(process_num, approx_num_simultaneous_processes):
+    """This is a hacky method to control the number of processes. The actual
+    number of simultaneous processes can be anywhere from 1 to
+    2 * approx_num_simultaneous_processes - 1. For example, if
+    approx_num_simultaneous_processes == 3, then we run the first
+    3 processes. If the third one finishes last, we wait for it, and while
+    it's running, there's just 1 process. If the third one finishes first,
+    we let another 3 processes go before joining again, so there are 5
+    running at that point."""
+    return process_num % approx_num_simultaneous_processes == 0
 
 def dir_prefix_for_optimal_leverage_specific_scenario(scenario_name):
     # sclev is short for "scenario-specific optimal leverage graph"
@@ -407,7 +428,9 @@ def file_prefix_for_optimal_leverage_specific_scenario(max_margin_to_assets):
     max_margin_to_assets_without_decimal = int(round(max_margin_to_assets * 100,0))
     return "MaxMTApct{}".format(max_margin_to_assets_without_decimal)
 
-def get_performance_vs_leverage_amount_by_scenario(scenario_name, num_trials, use_timestamped_dirs, prev_path, use_multiprocessing):
+def get_performance_vs_leverage_amount_by_scenario(scenario_name, num_trials, 
+                                                   use_timestamped_dirs, prev_path, 
+                                                   approx_num_simultaneous_processes):
     print "\n\n==Getting optimal leverage for scenario = {}==".format(scenario_name)
 
     output_queue = Queue() # multiprocessing queue
@@ -425,6 +448,7 @@ def get_performance_vs_leverage_amount_by_scenario(scenario_name, num_trials, us
     STEP_SIZE = .25
     num_steps = int((RANGE_STOP-RANGE_START)/STEP_SIZE)+1
     processes = []
+    process_num = 1
     for N_to_1_leverage in numpy.linspace(RANGE_START, RANGE_STOP, num_steps):
         max_margin_to_assets = util.N_to_1_leverage_to_max_margin_to_assets_ratio(N_to_1_leverage)
         print "\n\n\nMax margin-to-assets ratio = ", max_margin_to_assets
@@ -439,9 +463,10 @@ def get_performance_vs_leverage_amount_by_scenario(scenario_name, num_trials, us
         p = Process(target=run_samples, 
                 args=(investor,market,num_trials,outpath,output_queue))
         p.start()
-        if not use_multiprocessing:
+        if enough_processes_running(process_num,approx_num_simultaneous_processes):
             p.join()
         processes.append(p)
+        process_num += 1
     
     # Wait for all processes to finish
     for process in processes:
@@ -450,15 +475,15 @@ def get_performance_vs_leverage_amount_by_scenario(scenario_name, num_trials, us
     # Once they're done, plot them
     plots.graph_trends_vs_leverage_amount(output_queue, outdir_name)
 
-def optimal_leverage_for_all_scenarios(num_trials, use_timestamped_dirs, prev_path="", use_multiprocessing=False):
+def optimal_leverage_for_all_scenarios(num_trials, use_timestamped_dirs, prev_path="",
+                                       approx_num_simultaneous_processes=False):
     """Get graphs of optimal leverage over all scenarios. This may take days/weeks to 
     finish running!"""
     for scenario_name in get_all_scenarios_list():
-        get_performance_vs_leverage_amount_by_scenario(scenario_name,num_trials,use_timestamped_dirs,prev_path,use_multiprocessing)
+        get_performance_vs_leverage_amount_by_scenario(scenario_name,num_trials,use_timestamped_dirs,prev_path,approx_num_simultaneous_processes)
 
-def run_one_variant():
+def run_one_variant(num_trials):
     outdir_name = util.create_timestamped_dir("one") # concise way of writing "one variant"
-    num_trials = 5
     #scenario = "Rebalance to increase leverage"
     scenario = "Favored tax ordering when liquidate"
     #scenario = "Default"
@@ -467,7 +492,5 @@ def run_one_variant():
     run_samples(*args)
 
 if __name__ == "__main__":
-    #sweep_scenarios(use_multiprocessing=False,quick_test=False)
-    #run_one_variant()
-    #get_performance_vs_leverage_amount_by_scenario("Default",use_multiprocessing=False,quick_test=True)
-    optimal_leverage_for_all_scenarios(num_trials, use_multiprocessing=False)
+    sweep_scenarios(1,1)
+    #run_one_variant(1)

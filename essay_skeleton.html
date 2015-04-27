@@ -168,7 +168,7 @@ Since the investor sells the biggest capital losses, both for tax-loss harvestin
 <li>annual volatility for "large black swan" event = <REPLACE>annual_sigma_for_large_black_swan</REPLACE></li>
 <li>trading days per year = <REPLACE>trading_days_per_year</REPLACE></li>
 <li>margin interest rate = <REPLACE>annual_margin_interest_rate_as_percent</REPLACE> (The actual current margin rate on Interactive Brokers <a href="https://www.interactivebrokers.com/en/index.php?f=interest&p=schedule2" title="&quot;Interest Rates Charged to You on Margin Loan Balances&quot;">is</a> 1.12% for account balances of at least $100K and less than $1M. I chose a higher value of <REPLACE>annual_margin_interest_rate_as_percent</REPLACE> to make the calculations more conservative and because current interest rates are extremely low by <a href="http://www.macrotrends.net/1433/historical-libor-rates-chart" title="&quot;Historical LIBOR Rates Chart&quot;">historical standards</a>, which is a trend that may not last for <REPLACE>years_until_donate</REPLACE> more years.)</li>
-<li>inflation rate = <REPLACE>inflation_rate</REPLACE> (see p. 5 of <a href="http://reducing-suffering.org/wp-content/uploads/2014/09/donatable-money.pdf" title="&quot;How Much Money Could a Person Donate by Having a Conventional Job?&quot;">this piece</a>)</li>
+<li>inflation rate = <REPLACE>inflation_rate_as_percent</REPLACE> (see p. 5 of <a href="http://reducing-suffering.org/wp-content/uploads/2014/09/donatable-money.pdf" title="&quot;How Much Money Could a Person Donate by Having a Conventional Job?&quot;">this piece</a>)</li>
 <li>broker-imposed max margin-to-assets ratio in your margin account = <REPLACE>broker_max_margin_to_assets_ratio_as_percent</REPLACE>% (For simplicity, I'm not distinguishing initial margin vs. maintenance margin.)</li>
 <li>voluntarily self-imposed max margin-to-assets ratio in the account = <REPLACE>volunary_max_margin_to_assets_as_percent</REPLACE>% (monthly rebalancing to keep margin below this ratio)</li>
 <li>trading fee per dollar of securities bought or sold = $<REPLACE>fee_per_dollar_traded</REPLACE> (this counts both Interactive Brokers trading fees and bid-ask spreads)</li>
@@ -179,7 +179,7 @@ Since the investor sells the biggest capital losses, both for tax-loss harvestin
 
 Simple stock-market models typically use geometric Brownian motion. This is fine for some purposes, but when considering long-term leverage investing, the <a href="https://en.wikipedia.org/wiki/Fat-tailed_distribution">fat tails</a> of actual financial distributions become important. "<a href="http://www.investmentreview.com/files/2009/12/leveraged_portfolios1.pdf">Leveraged Canadian Stock Portfolios: Long-Run Effects on Wealth and Risk</a>" notes that a 4X leverage strategy would have done badly between 1950 and 2001. One reason was <a href="https://en.wikipedia.org/wiki/Black_Monday_(1987)">1987's Black Monday</a>, which would have almost wiped out the whole margin account balance due to a <i>one-day</i> loss of ~23%. (Even end-of-day rebalancing wouldn't have been able to prevent losing almost all account value.) Clearly, "<a href="https://en.wikipedia.org/wiki/Black_swan_theory">black swan</a>" events like these can make a big difference to the final analysis.
 
-The parameters of my normal distribution are &mu; = <REPLACE>annual_mu</REPLACE> and &sigma; = <REPLACE>annual_sigma</REPLACE>. Consider a one-day market movement. Assuming <REPLACE>trading_days_per_year</REPLACE> trading days per year, the expected daily movement is <REPLACE>annual_mu</REPLACE>/<REPLACE>trading_days_per_year</REPLACE> = <REPLACE>annual_mu/trading_days_per_year</REPLACE>, and the standard deviation is <REPLACE>annual_sigma</REPLACE> / &radic;(<REPLACE>trading_days_per_year</REPLACE>) = <REPLACE>annual_sigma/trading_days_per_year</REPLACE>. Since the standard deviation is so much bigger than the mean, let's just focus on the standard deviation and assume a mean of 0.
+The parameters of my normal distribution are &mu; = <REPLACE>annual_mu</REPLACE> and &sigma; = <REPLACE>annual_sigma</REPLACE>. Consider a one-day market movement. Assuming <REPLACE>trading_days_per_year</REPLACE> trading days per year, the expected daily movement is <REPLACE>annual_mu</REPLACE>/<REPLACE>trading_days_per_year</REPLACE> = <REPLACE>annual_mu/trading_days_per_year</REPLACE>, and the standard deviation is <REPLACE>annual_sigma</REPLACE> / &radic;(<REPLACE>trading_days_per_year</REPLACE>) = <REPLACE>annual_sigma/sqrt(trading_days_per_year)</REPLACE>. Since the standard deviation is so much bigger than the mean, let's just focus on the standard deviation and assume a mean of 0.
 
 A loss of 23% in a single day (Black Monday) means multiplying previous prices by (1-.23). Since geometric Brownian motion uses continuous compounding, we should convert this to a continuous rate. We want a change C such that exp(C) = 1-.23, which means C = ln(1-.23) = -.26. This is a daily return that should be able to be sampled from our distribution of daily returns -- the distribution with a mean of (roughly) 0 and a standard deviation of .014. But the <a href="https://en.wikipedia.org/wiki/Standard_score">z-value</a> for a -.26 return is -.26/.014 = -19, which has a probability so small that online normal-distribution calculators can't handle it. Basically, this event should have never happened. But it did once over the 51-year period from 1950 to 2001. This needs to be addressed in the simulations or else they risk ignoring huge risk from black swans.
 
@@ -263,7 +263,7 @@ The annual contribution limit for a 401k <a href="http://www.irs.gov/uac/Newsroo
 <h4>Reasons favoring 401k:</h4>
 
 <ul>
-<li>If you expect to have a lot of income during retirement, you'd presumably pay at least 15% taxes on capital gains outside a 401k. In the default margin-investing scenario above, margin investing beat regular investing by ~<REPLACE>margin_better_than_regular_percent</REPLACE>% in expectation <i>with higher risk</i>. So if you plan to spend the savings on yourself, if you use a margin account, your savings would be (1 + .<REPLACE>margin_better_than_regular_percent</REPLACE>)(1 - <REPLACE>long_term_cap_gains_rate</REPLACE>) = <REPLACE>(1+margin_advantage)(1-long_term_cap_gains)</REPLACE> as much as if you had put them in a non-leveraged 401k account that doesn't incur capital-gains taxes.</li>
+<li>If you expect to have a lot of income during retirement, you'd presumably pay at least 15% taxes on capital gains outside a 401k. In the default margin-investing scenario above, margin investing beat regular investing by ~<REPLACE>margin_better_than_regular_percent</REPLACE>% in expectation <i>with higher risk</i>. So if you plan to spend the savings on yourself, if you use a margin account, your savings would be only (1 + .<REPLACE>margin_better_than_regular_percent</REPLACE>)(1 - <REPLACE>long_term_cap_gains_rate</REPLACE>) = <REPLACE>(1+margin_advantage)(1-long_term_cap_gains)</REPLACE> as much as if you had put them in a non-leveraged 401k account that doesn't incur capital-gains taxes.</li>
 <li>If you expect to be in a lower income bracket during retirement (say 15% instead of 28%), then contributing to a 401k allows you to pay less income tax in addition to no capital-gains tax.</li>
 </ul>
 
@@ -310,9 +310,13 @@ This explains why the altruist in my simulations only invests ~<REPLACE>initial_
 
 In practice, margin leverage is not unlimited. But suppose it were. What would be the best amount of leverage to use?
 
-One theoretical perspective on the question comes from the <a href="https://en.wikipedia.org/wiki/Kelly_criterion">Kelly criterion</a> applied to the stock market. As <a href="https://www.math.washington.edu/~morrow/336_10/papers/jane.pdf" title="&quot;Betting with the Kelly Criterion&quot;">this summary</a> explains (p. 5), the optimal betting fraction is approximately (&mu;-r)/&sigma;<sup>2</sup>, where &mu; and &sigma; are as defined above, and r is the interest rate (for investing or borrowing). Using the parameter values for my default simulation, this optimal fraction is (<REPLACE>annual_mu</REPLACE>-<REPLACE>annual_margin_interest_rate</REPLACE>)/<REPLACE>annual_sigma</REPLACE><sup>2</sup> = <REPLACE>Kelly_ratio_as_percent</REPLACE>. Hence, this suggests using no leverage and splitting 50:50<span style="color:orange">CHECK THIS MANUALLY</span> between stocks and bonds! This isn't consistent with my results or with conventional wisdom. Of course, the parameters I used in this Kelly-criterion calculation were quite conservative. Based on historical US data, many people would probably set &mu; at more like .1, in which case the optimal betting fraction would be 1.45, i.e., almost 1.5X leverage.
+One theoretical perspective on the question comes from the <a href="https://en.wikipedia.org/wiki/Kelly_criterion">Kelly criterion</a> applied to the stock market. As <a href="https://www.math.washington.edu/~morrow/336_10/papers/jane.pdf" title="&quot;Betting with the Kelly Criterion&quot;">this summary</a> explains (p. 5), the optimal betting fraction is approximately (&mu;-r)/&sigma;<sup>2</sup>, where &mu; and &sigma; are as defined above, and r is the interest rate (for investing or borrowing). Using the parameter values for my default simulation, this optimal fraction is (<REPLACE>annual_mu</REPLACE>-<REPLACE>annual_margin_interest_rate</REPLACE>)/<REPLACE>annual_sigma</REPLACE><sup>2</sup> = <REPLACE>Kelly_ratio_as_percent</REPLACE>%. Hence, this suggests using no leverage and splitting 50:50<span style="color:orange">CHECK THIS MANUALLY</span> between stocks and bonds! This isn't consistent with my results or with conventional wisdom. Of course, the parameters I used in this Kelly-criterion calculation were quite conservative. Based on historical US data, many people would probably set &mu; at more like .1, in which case the optimal betting fraction would be 1.45, i.e., almost 1.5X leverage.
 
-"<a href="http://www.investmentreview.com/files/2009/12/leveraged_portfolios1.pdf">Leveraged Canadian Stock Portfolios: Long-Run Effects on Wealth and Risk</a>" presents a simulation of leveraged investing based on actual historical returns between 1950 and 2001. The authors found that the optimal amount of leverage over this period would have been about 1.5X (rebalancing monthly). 4X leverage left almost no ending wealth, although this was partly because the simulation assumed monthly rebalancing, whereas daily rebalancing can reduce the risk of wipeout. The paper's Figure 1 shows an inverted U curve for the ending wealth of an investor from 1950 to 2001 as a function of how much leverage she used, between 1X and 4X.
+"<a href="http://www.investmentreview.com/files/2009/12/leveraged_portfolios1.pdf">Leveraged Canadian Stock Portfolios: Long-Run Effects on Wealth and Risk</a>" (2003) presents a simulation of leveraged investing based on actual historical returns between 1950 and 2001. The authors found that the optimal amount of leverage over this period would have been about 1.5X (rebalancing monthly). 4X leverage left almost no ending wealth, although this was partly because the simulation assumed monthly rebalancing, whereas daily rebalancing can reduce the risk of wipeout. The paper's Figure 1 shows an inverted U curve for the ending wealth of an investor from 1950 to 2001 as a function of how much leverage she used, between 1X and 4X.
+
+"<a href="http://www.fsa.ulaval.ca/nfa2003/papiers/Craig%20Wilson.pdf">Leveraged Stock Portfolios over Long Holding Periods: A Continuous Time Model</a>" (2003) found optimal leverage of 2.41X based on historical parameters. Its equation (20) on p. 7 is the same as the Kelly formula above.
+
+"<a href="https://www.questia.com/library/journal/1P3-977793091/wealth-and-risk-from-leveraged-stock-portfolios">Wealth and Risk from Leveraged Stock Portfolios</a>" (2002) found optimal leverage of 1.7X assuming borrowing at 2% above Treasury bills. The authors note: "A modest amount of leverage enhances the performance of stock portfolios in the long run. However, higher amounts of leverage produce dramatic declines in long-run wealth."
 
 <h3>My results</h3>
 
@@ -320,7 +324,9 @@ Following is my version of a graph((In general, I use standard error for error b
 <blockquote>
 if f = A/B then &sigma;<sub>f</sub> is roughly |f| &radic;[ (&sigma;<sub>A</sub>/A)<sup>2</sup> + (&sigma;<sub>B</sub>/B)<sup>2</sup> - 2&sigma;<sub>AB</sub>/AB ].
 </blockquote>
-For simplicity, I omitted the correlation component of the equation (the -2&sigma;<sub>AB</sub>/AB part), which only makes my error bars conservatively big given that the sample-mean margin investment performance has a high correlation with the sample-mean regular investment performance, since the sample means for both quantities will be too high when particularly good stock returns are sampled and too low when particularly bad returns are sampled.)) for finding optimal leverage. It uses the default configuration, which means the investor buys new securities at <REPLACE>volunary_max_margin_to_assets_as_percent</REPLACE>% of 2X leverage and rebalances monthly to remain roughly that amount leveraged throughout the simulation. Higher leverage amounts ramp down leverage toward the end of the investing period. As in the tables above, I took utility(wealth) = &radic;(wealth). Each data point came from <REPLACE>num_trials</REPLACE> trials.
+For simplicity, I omitted the correlation component of the equation (the -2&sigma;<sub>AB</sub>/AB part), which only makes my error bars conservatively big given that the sample-mean margin investment performance has a high correlation with the sample-mean regular investment performance, since the sample means for both quantities will be too high when particularly good stock returns are sampled and too low when particularly bad returns are sampled.
+
+Unfortunately, it looks like the error bars in this graph are actually too small. This is because the averages for some leverage amounts clearly deviate from the trend of the curve, and their error bars don't even overlap with the error bars of neighboring points on the curve. But the curve should be continuous in theory. Hence, the error bars must be too small.)) for finding optimal leverage. It uses the default configuration, which means the investor buys new securities at <REPLACE>volunary_max_margin_to_assets_as_percent</REPLACE>% of 2X leverage and rebalances monthly to remain roughly that amount leveraged throughout the simulation. Higher leverage amounts ramp down leverage toward the end of the investing period. As in the tables above, I took utility(wealth) = &radic;(wealth). Each data point came from <REPLACE>num_trials</REPLACE> trials.
 
 <span class="fullwidthimage"><img src="<REPLACE>default_optimal_leverage_graph</REPLACE>" title="I release this image into the public domain worldwide." /></span>
 
@@ -336,23 +342,35 @@ The peaks of the curves seem to be around 2.5X leverage<span style="color:orange
 
 <h3>Don't rebalance up to 2X leverage monthly</h3>
 
-In my default simulation configuration, the investor may become less leveraged over time because she only takes 2X leverage on new equity purchases. If the market rises, her leverage becomes less than 2X due to higher equity without correspondingly higher debt. By default I avoided rebalancing to increase leverage in these cases out of concern that too much rebalancing would be harmful, along the lines of what we see with leveraged ETFs. But I wanted to try a variant where this kind of rebalancing was done monthly if the margin-to-equity ratio fell below <REPLACE>volunary_max_margin_to_assets_as_percent</REPLACE>% (the investor's personal not-quite-2X leverage target). In order to avoid incurring transactions costs on trivially small equity purchases, the investor only buys new ETF shares for rebalancing if she can buy at least $500 of such shares at once.
+In my default simulation configuration, the investor may become less leveraged over time because she only takes 2X leverage on new equity purchases. If the market rises, her leverage becomes less than 2X due to higher equity without correspondingly higher debt. By default I avoided rebalancing to increase leverage in these cases out of concern that too much rebalancing would be harmful, along the lines of what we see with leveraged ETFs. But I wanted to try a variant where this kind of rebalancing was done monthly if the margin-to-equity ratio fell below <REPLACE>volunary_max_margin_to_assets_as_percent</REPLACE>% (the investor's personal not-quite-2X leverage target). In order to avoid incurring transactions costs on trivially small equity purchases, the investor only buys new ETF shares for rebalancing if she can buy at least $<REPLACE>min_additional_purchase_amount</REPLACE> of such shares at once.
 
 <REPLACE>dontreb_results_table</REPLACE>
 
 <span class="fullwidthimage"><img src="<REPLACE>dontreb_optimal_leverage_graph</REPLACE>" title="I release this image into the public domain worldwide." /></span>
 
+Remember that <span style="color:red">"2.5X leverage" isn't really 2.5X</span> because in this setting, the investor only rebalances when asset prices fall, not when they rise, so the investor is actually not fully leveraged much of the time. Therefore, don't conclude that you should use 2.5X leverage for a strategy that <i>does</i> rebalance!
+
 TEST THIS: Oddly, the results depend very sensitively on what might seem a trivial parameter: whether, when Interactive Brokers liquidates shares in the investor's account to stay within margin limits, they liquidate random shares or the shares with the biggest capital losses. If Interactive Brokers liquidates random shares, they may leave the investor with big capital gains that will be taxed. If Interactive Brokers liquidates the shares with the biggest losses, they typically leave the investor with net capital losses, of which $3K/year can be deducted from income taxes.
 
-<span style="color:red">OPTIMAL LEVERAGE</span>
+The margin-to-assets ratios for this variation tend to decline more with time as asset prices grow, since the investor isn't actively rebalancing back up toward target leverage. Here's a graph of that for 2X leverage:
 
-Also remember that <span style="color:red">"2.5X leverage" isn't really 2.5X</span> because in this setting, the investor only rebalances when asset prices fall, not when they rise, so the investor is actually not fully leveraged much of the time. Therefore, don't conclude that you should use 2.5X leverage for a strategy that <i>does</i> rebalance!
+<span class="fullwidthimage"><img src="<REPLACE>dontreb_indMTA</REPLACE>" title="I release this image into the public domain worldwide." /></span>
+
+Also, there are many fewer accumulated capital losses because if leverage is less than 2X, there's much less selling of securities to meet margin requirements:
+
+<span class="fullwidthimage"><img src="<REPLACE>dontreb_carrcg</REPLACE>" title="I release this image into the public domain worldwide." /></span>
+
+<h3>Don't rebalance up to 2X leverage monthly and don't taper off leverage toward end</h3>
+
+<REPLACE>dontrebtaper_results_table</REPLACE>
+
+<span class="fullwidthimage"><img src="<REPLACE>dontrebtaper_optimal_leverage_graph</REPLACE>" title="I release this image into the public domain worldwide." /></span>
 
 <h3>Don't rebalance up to 2X leverage monthly and pay principal throughout</h3>
 
-This is the most conservative strategy. Leverage can be made less risky if, instead of keeping your loans around until the end of the investing period, you pay them off over time as if you were paying off a home mortgage. Doing this means you're less leveraged at later times, as this graph shows:
+This is the most conservative strategy. Leverage can be made less risky if, instead of keeping your loans around until the end of the investing period, you pay them off over time as if you were paying off a home mortgage. Doing this means you're less leveraged at later times, as this graph shows (for the 2X leverage configuration):
 
-ADDME
+<span class="fullwidthimage"><img src="<REPLACE>princthru_indMTA</REPLACE>" title="I release this image into the public domain worldwide." /></span>
 
 Obviously this configuration is incompatible with the default policy of rebalancing back up to 2X leverage, since paying off principal throughout reduces the margin-to-assets ratio over time, while a policy of rebalancing to increase leverage would undo that.
 
@@ -380,6 +398,10 @@ In the default simulation, I assumed that if you exceed your broker's margin thr
 <REPLACE>FO_results_table</REPLACE>
 
 <span class="fullwidthimage"><img src="<REPLACE>FO_optimal_leverage_graph</REPLACE>" title="I release this image into the public domain worldwide." /></span>
+
+Here are some accumulated capital losses for the 2X-leverage version of this configuration:
+
+<span class="fullwidthimage"><img src="<REPLACE>FO_carrcg</REPLACE>" title="I release this image into the public domain worldwide." /></span>
 
 <h3>Use VIX daily volatilities</h3>
 

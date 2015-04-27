@@ -32,7 +32,13 @@ class Assets(object):
         """If sell_best_for_taxes_first is True, sort lots according to which ones, 
         if sold, incur least capital-gains tax. Otherwise sort randomly.
         Since we're paying taxes, in order to get C dollars of after-tax cash back, we need 
-        to sell more than C of actual ETFs."""
+        to sell more than C of actual ETFs.
+        
+        To learn about Interactive Brokers's actual liquidation algorithm:
+        http://www.elitetrader.com/et/index.php?threads/interactive-brokers-real-time-liquidation-madness.210359/
+        https://www.quantopian.com/posts/interactive-brokers-lack-of-transparency
+        https://www.google.com/#q=%22interactive%20brokers%22%20%22liquidation%20algorithm%22
+        """
         go_bankrupt = False
         if sell_best_for_taxes_first:
             # Sort to put ETFs that would incur lowest capital-gains taxes first.

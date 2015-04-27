@@ -11,6 +11,7 @@ import shutil
 import re
 import math
 from scipy.stats import norm
+import time
 
 """This file writes the full text of my essay about leveraged 
 investing. It dynamically computes the results presented. The reason
@@ -22,10 +23,11 @@ if just opened in the browser."""
 
 REPLACE_STR_FRONT = "<REPLACE>"
 REPLACE_STR_END = "</REPLACE>"
+TIMESTAMP_FORMAT = '%Y%b%d_%Hh%Mm%Ss'
 
 def write_essay(skeleton, outfile, prev_path, num_trials, 
-                use_local_image_file_paths, use_multiprocessing,
-                data_already_exists_and_has_this_timestamp):
+                use_local_image_file_paths, approx_num_simultaneous_processes,
+                data_already_exists, timestamp):
     """The following are the markers in the text that indicate
     where to replace with output numbers."""
 
@@ -33,8 +35,9 @@ def write_essay(skeleton, outfile, prev_path, num_trials,
     output_text = skeleton.read()
 
     # Compute the results if they don't already exist.
-    if not data_already_exists_and_has_this_timestamp:
-        margin_leverage.optimal_leverage_for_all_scenarios(num_trials, False, prev_path, use_multiprocessing=use_multiprocessing)
+    if not data_already_exists:
+        margin_leverage.optimal_leverage_for_all_scenarios(num_trials, False, prev_path, 
+                                                           approx_num_simultaneous_processes=approx_num_simultaneous_processes)
 
     """Read and parse the results."""
     # Get prefix for the default results files.
@@ -64,13 +67,13 @@ def write_essay(skeleton, outfile, prev_path, num_trials,
         """Next, possibly copy images to the HTML output folder
         if we need images for this scenario"""
         output_text = add_figures("optimal_leverage_graph", output_text, optimal_leverage_graph, 
-                                  prev_path, use_local_image_file_paths, abbrev)
+                                  prev_path, use_local_image_file_paths, abbrev, timestamp)
         # Now add other figures, for the default margin-to-assets amount
         for graph_type in ["hist_margin", "wealthtraj", "avgMTA", "indMTA", "carrcg"]:
             path_to_current_figure = "{}_{}.png".format(prefix_for_default_results_files, 
                                                         graph_type)
             output_text = add_figures(graph_type, output_text, path_to_current_figure, 
-                                      prev_path, use_local_image_file_paths, abbrev)
+                                      prev_path, use_local_image_file_paths, abbrev, timestamp)
 
         """Now scenario-specific content: Default scenario"""
         if scenario == "Default":
@@ -149,8 +152,12 @@ def add_market_params_and_calculations(output_text):
                                           str(getattr(default_market,param)))
 
     for param in ["annual_mu", "annual_sigma", 
-                  "annual_margin_interest_rate"]:
-        param_as_percent = "{}%".format((round( 100*getattr(default_market,param) ,0)))
+                  "annual_margin_interest_rate", "inflation_rate"]:
+        num_decimals = 1 if param == "annual_mu" else 0
+        percent = round( 100.0*getattr(default_market,param) ,num_decimals)
+        if param == "annual_sigma":
+            percent = int(percent) # remove .0 from the end of the number
+        param_as_percent = "{}%".format(percent)
         output_text = output_text.replace(REPLACE_STR_FRONT + param + "_as_percent" + REPLACE_STR_END, param_as_percent)
 
     # equity premium
@@ -159,6 +166,8 @@ def add_market_params_and_calculations(output_text):
     output_text = output_text.replace(REPLACE_STR_FRONT +"equity_premium_as_percent" + REPLACE_STR_END, str(equity_premium_as_percent))
 
     # Check that some params haven't changed because they're not parameterized in the HTML!
+    assert default_market.annual_mu==.054, "Mu has changed, but the essay text still says \"ln(1 + .056) = .054\". Change that."
+    assert Market.TRADING_DAYS_PER_YEAR==252, "Trading days per year have changed, but the essay text still uses 252 days per year for black-swan calculations. Change that."
     assert default_market.medium_black_swan_prob==.004 and default_market.annual_sigma_for_medium_black_swan==1.1 and default_market.large_black_swan_prob==.0001 and default_market.annual_sigma_for_large_black_swan==4.1, "Market params have changed relative to the skeleton HTML. That needs updating in the section Explanation of \"black swan\" probabilities"
 
     return output_text
@@ -202,9 +211,9 @@ def add_general_theoretical_calculations(output_text):
 
     # Daily mu and sigma
     output_text = output_text.replace(REPLACE_STR_FRONT + "annual_mu/trading_days_per_year" + REPLACE_STR_END, 
-                                      str(default_market.annual_mu/Market.TRADING_DAYS_PER_YEAR))
-    output_text = output_text.replace(REPLACE_STR_FRONT + "annual_sigma/trading_days_per_year" + REPLACE_STR_END, 
-                                      str(default_market.annual_sigma/Market.TRADING_DAYS_PER_YEAR))
+                                      str(util.round_decimal_to_given_num_of_sig_figs(default_market.annual_mu/Market.TRADING_DAYS_PER_YEAR,2)))
+    output_text = output_text.replace(REPLACE_STR_FRONT + "annual_sigma/sqrt(trading_days_per_year)" + REPLACE_STR_END, 
+                                      str(util.round_decimal_to_given_num_of_sig_figs( default_market.annual_sigma/math.sqrt(Market.TRADING_DAYS_PER_YEAR) ,2)))
 
     # Sigma for whole period
     output_text = output_text.replace(REPLACE_STR_FRONT + "annual_sigma * sqrt(years_until_donate)" + REPLACE_STR_END, 
@@ -250,7 +259,7 @@ def add_theoretical_calculations_for_no_unemployment_etc(output_text, no_unemplo
                                       actual_sigma_of_log_wealth)
 
     # Z-value threshold
-    Z_value_threshold = default_investor.years_until_donate * (default_market.annual_margin_interest_rate - default_market.annual_mu) / default_market.annual_sigma
+    Z_value_threshold = math.sqrt(default_investor.years_until_donate) * (default_market.annual_margin_interest_rate - default_market.annual_mu) / default_market.annual_sigma
     output_text = output_text.replace(REPLACE_STR_FRONT + "Z_value_threshold" + REPLACE_STR_END, 
                                       str(round(Z_value_threshold,2)))
 
@@ -276,17 +285,17 @@ def theoretical_median_PV_ignoring_complications():
     initial_monthly_income = default_investor.initial_annual_income_for_investing / 12
     total_PV = 0.0
     for month in range(12 * default_investor.years_until_donate):
-        cur_monthly_income = initial_monthly_income * (1+default_investor.annual_real_income_growth_percent/100.0)**month
+        cur_monthly_income = initial_monthly_income * (1+default_investor.annual_real_income_growth_percent/100.0)**math.floor(month/12)
         discounted_cur_monthly_income = cur_monthly_income * math.exp(- default_market.annual_mu * (month / 12.0))
         total_PV += discounted_cur_monthly_income
     return total_PV
 
 def add_figures(graph_type, output_text, current_location_of_figure, 
-                prev_path, use_local_image_file_paths, scenario_abbrev):
+                prev_path, use_local_image_file_paths, scenario_abbrev, timestamp):
     placeholder_string_for_figure = REPLACE_STR_FRONT + "{}_{}".format(scenario_abbrev,graph_type) + REPLACE_STR_END
     if re.search(".*{}.*".format(placeholder_string_for_figure), output_text): # if yes, this figure appears in the HTML, so we should copy it and write the path to the figure
         # Copy the graph to be in the same folder as the essay HTML
-        new_figure_file_name = "{}_{}.png".format(scenario_abbrev, graph_type)
+        new_figure_file_name = "{}_{}_{}.png".format(scenario_abbrev, graph_type, timestamp)
         copy_destination_for_graph = os.path.join(prev_path,new_figure_file_name)
         shutil.copyfile(current_location_of_figure, copy_destination_for_graph)
 
@@ -294,13 +303,18 @@ def add_figures(graph_type, output_text, current_location_of_figure,
         if use_local_image_file_paths:
             replacement_graph_path = copy_destination_for_graph
         else: # use WordPress path that will exist once we upload the file
-            now = datetime.now()
-            year = now.strftime('%Y')
-            month = now.strftime('%m')
-            full_timestamp = now.strftime('%d%b%Y_%Hh%Mm%Ss')
-            replacement_graph_path = "http://reducing-suffering.org/wp-content/uploads/{}/{}/{}_{}".format(year, month, full_timestamp, new_figure_file_name)
+            (year, month) = parse_year_and_month_from_timestamp(timestamp)
+            replacement_graph_path = "http://reducing-suffering.org/wp-content/uploads/{}/{}/{}".format(year, month, new_figure_file_name)
         output_text = output_text.replace(placeholder_string_for_figure, replacement_graph_path)
     return output_text
+
+def parse_year_and_month_from_timestamp(timestamp):
+    """Timestamp looks like 2015Apr26_23h09m36s. We want to parse out
+    2015 (the year) and 04 (the month)."""
+    parsed_time = time.strptime(timestamp, TIMESTAMP_FORMAT)
+    year = time.strftime('%Y',parsed_time)
+    month = time.strftime('%m',parsed_time)
+    return (year, month)
 
 def how_much_better_is_margin_in_thousands_of_dollars(results_table_contents, column_name):
     margin_val = get_mean_as_int_from_mean_plus_or_minus_stderr(parse_value_from_results_table(results_table_contents, "Margin", column_name))
@@ -345,9 +359,13 @@ def parse_percent_times_margin_is_better(results_table_contents):
     return matches.group(1)
 
 if __name__ == "__main__":
-    DATA_ALREADY_EXISTS_AND_HAS_THIS_TIMESTAMP = None
-    """if this is non-None, it saves lots of computation and just computes the HTML 
-    from saved data"""
+    #DATA_ALREADY_EXISTS_AND_HAS_THIS_TIMESTAMP = None
+    DATA_ALREADY_EXISTS_AND_HAS_THIS_TIMESTAMP = "2015Apr26_23h09m36s"
+    """if the above variable is non-None, it saves lots of computation and just computes the HTML 
+    and copies the required figures from saved data"""
+    data_already_exists = DATA_ALREADY_EXISTS_AND_HAS_THIS_TIMESTAMP is not None
+
+    LOCAL_FILE_PATHS_IN_HTML = False
 
     # Open essay skeleton.
     SKELETON = "essay_skeleton.html"
@@ -364,14 +382,19 @@ if __name__ == "__main__":
         if DATA_ALREADY_EXISTS_AND_HAS_THIS_TIMESTAMP:
             timestamp = DATA_ALREADY_EXISTS_AND_HAS_THIS_TIMESTAMP
         else:
-            timestamp = datetime.now().strftime('%Y%b%d_%Hh%Mm%Ss')
+            timestamp = datetime.now().strftime(TIMESTAMP_FORMAT)
         cur_folder = os.path.join(full_path_of_essays_dir,timestamp)
         if not DATA_ALREADY_EXISTS_AND_HAS_THIS_TIMESTAMP:
             os.mkdir(cur_folder) # should be unique because it's a timestamp accurate within seconds
 
         # Create the name of the current essay version.
-        essay_path = os.path.join(cur_folder, "essay.html")
+        essay_path = os.path.join(cur_folder, "aaa_essay.html") # "aaa_" is to put it at the top of the file list
 
         # Write file.
         with open(essay_path, "w") as outfile:
-            write_essay(skeleton, outfile, cur_folder, 1, True, False, DATA_ALREADY_EXISTS_AND_HAS_THIS_TIMESTAMP)
+            write_essay(skeleton, outfile, cur_folder, 30, LOCAL_FILE_PATHS_IN_HTML, 
+                        1, data_already_exists, timestamp)
+
+        """Once this is finished, you should have a timestamped folder with an essay HTML file and
+        a bunch of figures. Just bulk upload the figures to WordPress and copy-paste
+        the HTML text into WordPress's text editor, and you're done!"""
