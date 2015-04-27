@@ -111,6 +111,14 @@ class Investor(object):
         self.__laid_off = val
 
     @property
+    def monthly_probability_of_layoff(self):
+        return self.__monthly_probability_of_layoff
+
+    @property
+    def monthly_probability_find_work_after_laid_off(self):
+        return self.__monthly_probability_find_work_after_laid_off
+
+    @property
     def does_broker_liquidation_sell_tax_favored_first(self):
         return self.__does_broker_liquidation_sell_tax_favored_first
 

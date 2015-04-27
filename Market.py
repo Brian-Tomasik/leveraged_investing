@@ -67,6 +67,22 @@ class Market(object):
     def use_VIX_data_for_volatility(self):
         return self.__use_VIX_data_for_volatility
 
+    @property
+    def medium_black_swan_prob(self):
+        return self.__medium_black_swan_prob
+
+    @property
+    def annual_sigma_for_medium_black_swan(self):
+        return self.__annual_sigma_for_medium_black_swan
+
+    @property
+    def large_black_swan_prob(self):
+        return self.__large_black_swan_prob
+
+    @property
+    def annual_sigma_for_large_black_swan(self):
+        return self.__annual_sigma_for_large_black_swan
+
     def read_VIX_data(self):
         """Read in daily VIX prices, which I took from 
         http://www.cboe.com/publish/scheduledtask/mktdata/datahouse/vixcurrent.csv ,

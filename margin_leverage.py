@@ -318,6 +318,10 @@ def args_for_this_scenario(scenario_name, num_trials, outdir_name):
     elif scenario_name == "Don't taper off leverage toward end":
         investor = Investor.Investor(taper_off_leverage_toward_end=False)
         return (investor,default_market,num_trials,outpath)
+    elif scenario_name == "Don't rebalance monthly and don't taper off leverage toward end":
+        investor = Investor.Investor(rebalance_monthly_to_increase_leverage=False,
+                                     taper_off_leverage_toward_end=False)
+        return (investor,default_market,num_trials,outpath)
     else:
         raise Exception(scenario_name + " is not a known scenario type.")
 
@@ -356,19 +360,18 @@ def scenario_to_folder_abbreviation(scenario_name):
 
 def get_all_scenarios_list():
     """Return all the scenarios (http://knowyourmeme.com/memes/x-all-the-y)"""
-    return ["Don't taper off leverage toward end"]
-""",
-            "No unemployment or inflation or taxes or black swans", 
+    return ["No unemployment or inflation or taxes or black swans",
+            "Default",
+            "Don't taper off leverage toward end", 
             "Favored tax ordering when liquidate", 
             "Annual sigma = 0",
             "Don't rebalance monthly", 
-            "Default", "Use VIX data", 
+            "Use VIX data", 
             "Pay down principal throughout investment period", 
             "Annual sigma = .4", "Annual mu = .07", 
             "Annual margin interest rate = .015", 
             "Donate after 5 years", "Donate after 30 years",
             "Don't rebalance monthly and don't taper off leverage toward end"]
-            """
 
 def sweep_scenarios(use_multiprocessing=False, quick_test=True):
     if quick_test:
