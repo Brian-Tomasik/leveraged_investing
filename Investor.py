@@ -4,7 +4,7 @@ import TaxRates
 class Investor(object):
     """Store parameters about how an investor behaves"""
 
-    def __init__(self, years_until_donate=15, initial_annual_income_for_investing=30000, 
+    def __init__(self, years_until_donate=1, initial_annual_income_for_investing=30000, 
                  annual_real_income_growth_percent=2, match_percent_from_401k=50,
                  margin_account_bankrupt=False, taper_off_leverage_toward_end=True,
                  tax_rates=TaxRates.TaxRates(), rebalance_monthly_to_increase_leverage=True, 

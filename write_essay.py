@@ -11,6 +11,8 @@ import shutil
 import re
 import math
 from scipy.stats import norm
+from scipy.optimize import fsolve
+import numpy
 import time
 
 """This file writes the full text of my essay about leveraged 
@@ -96,7 +98,7 @@ def write_essay(skeleton, outfile, cur_working_dir, num_trials,
     """Add default params and calculations using those params"""
     output_text = output_text.replace(REPLACE_STR_FRONT + "num_trials" + REPLACE_STR_END, str(num_trials))
     output_text = add_param_settings_and_related_calculations(output_text)
-    output_text = add_general_theoretical_calculations(output_text)
+    output_text = add_general_theoretical_calculations(output_text, cur_working_dir, timestamp)
 
     # Add the date to the output file. Run this at the end because
     # the computations above may take days or weeks. :P
@@ -208,7 +210,7 @@ def add_brokerage_params_and_calculations(output_text):
 
     return output_text
 
-def add_general_theoretical_calculations(output_text):
+def add_general_theoretical_calculations(output_text, cur_working_dir, timestamp):
     default_investor = Investor.Investor()
     default_market = Market.Market()
 
@@ -232,7 +234,68 @@ def add_general_theoretical_calculations(output_text):
     Kelly_ratio_as_percent = int(round( 100*Kelly_ratio ,0))
     output_text = output_text.replace(REPLACE_STR_FRONT + "Kelly_ratio_as_percent" + REPLACE_STR_END, 
                                       str(Kelly_ratio_as_percent))
+
+    # Kelly optimal ratio if mu = .1
+    Kelly_ratio_if_mu_is_10_percent = round( (.1-default_market.annual_margin_interest_rate)/(default_market.annual_sigma**2) ,2)
+    output_text = output_text.replace(REPLACE_STR_FRONT + "Kelly_ratio_if_mu_is_10_percent" + REPLACE_STR_END, 
+                                      str(Kelly_ratio_if_mu_is_10_percent))
+
+    # c* values
+    c_star_for_alpha_equals_one_half = solve_deriv_wrt_c_equals_zero(.5)
+    output_text = output_text.replace(REPLACE_STR_FRONT + "c_star_for_alpha_equals_one_half" + REPLACE_STR_END, 
+                                      str(round(c_star_for_alpha_equals_one_half,2)))
+    output_text = output_text.replace(REPLACE_STR_FRONT + "c_star_for_alpha_equals_three_fourths" + REPLACE_STR_END, 
+                                      str(round(solve_deriv_wrt_c_equals_zero(.75),2)))
+    output_text = output_text.replace(REPLACE_STR_FRONT + "c_star_for_alpha_equals_one_fourth" + REPLACE_STR_END, 
+                                      str(round(solve_deriv_wrt_c_equals_zero(.25),2)))
+
+    # curve of c* vs. alpha
+    NUM_POINTS = 1001
+    alpha_values = numpy.linspace(.15,.85,NUM_POINTS)
+    c_star_values = map(solve_deriv_wrt_c_equals_zero, alpha_values)
+    fig_name = "c_star_vs_alpha_%s.png" % timestamp
+    fig_name_including_path = os.path.join(cur_working_dir,fig_name)
+    plots.theoretical_optimal_leverage_based_on_risk_tolerance(fig_name_including_path,
+        *throw_out_alphas_where_c_star_is_extreme(alpha_values,c_star_values))
+    output_text = output_text.replace(REPLACE_STR_FRONT + "c_star_vs_alpha_fig" + REPLACE_STR_END, 
+                                      get_WordPress_img_url_path(timestamp, fig_name))
+
+    # second derivative equation, "x" and "y" values
+    x_value_for_second_derivative = default_market.annual_sigma**2 * default_investor.years_until_donate * (.5**2-.5)
+    output_text = output_text.replace(REPLACE_STR_FRONT + "x_value_for_second_derivative" + REPLACE_STR_END, 
+                                      str(x_value_for_second_derivative))
+    y_value_for_second_derivative = (default_market.annual_mu-default_market.annual_margin_interest_rate)*default_investor.years_until_donate*.5
+    output_text = output_text.replace(REPLACE_STR_FRONT + "y_value_for_second_derivative" + REPLACE_STR_END, 
+                                      str(y_value_for_second_derivative))
+    full_equation_with_x_y_and_c = x_value_for_second_derivative + (c_star_for_alpha_equals_one_half * x_value_for_second_derivative + y_value_for_second_derivative)**2
+    assert full_equation_with_x_y_and_c < 0, "Oops. The second derivative isn't negative anymore, so this isn't a max."
+    output_text = output_text.replace(REPLACE_STR_FRONT + "full_equation_with_x_y_and_c" + REPLACE_STR_END, 
+                                      str(round(full_equation_with_x_y_and_c,2)))
+
     return output_text
+
+def throw_out_alphas_where_c_star_is_extreme(alpha_values, c_star_values):
+    assert len(alpha_values) == len(c_star_values), "Arrays aren't the same size."
+    assert len(c_star_values) > 5, "This might not work so well for small alpha arrays."
+    middle_of_c_star_array = len(c_star_values)/2
+    typical_c_star = c_star_values[middle_of_c_star_array]
+    MULTIPLE_WHEN_TOO_EXTREME = 10
+    non_extreme_alphas_and_c_stars = [(alpha, c_star) for (alpha, c_star) in zip(alpha_values, c_star_values) if abs(c_star) <= MULTIPLE_WHEN_TOO_EXTREME * abs(typical_c_star)]
+    non_extreme_alphas = [alpha for (alpha, c_star) in non_extreme_alphas_and_c_stars]
+    non_extreme_c_stars = [c_star for (alpha, c_star) in non_extreme_alphas_and_c_stars]
+    return (non_extreme_alphas, non_extreme_c_stars)
+
+def solve_deriv_wrt_c_equals_zero(alpha):
+    deriv_with_this_alpha = lambda c : deriv_wrt_c(c,alpha)
+    GUESS = 1.0
+    solution = fsolve(deriv_with_this_alpha, GUESS)
+    assert len(solution) == 1, "Solution array has length other than 1."
+    return solution[0]
+
+def deriv_wrt_c(c, alpha):
+    default_investor = Investor.Investor()
+    default_market = Market.Market()
+    return math.exp( (default_market.annual_margin_interest_rate + (default_market.annual_mu-default_market.annual_margin_interest_rate) * c) * default_investor.years_until_donate * alpha + (default_market.annual_sigma**2 * c**2/2.0) * default_investor.years_until_donate * (alpha**2 - alpha) ) * ( (default_market.annual_mu-default_market.annual_margin_interest_rate) * default_investor.years_until_donate * alpha + c*default_market.annual_sigma**2 * default_investor.years_until_donate * (alpha**2 - alpha) )
 
 def add_theoretical_calculations_for_no_unemployment_etc(output_text, no_unemployment_etc_results_table_contents):
     default_investor = Investor.Investor()
@@ -309,10 +372,13 @@ def add_figures(graph_type, output_text, current_location_of_figure,
         if use_local_image_file_paths:
             replacement_graph_path = copy_destination_for_graph
         else: # use WordPress path that will exist once we upload the file
-            (year, month) = parse_year_and_month_from_timestamp(timestamp)
-            replacement_graph_path = "http://reducing-suffering.org/wp-content/uploads/{}/{}/{}".format(year, month, new_figure_file_name)
+            replacement_graph_path = get_WordPress_img_url_path(timestamp, new_figure_file_name)
         output_text = output_text.replace(placeholder_string_for_figure, replacement_graph_path)
     return output_text
+
+def get_WordPress_img_url_path(timestamp, fig_name):
+    (year, month) = parse_year_and_month_from_timestamp(timestamp)
+    return "http://reducing-suffering.org/wp-content/uploads/{}/{}/{}".format(year, month, fig_name)
 
 def parse_year_and_month_from_timestamp(timestamp):
     """Timestamp looks like 2015Apr26_23h09m36s. We want to parse out
@@ -366,7 +432,8 @@ def parse_percent_times_margin_is_better(results_table_contents):
 
 if __name__ == "__main__":
     DATA_ALREADY_EXISTS_AND_HAS_THIS_TIMESTAMP = None
-    #DATA_ALREADY_EXISTS_AND_HAS_THIS_TIMESTAMP = "2015Apr26_23h09m36s"
+    #DATA_ALREADY_EXISTS_AND_HAS_THIS_TIMESTAMP = "2015Apr26_23h09m36s" # big sample but missing some new variants
+    #DATA_ALREADY_EXISTS_AND_HAS_THIS_TIMESTAMP = "2015Apr27_19h52m46s" # sample size of 1 but has all variants as of 28 Apr 2015
     """if the above variable is non-None, it saves lots of computation and just computes the HTML 
     and copies the required figures from saved data"""
     data_already_exists = DATA_ALREADY_EXISTS_AND_HAS_THIS_TIMESTAMP is not None
@@ -398,8 +465,16 @@ if __name__ == "__main__":
 
         # Write file.
         with open(essay_path, "w") as outfile:
-            NUM_TRIALS = 50
-            #NUM_TRIALS = 1
+            print """
+            ==========
+            WARNING: If you're using saved data, all default values now, 
+            including NUM_TRIALS here, should be
+            _the same as when you ran the results being pointed to_
+            or else the params filled in to the output HTMl file will be wrong!
+            ============
+            """
+            #NUM_TRIALS = 50
+            NUM_TRIALS = 1
             APPROX_NUM_SIMULTANEOUS_PROCESSES = 1
             #APPROX_NUM_SIMULTANEOUS_PROCESSES = 2
             write_essay(skeleton, outfile, cur_folder, NUM_TRIALS, LOCAL_FILE_PATHS_IN_HTML, 

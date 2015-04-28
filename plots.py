@@ -73,9 +73,11 @@ def graph_carried_taxes_trajectories(carried_tax_histories, outfilepath):
     pyplot.close()
 
 def optimal_leverage_graph_prefix():
-    return "aaa_graph" # add "aaa_" to put it first alphabetically so it's easier to find
+    return "aaa_opt_lev" # add "aaa_" to put it first alphabetically so it's easier to find
 
 def graph_trends_vs_leverage_amount(output_queue, outdir_name):
+    """Graph to show optimal leverage."""
+
     # Sort the queue by the N leverage value
     output_tuples = []
     while not output_queue.empty():
@@ -138,4 +140,12 @@ def graph_trends_vs_leverage_amount(output_queue, outdir_name):
     pyplot.ylabel("Ratios of margin account's value over regular account's value")
     pyplot.legend()
     pyplot.savefig(path.join(outdir_name,optimal_leverage_graph_prefix()))
+    pyplot.close()
+
+def theoretical_optimal_leverage_based_on_risk_tolerance(fig_name_including_path,alpha_values,c_star_values):
+    pyplot.plot(alpha_values, c_star_values)
+    pyplot.title("Optimal theoretical leverage, c*, vs. degree of risk tolerance, alpha")
+    pyplot.xlabel("alpha: measure of risk tolerance, as in utility(wealth) = (wealth)^alpha")
+    pyplot.ylabel("c*: optimal leverage amount, like c* = 2 means 2X leverage is optimal")
+    pyplot.savefig(fig_name_including_path)
     pyplot.close()

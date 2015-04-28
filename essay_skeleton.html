@@ -29,6 +29,8 @@ The value of leverage depends on the current interest rate for borrowing and exp
 If you don't already have a lot to invest, the total gains from leverage will of course be lower. In this piece, I describe a simulation in which a hypothetical wage earner invests over the course of 30 years, contributing <REPLACE>initial_annual_income_for_investing</REPLACE>/year to savings in early years and up to $54K/year in late years. The results are presented <a href="#Results">later</a>.
 -->
 
+An excellent, simple, graphical tutorial on leverage is "<a href="http://papers.ssrn.com/sol3/papers.cfm?abstract_id=2239827" title="by Robert Ferguson, 1993">The Danger of Leverage and volatility</a>".
+
 <h2>Possible leverage methods</h2>
 
 Following are some methods that are often proposed for leveraging investments. I haven't tried any of them yet firsthand, though I hope to experiment with margin investing soon.
@@ -206,7 +208,7 @@ Since the investor sells the biggest capital losses, both for tax-loss harvestin
 <li>broker-imposed max margin-to-assets ratio in your margin account = <REPLACE>broker_max_margin_to_assets_ratio_as_percent</REPLACE>% (For simplicity, I'm not distinguishing initial margin vs. maintenance margin.)</li>
 <li>voluntarily self-imposed max margin-to-assets ratio in the account = <REPLACE>volunary_max_margin_to_assets_as_percent</REPLACE>% (monthly rebalancing to keep margin below this ratio)</li>
 <li>trading fee per dollar of securities bought or sold = $<REPLACE>fee_per_dollar_traded</REPLACE> (this counts both Interactive Brokers trading fees and bid-ask spreads)</li>
-<li>number of random iterations = <REPLACE>num_trials</REPLACE></li>
+<li>number of random iterations = <REPLACE>num_trials</REPLACE></li><span style="color:orange">This often gets messed up</span>
 </ul>
 
 <h4>Explanation of "black swan" probabilities</h4>
@@ -235,28 +237,36 @@ To compare the simulation results against theory, it helps to strip away some of
 
 <REPLACE>uitbf_results_table</REPLACE>
 
-In a geometric Brownian motion framework for stock-price evolution, the final price S(t) of a security S after t years <a href="http://www.columbia.edu/~ks20/FE-Notes/4700-07-Notes-GBM.pdf" title="&quot;Geometric Brownian motion&quot;">is</a> the initial price, S(0), times exp(X(t)), where X(t) is a Brownian motion with annual drift &mu; and variance &sigma;<sup>2</sup>. Since X(t) is normally distributed, S(t)/S(0) = exp(X(t)) is lognormally distributed, i.e., ln(S(t)/S(0)) is normally distributed with mean &mu;t and variance &sigma;<sup>2</sup>t. For a <a href="https://en.wikipedia.org/wiki/Log-normal_distribution">lognormal distribution</a>, the median is exp(&mu;t), and the mean is exp(&mu;t + &sigma;<sup>2</sup>t/2). Hence, the median final value of wealth from investing should be S(0) exp(&mu;t), and the mean final value should be S(0) exp(&mu;t + &sigma;<sup>2</sup>t/2). For more explanation, see <a href="https://books.google.com/books?id=DFJg_3PJ5ToC&pg=PA83&lpg=PA83&dq=%22geometric+brownian+motion%22+median&source=bl&ots=arNDISdxak&sig=wT1rLUBmWkHDqt2EmCBAw5KYOg8&hl=en&sa=X&ei=GFQ-Vb3fMNa1sQSv4YGwAw&ved=0CD0Q6AEwBA#v=onepage&q=%22geometric%20brownian%20motion%22%20median&f=false" title="'Statistics and Finance: An Introduction' by David Ruppert, p. 83">here</a>.
+In a geometric Brownian motion framework for stock-price evolution, the final price S<sub>t</sub> of a security S after t years <a href="http://www.columbia.edu/~ks20/FE-Notes/4700-07-Notes-GBM.pdf" title="&quot;Geometric Brownian motion&quot;">is</a> the initial price, S<sub>0</sub>, times exp(X<sub>t</sub>), where X<sub>t</sub> is a Brownian motion with annual drift &mu; and variance &sigma;<sup>2</sup>. Since X<sub>t</sub> is normally distributed, S<sub>t</sub>/S<sub>0</sub> = exp(X<sub>t</sub>) is lognormally distributed, i.e., ln(S<sub>t</sub>/S<sub>0</sub>) is normally distributed with mean &mu;t and variance &sigma;<sup>2</sup>t. For a <a href="https://en.wikipedia.org/wiki/Log-normal_distribution">lognormal distribution</a>, the median is exp(&mu;t), and the mean is exp(&mu;t + &sigma;<sup>2</sup>t/2). Hence, the median final value of wealth from investing should be S<sub>0</sub> exp(&mu;t), and the mean final value should be S<sub>0</sub> exp(&mu;t + &sigma;<sup>2</sup>t/2). For more explanation, see <a href="https://books.google.com/books?id=DFJg_3PJ5ToC&pg=PA83&lpg=PA83&dq=%22geometric+brownian+motion%22+median&source=bl&ots=arNDISdxak&sig=wT1rLUBmWkHDqt2EmCBAw5KYOg8&hl=en&sa=X&ei=GFQ-Vb3fMNa1sQSv4YGwAw&ved=0CD0Q6AEwBA#v=onepage&q=%22geometric%20brownian%20motion%22%20median&f=false" title="'Statistics and Finance: An Introduction' by David Ruppert, p. 83">here</a>.((I'm still confused about something. If you have insights, let me know.
 
-When I reported my numbers in this simulation, I discounted with <a href="https://en.wikipedia.org/wiki/Compound_interest#Continuous_compounding">continuous interest</a> using an interest rate of &mu; = <REPLACE>annual_mu</REPLACE> per year and a time of t = <REPLACE>years_until_donate</REPLACE> years. That is, I multiplied the final amounts by exp(- <REPLACE>annual_mu</REPLACE> * <REPLACE>years_until_donate</REPLACE>). The reason to use continuous interest is that the geometric Brownian motion model assumes it, and since stock prices are compounded <REPLACE>trading_days_per_year</REPLACE> times per year, the return is approximately continuously compounded anyway. As a result of this discounting, we should actually observe that the median of the distribution will be S(0) exp(&mu;t) exp(-&mu;t) = S(0), while the mean should be S(0) exp(&mu;t + &sigma;<sup>2</sup>t/2) exp(-&mu;t) = S(0) exp(&sigma;<sup>2</sup>t/2).
+On the one hand, since X<sub>t</sub> is normal with mean &mu;t and variance &sigma;<sup>2</sup>t, S<sub>t</sub> = S<sub>0</sub> exp(X<sub>t</sub>) is lognormal with mean S<sub>0</sub> exp(&mu;t + &sigma;<sup>2</sup>t/2). This is a basic fact about a lognormal distribution. And when I compare predictions with this formula against my actual results, the match is very good.
 
-In the simulation, I used t = <REPLACE>years_until_donate</REPLACE> years, &mu; = <REPLACE>annual_mu</REPLACE> per year, &sigma; = <REPLACE>annual_sigma</REPLACE>, and S(0) = <REPLACE>theoretical_median_PV_ignoring_complications</REPLACE>.<!-- There's not actually a single initial price S(0) because the securities are bought over time. However, we can pretend that the investor buys just one big initial security whose price equals the present value of purchases discounted at an interest rate of <REPLACE>annual_mu_as_percent</REPLACE>. An analytic formula for this discounted sum is messy, so I just computed it <a href="https://docs.google.com/spreadsheets/d/1STH-QEMwybDKrouTnNEWeXQXU9VK1SEmq_qNxPCdUTc/edit?usp=sharing">in a spreadsheet</a>. If we ignore periods of unemployment and inflation, the result is that S(0) = <REPLACE>theoretical_median_PV_ignoring_complications</REPLACE>.--> The actual median from the above table, <REPLACE>actual_median_ignoring_complications</REPLACE>, is very close to<span style="color:orange">CHECK THIS MANUALLY</span> the theoretical value, S(0).
+On the other hand, consider the <a href="https://en.wikipedia.org/wiki/Geometric_Brownian_motion#Technical_definition:_the_SDE">geometric Brownian motion stochastic differential equation</a> (SDE):
+<blockquote>
+&part;S<sub>t</sub>/S<sub>t</sub> = &mu; &part;t + &sigma; &part;W<sub>t</sub>.
+</blockquote>
+This seems to be what I'm using in my simulation (modulo the fact that my simulation has a granularity of a day at a time, not the infinitesimal granularity of the above continuous-time SDE). Solving this SDE <a href="https://en.wikipedia.org/wiki/Geometric_Brownian_motion#Solving_the_SDE">tells us</a> that S<sub>t</sub> is not actually S<sub>0</sub> exp(X<sub>t</sub>) but is instead S<sub>0</sub> exp(X<sub>t</sub> - &sigma;<sup>2</sup>t/2). Then, because of how expectations work for lognormal distributions, <a href="https://en.wikipedia.org/wiki/Geometric_Brownian_motion#Properties">we have that</a> E[S<sub>t</sub>] = S<sub>0</sub> exp(&mu;t). The -&sigma;<sup>2</sup>t/2 cancelled with a +&sigma;<sup>2</sup>t/2. However, this formula doesn't agree with my simulation results. Why not?))
 
-The theoretical prediction for the mean of the regular account's present value is S(0) exp(&sigma;<sup>2</sup> * <REPLACE>years_until_donate</REPLACE>/2) = <REPLACE>theoretical_median_PV_ignoring_complications</REPLACE> exp(<REPLACE>annual_sigma</REPLACE><sup>2</sup> * <REPLACE>years_until_donate</REPLACE>/2) = <REPLACE>theoretical_mean_PV_ignoring_complications</REPLACE>. For some reason this is slightly bigger than<span style="color:orange">CHECK THIS MANUALLY</span> the actual mean value of the regular account's present value when I set probability of layoffs and inflation both to zero (<REPLACE>actual_mean_ignoring_complications</REPLACE> in the above table), but it's somewhat close.
+When I reported my numbers in this simulation, I discounted with <a href="https://en.wikipedia.org/wiki/Compound_interest#Continuous_compounding">continuous interest</a> using an interest rate of &mu; = <REPLACE>annual_mu</REPLACE> per year and a time of t = <REPLACE>years_until_donate</REPLACE> years. That is, I multiplied the final amounts by exp(- <REPLACE>annual_mu</REPLACE> * <REPLACE>years_until_donate</REPLACE>). The reason to use continuous interest is that the geometric Brownian motion model assumes it, and since stock prices are compounded <REPLACE>trading_days_per_year</REPLACE> times per year, the return is approximately continuously compounded anyway. As a result of this discounting, we should actually observe that the median of the distribution will be S<sub>0</sub> exp(&mu;t) exp(-&mu;t) = S<sub>0</sub>, while the mean should be S<sub>0</sub> exp(&mu;t + &sigma;<sup>2</sup>t/2) exp(-&mu;t) = S<sub>0</sub> exp(&sigma;<sup>2</sup>t/2).
 
-Since X(t) = ln(S(t)/S(0)) = ln(S(t)) - ln(S(0)), StdDev[X(t)] = StdDev[ln(S(t))]. In theory, StdDev[X(t)] should be just &sigma; * &radic;(<REPLACE>years_until_donate</REPLACE>) = <REPLACE>annual_sigma</REPLACE> * &radic;(<REPLACE>years_until_donate</REPLACE>) = <REPLACE>annual_sigma * sqrt(years_until_donate)</REPLACE>. In the simulations, I found StdDev[ln(S(t))] = &sigma;<sub>log(wealth)</sub> = <REPLACE>actual_sigma_of_log_wealth</REPLACE> for regular investing, which is again pretty close.<span style="color:orange">CHECK THIS MANUALLY</span>
+In the simulation, I used t = <REPLACE>years_until_donate</REPLACE> years, &mu; = <REPLACE>annual_mu</REPLACE> per year, &sigma; = <REPLACE>annual_sigma</REPLACE>, and S<sub>0</sub> = <REPLACE>theoretical_median_PV_ignoring_complications</REPLACE>.<!-- There's not actually a single initial price S<sub>0</sub> because the securities are bought over time. However, we can pretend that the investor buys just one big initial security whose price equals the present value of purchases discounted at an interest rate of <REPLACE>annual_mu_as_percent</REPLACE>. An analytic formula for this discounted sum is messy, so I just computed it <a href="https://docs.google.com/spreadsheets/d/1STH-QEMwybDKrouTnNEWeXQXU9VK1SEmq_qNxPCdUTc/edit?usp=sharing">in a spreadsheet</a>. If we ignore periods of unemployment and inflation, the result is that S<sub>0</sub> = <REPLACE>theoretical_median_PV_ignoring_complications</REPLACE>.--> The actual median from the above table, <REPLACE>actual_median_ignoring_complications</REPLACE>, is very close to<span style="color:orange">CHECK THIS MANUALLY</span> the theoretical value, S<sub>0</sub>.
+
+The theoretical prediction for the mean of the regular account's present value is S<sub>0</sub> exp(&sigma;<sup>2</sup> * <REPLACE>years_until_donate</REPLACE>/2) = <REPLACE>theoretical_median_PV_ignoring_complications</REPLACE> exp(<REPLACE>annual_sigma</REPLACE><sup>2</sup> * <REPLACE>years_until_donate</REPLACE>/2) = <REPLACE>theoretical_mean_PV_ignoring_complications</REPLACE>. For some reason this is slightly bigger than<span style="color:orange">CHECK THIS MANUALLY</span> the actual mean value of the regular account's present value when I set probability of layoffs and inflation both to zero (<REPLACE>actual_mean_ignoring_complications</REPLACE> in the above table), but it's somewhat close.
+
+Since X<sub>t</sub> = ln(S<sub>t</sub>/S<sub>0</sub>) = ln(S<sub>t</sub>) - ln(S<sub>0</sub>), StdDev[X<sub>t</sub>] = StdDev[ln(S<sub>t</sub>)]. In theory, StdDev[X<sub>t</sub>] should be just &sigma; * &radic;(<REPLACE>years_until_donate</REPLACE>) = <REPLACE>annual_sigma</REPLACE> * &radic;(<REPLACE>years_until_donate</REPLACE>) = <REPLACE>annual_sigma * sqrt(years_until_donate)</REPLACE>. In the simulations, I found StdDev[ln(S<sub>t</sub>)] = &sigma;<sub>log(wealth)</sub> = <REPLACE>actual_sigma_of_log_wealth</REPLACE> for regular investing, which is again pretty close.<span style="color:orange">CHECK THIS MANUALLY</span>
 
 The probability of margin outperforming regular investing in the above table is discouragingly low: <REPLACE>actual_percent_times_margin_is_better</REPLACE>%. Based on other variants I ran, I tracked this low performance down to at least three factors, in rough order of importance:
 <ol>
 <li>Rebalancing monthly dramatically reduces the chance that margin beats regular investing.</li>
-<li>A 15-year time horizon for investing has a lower rate of margin beating regular investing than a 30-year time horizon.</li>
+<li>A <REPLACE>years_until_donate</REPLACE>-year time horizon for investing has a lower rate of margin beating regular investing than a 30-year time horizon.</li>
 <li>Investing a single amount of cash one time has a lower rate of margin beating regular investing than investing many regular salary payments.</li>
 </ol>
 
 If we take the same settings in the results table immediately above but instead don't rebalance monthly, the probability of margin outperforming regular investing rises<span style="color:orange">CHECK THIS MANUALLY</span> to <REPLACE>uitbfdontreb_percent_margin_better</REPLACE>%, and if we also let the investor earn paychecks every month rather than only in the first month, the probability of margin outperforming regular investing rises further<span style="color:orange">CHECK THIS MANUALLY</span> to <REPLACE>uitbdontreb_percent_margin_better</REPLACE>%. This last value is closest<span style="color:orange">CHECK THIS MANUALLY</span> to a quick-and-dirty theoretical calculation of what we'd expect the probability to be of margin investing outperforming regular, as discussed in the next paragraph.
 
-"<a href="http://www.mathisen.ca/leveraging/leveraging.pdf">Understanding Investment Leverage</a>" notes that margin performs better when the average stock/ETF returns exceed a "break-even" threshold. Assuming that capital-gains taxes and tax deductions aren't especially relevant, the break-even threshold should roughly be the margin interest rate -- call it r. In other words, the probability that margin beats non-margin for a given dollar invested is roughly the probability that the t-year returns of investing in the market beat the t-year accumulation of interest at rate r. Let X(t) be the random variable representing the accumulated t-year market return, and let Z be a standard-normal random variable. Then
+"<a href="http://www.mathisen.ca/leveraging/leveraging.pdf">Understanding Investment Leverage</a>" notes that margin performs better when the average stock/ETF returns exceed a "break-even" threshold. Assuming that capital-gains taxes and tax deductions aren't especially relevant, the break-even threshold should roughly be the margin interest rate -- call it r. In other words, the probability that margin beats non-margin for a given dollar invested is roughly the probability that the t-year returns of investing in the market beat the t-year accumulation of interest at rate r. Let X<sub>t</sub> be the random variable representing the accumulated t-year market return, and let Z be a standard-normal random variable. Then
 <blockquote>
-Prob[&nbsp;margin beats regular&nbsp;] &asymp; Prob[&nbsp;investments exceed break-even threshold&nbsp;] = Prob[&nbsp;exp(X(t)) > exp(rt)&nbsp;] = Prob[&nbsp;X(t) > rt&nbsp;] = Prob[&nbsp;&mu;t + Z&sigma;&radic;(t) > rt&nbsp;] = Prob[&nbsp;Z&sigma;&radic;(t) > (r-&mu;)t&nbsp;] = Prob[&nbsp;Z > ( (r-&mu;)/&sigma; ) &radic;(t)&nbsp;] = 1 - Prob[&nbsp;Z &le; ( (r-&mu;)/&sigma; ) &radic;(t)&nbsp;&nbsp;] = 1 - Prob[&nbsp;Z &le; ( (<REPLACE>annual_margin_interest_rate</REPLACE>-<REPLACE>annual_mu</REPLACE>)/<REPLACE>annual_sigma</REPLACE> ) &radic;(<REPLACE>years_until_donate</REPLACE>)&nbsp;&nbsp;] = 1 - Prob[&nbsp;Z &le; <REPLACE>Z_value_threshold</REPLACE>&nbsp;] <a href="https://surfstat.anu.edu.au/surfstat-home/tables/normal.php" title="&quot;SurfStat standard normal calculator&quot;">= 1 - <REPLACE>prob_Z_leq_threshold</REPLACE></a> = <REPLACE>prob_Z_gt_threshold</REPLACE>.
+Prob[&nbsp;margin beats regular&nbsp;] &asymp; Prob[&nbsp;investments exceed break-even threshold&nbsp;] = Prob[&nbsp;exp(X<sub>t</sub>) > exp(rt)&nbsp;] = Prob[&nbsp;X<sub>t</sub> > rt&nbsp;] = Prob[&nbsp;&mu;t + Z&sigma;&radic;(t) > rt&nbsp;] = Prob[&nbsp;Z&sigma;&radic;(t) > (r-&mu;)t&nbsp;] = Prob[&nbsp;Z > ( (r-&mu;)/&sigma; ) &radic;(t)&nbsp;] = 1 - Prob[&nbsp;Z &le; ( (r-&mu;)/&sigma; ) &radic;(t)&nbsp;&nbsp;] = 1 - Prob[&nbsp;Z &le; ( (<REPLACE>annual_margin_interest_rate</REPLACE>-<REPLACE>annual_mu</REPLACE>)/<REPLACE>annual_sigma</REPLACE> ) &radic;(<REPLACE>years_until_donate</REPLACE>)&nbsp;&nbsp;] = 1 - Prob[&nbsp;Z &le; <REPLACE>Z_value_threshold</REPLACE>&nbsp;] <a href="https://surfstat.anu.edu.au/surfstat-home/tables/normal.php" title="&quot;SurfStat standard normal calculator&quot;">= 1 - <REPLACE>prob_Z_leq_threshold</REPLACE></a> = <REPLACE>prob_Z_gt_threshold</REPLACE>.
 </blockquote>
 
 <h3>How the simulation works</h3>
@@ -348,17 +358,100 @@ This explains why the altruist in my simulations only invests ~<REPLACE>initial_
 
 <h2>Optimal leverage</h2>
 
-<h3>Literature</h3>
-
 In practice, margin leverage is not unlimited. But suppose it were. What would be the best amount of leverage to use?
 
-One theoretical perspective on the question comes from the <a href="https://en.wikipedia.org/wiki/Kelly_criterion">Kelly criterion</a> applied to the stock market. As <a href="https://www.math.washington.edu/~morrow/336_10/papers/jane.pdf" title="&quot;Betting with the Kelly Criterion&quot;">this summary</a> explains (p. 5), the optimal betting fraction is approximately (&mu;-r)/&sigma;<sup>2</sup>, where &mu; and &sigma; are as defined above, and r is the interest rate (for investing or borrowing). Using the parameter values for my default simulation, this optimal fraction is (<REPLACE>annual_mu</REPLACE>-<REPLACE>annual_margin_interest_rate</REPLACE>)/<REPLACE>annual_sigma</REPLACE><sup>2</sup> = <REPLACE>Kelly_ratio_as_percent</REPLACE>%. Hence, this suggests using no leverage and splitting 50:50<span style="color:orange">CHECK THIS MANUALLY</span> between stocks and bonds! This isn't consistent with my results or with conventional wisdom. Of course, the parameters I used in this Kelly-criterion calculation were quite conservative. Based on historical US data, many people would probably set &mu; at more like .1, in which case the optimal betting fraction would be 1.45, i.e., almost 1.5X leverage.
+<h3>Maximizing expected average return</h3>
+
+In 2007, when I first learned about the <a href="https://en.wikipedia.org/wiki/Capital_allocation_line">capital allocation line</a>, I saw that it suggests an investor could get arbitrarily high expected returns with arbitrarily high amounts of leverage. For a risk-neutral investor, this would seem to be a bonanza.
+
+Unfortunately, as <a href="http://www.fsa.ulaval.ca/nfa2003/papiers/Craig%20Wilson.pdf" title="'Leveraged Stock Portfolios over Long Holding Periods: A Continuous Time Model' (2003)">Domian et al. (2003)</a> explain: "In the single-period CAPM, expected return is an increasing linear function of the degree of leverage. But in our continuous time model, expected annualized return is a concave function of leverage." In fact, Domian et al. (2003) show that using c-times leverage (e.g., c = 2 means 2X leverage) and investing a fixed initial sum of wealth:
+<blockquote>
+E[R<sub>t</sub>] = r + (&mu; - r)c - &sigma;<sup>2</sup>c<sup>2</sup>/2
+</blockquote>
+where r is the borrowing interest rate, E[] indicates expected value, and
+<blockquote>
+R<sub>t</sub> := (1/t) ln(V<sub>t</sub>/V<sub>0</sub>)
+</blockquote>
+is the average t-year return (continuously compounded), where V<sub>t</sub> is the t-year accumulated wealth and V<sub>0</sub> is the starting wealth.
+
+Domian et al. (2003) show (equation 20, p. 7) that the leverage amount c<sup>*</sup> which optimizes this expected-return formula is
+<blockquote>
+c<sup>*</sup> = (&mu; - r)/&sigma;<sup>2</sup>.
+</blockquote>
+Using the parameter values for my default simulation, this optimal fraction is (<REPLACE>annual_mu</REPLACE>-<REPLACE>annual_margin_interest_rate</REPLACE>)/<REPLACE>annual_sigma</REPLACE><sup>2</sup> = <REPLACE>Kelly_ratio_as_percent</REPLACE>%. Hence, this suggests using no leverage and splitting 50:50<span style="color:orange">CHECK THIS MANUALLY</span> between stocks and bonds! This isn't consistent with my results or with conventional wisdom. Of course, the parameters I used in this calculation were quite conservative. Based on historical US data, some people would set &mu; at more like .1, in which case the optimal betting fraction would be <REPLACE>Kelly_ratio_if_mu_is_10_percent</REPLACE>, i.e., almost 1.5X leverage.<span style="color:orange">CHECK THIS MANUALLY</span>
+
+The c<sup>*</sup> formula above is actually the optimization involved in the <a href="https://en.wikipedia.org/wiki/Kelly_criterion">Kelly criterion</a> as well. <a href="https://www.math.washington.edu/~morrow/336_10/papers/jane.pdf" title="&quot;Betting with the Kelly Criterion&quot;">This summary</a> reviews how to derive the c<sup>*</sup> equation in a different way (p. 5).
+
+<h3>Maximizing expected utility</h3>
+
+Domian et al. (2003) also prove the following equation (eq. 14, p. 5), using the same variable meanings as in the previous section:
+<blockquote>
+V<sub>t</sub> = V<sub>0</sub> exp{ [r + (&mu;-r)c - &sigma;<sup>2</sup>c<sup>2</sup>/2 ]t + &sigma;cW<sub>t</sub> },
+</blockquote>
+where W<sub>t</sub> is a standard Brownian motion with mean 0 and annual variance t. Because W<sub>t</sub> is normally distributed, V<sub>t</sub> is lognormally distributed, and (eq. 15, p. 5)
+<blockquote>
+E[V<sub>t</sub>] = V<sub>0</sub> exp{ [r + (&mu;-r)c]t - [&sigma;<sup>2</sup>c<sup>2</sup>/2] t + [&sigma;<sup>2</sup>c<sup>2</sup>t/2] }<br />
+= V<sub>0</sub>exp{ [r + (&mu;-r)c]t },
+</blockquote>
+where the extra &sigma;<sup>2</sup>c<sup>2</sup>t/2 comes in because the mean of a lognormal distribution is greater than exp{the mean of the underlying normal distribution} because the exp{} function is convex.
+
+The interesting thing about the equation for E[V<sub>t</sub>] is that it's increasing in c, i.e., if you want to maximize expected ending wealth, rather than the Kelly criterion's expected log wealth, then you should indeed partake of a leverage bonanza by maxing out leverage.
+
+Suppose, however, that you have a risk-averse utility function but one that's not fully logarithmic like in the Kelly criterion. In particular, let utility(wealth) = (wealth)<sup>&alpha;</sup>. In the results tables of this piece, I've been taking &alpha; = .5, i.e., utility(wealth) = &radic;(wealth). We can modify the formula for V<sub>t</sub> to
+<blockquote>
+utility(V<sub>t</sub>) := V<sub>t</sub><sup>&alpha;</sup> = V<sub>0</sub><sup>&alpha;</sup> exp{ [r + (&mu;-r)c - &sigma;<sup>2</sup>c<sup>2</sup>/2 ]t&alpha; + &sigma;cW<sub>t</sub>&alpha; }.
+</blockquote>
+Then
+<blockquote>
+E[utility(V<sub>t</sub>)] = V<sub>0</sub><sup>&alpha;</sup> exp{ [r + (&mu;-r)c]t&alpha; - [&sigma;<sup>2</sup>c<sup>2</sup>/2] t&alpha; + [&sigma;<sup>2</sup>c<sup>2</sup>t&alpha;<sup>2</sup>/2] }<br />
+= V<sub>0</sub><sup>&alpha;</sup> exp{ [r + (&mu;-r)c]t&alpha; + [&sigma;<sup>2</sup>c<sup>2</sup>/2] t(&alpha;<sup>2</sup>-&alpha;) }.
+</blockquote>
+Since usually 0 < &alpha; < 1, (&alpha;<sup>2</sup>-&alpha;) is negative, which means the optimization is now not trivial like before, because the exponent has a negative times the c<sup>2</sup> part and a positive times only a c, so with sufficiently big c, expected utility will start to decline. In particular, we can find the optimal leverage c<sup>*</sup> by differentiating((Setting the derivative to zero does indeed locate a maximum, because the second derivative with respect to c is negative at c<sup>*</sup>. Using the formula for &part;E[utility(V<sub>t</sub>)] / &part;c from the text, we have (using the product rule):
+<blockquote>
+&part;<sup>2</sup> E[utility(V<sub>t</sub>)] / &part;c<sup>2</sup> = <br />
+V<sub>0</sub><sup>&alpha;</sup> exp{ [r + (&mu;-r)c]t&alpha; + [&sigma;<sup>2</sup>c<sup>2</sup>/2] t(&alpha;<sup>2</sup>-&alpha;) } * [ &sigma;<sup>2</sup>t(&alpha;<sup>2</sup>-&alpha;) ] + <br />
+V<sub>0</sub><sup>&alpha;</sup> exp{ [r + (&mu;-r)c]t&alpha; + [&sigma;<sup>2</sup>c<sup>2</sup>/2] t(&alpha;<sup>2</sup>-&alpha;) } * [ (&mu;-r)t&alpha; + c&sigma;<sup>2</sup>t(&alpha;<sup>2</sup>-&alpha;) ]<sup>2</sup>.
+</blockquote>
+The V<sub>0</sub><sup>&alpha;</sup> and exp{} factors are positive and so don't affect the sign of the result. Hence we can factor them out and focus on what's left:
+<blockquote>
+[ &sigma;<sup>2</sup>t(&alpha;<sup>2</sup>-&alpha;) ] + [ (&mu;-r)t&alpha; + c&sigma;<sup>2</sup>t(&alpha;<sup>2</sup>-&alpha;) ]<sup>2</sup><!--= [ &sigma;<sup>2</sup>t(&alpha;<sup>2</sup>-&alpha;) ] + [ (&mu;-r)t&alpha; ]<sup>2</sup> + 2 [ (&mu;-r)t&alpha; ][ c&sigma;<sup>2</sup>t(&alpha;<sup>2</sup>-&alpha;) ] + [ c&sigma;<sup>2</sup>t(&alpha;<sup>2</sup>-&alpha;) ]<sup>2</sup>-->.
+</blockquote>
+Define x := &sigma;<sup>2</sup>t(&alpha;<sup>2</sup>-&alpha;) and y := (&mu;-r)t&alpha;. Then the equation becomes
+<blockquote>
+<!--x + y<sup>2</sup> + 2 cxy + c<sup>2</sup>x<sup>2</sup><br />-->= x + (cx+y)<sup>2</sup>.
+</blockquote>
+It's still not obvious how to evaluate the sign of this, since x < 0 while (cx+y)<sup>2</sup> > 0.
+
+Let's plug in the default parameter values for this essay:
+<blockquote>
+x = <REPLACE>annual_sigma</REPLACE><sup>2</sup><REPLACE>years_until_donate</REPLACE>(.5<sup>2</sup>-.5) = <REPLACE>x_value_for_second_derivative</REPLACE><br />
+y = (<REPLACE>annual_mu</REPLACE>-<REPLACE>annual_margin_interest_rate</REPLACE>)*<REPLACE>years_until_donate</REPLACE>*.5 = <REPLACE>y_value_for_second_derivative</REPLACE>.
+</blockquote>
+And, as will be shown in the main text, c<sup>*</sup> = <REPLACE>c_star_for_alpha_equals_one_half</REPLACE>. Hence, 
+<blockquote>
+x + (c<sup>*</sup>x+y)<sup>2</sup> = <REPLACE>x_value_for_second_derivative</REPLACE> + (<REPLACE>c_star_for_alpha_equals_one_half</REPLACE> * <REPLACE>x_value_for_second_derivative</REPLACE> + <REPLACE>y_value_for_second_derivative</REPLACE>)<sup>2</sup> = <REPLACE>full_equation_with_x_y_and_c</REPLACE> < 0.
+</blockquote>
+Because x and y are roughly equal and opposite in magnitude, when c<sup>*</sup> is near 1, the squared term is roughly 0, so the result is roughly equal to x, which is necessarily negative for &alpha; values in the interval (0,1).)):
+<blockquote>
+&part;E[utility(V<sub>t</sub>)] / &part;c = V<sub>0</sub><sup>&alpha;</sup> exp{ [r + (&mu;-r)c]t&alpha; + [&sigma;<sup>2</sup>c<sup>2</sup>/2] t(&alpha;<sup>2</sup>-&alpha;) } * [ (&mu;-r)t&alpha; + c&sigma;<sup>2</sup>t(&alpha;<sup>2</sup>-&alpha;) ].
+</blockquote>
+Since this expression is ugly, I plotted it in Wolfram Alpha, using the default parameters in this piece (including &alpha; = .5 and t = <REPLACE>years_until_donate</REPLACE>) and setting V<sub>0</sub> = 1 since it's irrelevant to solving the equation:
+<blockquote>
+<a href="https://www.wolframalpha.com/input/?i=plot%5Bexp%7B+%5B.03+%2B+%28.054-.03%29c%5D*15*.5+%2B+%5B.22%5E2*c%5E2%2F2%5D+*+15+*+%28.5%5E2-.5%29+%7D+*+%5B+%28.054-.03%29*15*.5+%2B+c*.22%5E2*15*%28.5%5E2-.5%29+%5D%2Cc%2C0%2C25%5D">plot[exp{ [<REPLACE>annual_margin_interest_rate</REPLACE> + (<REPLACE>annual_mu</REPLACE>-<REPLACE>annual_margin_interest_rate</REPLACE>)c]*<REPLACE>years_until_donate</REPLACE>*.5 + [<REPLACE>annual_sigma</REPLACE>^2*c^2/2] * <REPLACE>years_until_donate</REPLACE> * (.5^2-.5) } * [ (<REPLACE>annual_mu</REPLACE>-<REPLACE>annual_margin_interest_rate</REPLACE>)*<REPLACE>years_until_donate</REPLACE>*.5 + c*<REPLACE>annual_sigma</REPLACE>^2*<REPLACE>years_until_donate</REPLACE>*(.5^2-.5) ],c,0,10]</a><span style="color:orange">REWRITE PRECEDING LINK IF PARAMS CHANGE!</span> <!-- with current params: plot[exp{ [.03 + (.054-.03)c]*15*.5 + [.22^2*c^2/2] * 15 * (.5^2-.5) } * [ (.054-.03)*15*.5 + c*.22^2*15*(.5^2-.5) ],c,0,10] -->
+</blockquote>
+If we set equal to 0 and <a href="https://www.wolframalpha.com/input/?i=solve%5Bexp%7B+%5B.03+%2B+%28.054-.03%29c%5D*15*.5+%2B+%5B.22%5E2*c%5E2%2F2%5D+*+15+*+%28.5%5E2-.5%29+%7D+*+%5B+%28.054-.03%29*15*.5+%2B+c*.22%5E2*15*%28.5%5E2-.5%29+%5D%3D0%2Cc%5D">solve the equation</a>, <span style="color:orange">REWRITE PRECEDING LINK IF PARAMS CHANGE!</span> we get c<sup>*</sup> = <REPLACE>c_star_for_alpha_equals_one_half</REPLACE>.
+
+If &alpha; had been .75, we would have had c<sup>*</sup> = <REPLACE>c_star_for_alpha_equals_three_fourths</REPLACE>, and for &alpha; = .25, c<sup>*</sup> = <REPLACE>c_star_for_alpha_equals_one_fourth</REPLACE>.<!-- use this equation and ctrl+h on a with the alpha value:  solve[exp{ [.03 + (.054-.03)c]*15*a + [.22^2*c^2/2] * 15 * (a^2-a) } * [ (.054-.03)*15*a + c*.22^2*15*(a^2-a) ]=0,c]  --> In fact, here's a plot of c<sup>*</sup> vs. &alpha; using Python's numerical equation solver:
+
+<span class="fullwidthimage"><img src="<REPLACE>c_star_vs_alpha_fig</REPLACE>" title="I release this image into the public domain worldwide." /></span>
+
+<h3>Simulations in the literature</h3>
 
 "<a href="http://www.investmentreview.com/files/2009/12/leveraged_portfolios1.pdf">Leveraged Canadian Stock Portfolios: Long-Run Effects on Wealth and Risk</a>" (2003) presents a simulation of leveraged investing based on actual historical returns between 1950 and 2001. The authors found that the optimal amount of leverage over this period would have been about 1.5X (rebalancing monthly). 4X leverage left almost no ending wealth, although this was partly because the simulation assumed monthly rebalancing, whereas daily rebalancing can reduce the risk of wipeout. The paper's Figure 1 shows an inverted U curve for the ending wealth of an investor from 1950 to 2001 as a function of how much leverage she used, between 1X and 4X.
 
-"<a href="http://www.fsa.ulaval.ca/nfa2003/papiers/Craig%20Wilson.pdf">Leveraged Stock Portfolios over Long Holding Periods: A Continuous Time Model</a>" (2003) found optimal leverage of 2.41X based on historical parameters. Its equation (20) on p. 7 is the same as the Kelly formula above.
-
 "<a href="https://www.questia.com/library/journal/1P3-977793091/wealth-and-risk-from-leveraged-stock-portfolios">Wealth and Risk from Leveraged Stock Portfolios</a>" (2002) found optimal leverage of 1.7X assuming borrowing at 2% above Treasury bills. The authors note: "A modest amount of leverage enhances the performance of stock portfolios in the long run. However, higher amounts of leverage produce dramatic declines in long-run wealth."
+
+"<a href="http://www.fsa.ulaval.ca/nfa2003/papiers/Craig%20Wilson.pdf">Leveraged Stock Portfolios over Long Holding Periods: A Continuous Time Model</a>" (2003) found optimal leverage of 2.41X based on historical parameters.
 
 <h3>My results</h3>
 
@@ -368,7 +461,7 @@ if f = A/B then &sigma;<sub>f</sub> is roughly |f| &radic;[ (&sigma;<sub>A</sub>
 </blockquote>
 For simplicity, I omitted the correlation component of the equation (the -2&sigma;<sub>AB</sub>/AB part), which only makes my error bars conservatively big given that the sample-mean margin investment performance has a high correlation with the sample-mean regular investment performance, since the sample means for both quantities will be too high when particularly good stock returns are sampled and too low when particularly bad returns are sampled.
 
-Unfortunately, it looks like the error bars in this graph are actually too small. This is because the averages for some leverage amounts clearly deviate from the trend of the curve, and their error bars don't even overlap with the error bars of neighboring points on the curve. But the curve should be continuous in theory. Hence, the error bars must be too small.)) for finding optimal leverage. It uses the default configuration, which means the investor buys new securities at <REPLACE>volunary_max_margin_to_assets_as_percent</REPLACE>% of 2X leverage and rebalances monthly to remain roughly that amount leveraged throughout the simulation. Higher leverage amounts ramp down leverage toward the end of the investing period. As in the tables above, I took utility(wealth) = &radic;(wealth). Each data point came from <REPLACE>num_trials</REPLACE> trials.
+Unfortunately, it looks like the error bars in this graph are actually too small. This is because the averages for some leverage amounts clearly deviate from the trend of the curve, and their error bars don't even overlap with the error bars of neighboring points on the curve. But the curve should be continuous in theory. Hence, the error bars must be too small.)) for finding optimal leverage. It uses the default configuration, which means the investor buys new securities at <REPLACE>volunary_max_margin_to_assets_as_percent</REPLACE>% of 2X leverage and rebalances monthly to remain roughly that amount leveraged throughout the simulation. Higher leverage amounts ramp down leverage toward the end of the investing period. As in the tables above, I took utility(wealth) = &radic;(wealth). Each data point came from <REPLACE>num_trials</REPLACE><span style="color:orange">This often gets messed up</span> trials.
 
 <span class="fullwidthimage"><img src="<REPLACE>default_optimal_leverage_graph</REPLACE>" title="I release this image into the public domain worldwide." /></span>
 
@@ -474,6 +567,18 @@ The default simulation assumes a constant annualized volatility of &sigma; = <RE
 <span class="fullwidthimage"><img src="<REPLACE>mu07_optimal_leverage_graph</REPLACE>" title="I release this image into the public domain worldwide." /></span>
 
 These results are lower than normal because I'm discounting by exp(-&mu; t), so a higher &mu; implies more discounting. The undiscounted values should actually be higher than for other variants because of higher &mu;.
+
+<h3>&mu; = .04</h3>
+
+<REPLACE>mu04_results_table</REPLACE>
+
+<span class="fullwidthimage"><img src="<REPLACE>mu04_optimal_leverage_graph</REPLACE>" title="I release this image into the public domain worldwide." /></span>
+
+<h3>&mu; = -.02</h3>
+
+<REPLACE>mu02minus_results_table</REPLACE>
+
+<span class="fullwidthimage"><img src="<REPLACE>mu02minus_optimal_leverage_graph</REPLACE>" title="I release this image into the public domain worldwide." /></span>
 
 <h3>&sigma; = .40</h3>
 
