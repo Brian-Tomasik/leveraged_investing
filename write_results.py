@@ -49,9 +49,9 @@ def write_file_table(account_values, account_types, bankruptcy_fraction, outfile
             numpy.std(log_values) ))
     outfile.write("</table>")
     outfile.write("\nMargin is better than regular {}% of the time. Margin resulted in bankruptcy {}% of the time.".format(
-        round(100 * util.probability_x_better_than_y(
-            account_values["margin"],account_values["regular"]),1), 
-        int(round(100 * bankruptcy_fraction,0))))
+        int(round(100 * util.probability_x_better_than_y(
+            account_values["margin"],account_values["regular"]),1)), 
+        round(100 * bankruptcy_fraction,1)))
 
 def return_pretty_name_for_type(type):
     if type == "regular":

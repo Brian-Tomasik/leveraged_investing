@@ -297,13 +297,26 @@ def args_for_this_scenario(scenario_name, num_trials, outdir_name):
         market = Market.Market(inflation_rate=0,medium_black_swan_prob=0,
                                large_black_swan_prob=0)
         return (investor,market,num_trials,outpath)
-    elif scenario_name == "No unemployment or inflation or taxes or black swans":
+    elif scenario_name == "No unemployment or inflation or taxes or black swans, only paid in first month, don't rebalance monthly":
         tax_rates = TaxRates.TaxRates(short_term_cap_gains_rate=0,
                                       long_term_cap_gains_rate=0,
                                       state_income_tax=0)
         investor = Investor.Investor(monthly_probability_of_layoff=0,
                                      tax_rates=tax_rates,
-                                     do_tax_loss_harvesting=False)
+                                     do_tax_loss_harvesting=False,
+                                     only_paid_in_first_month_of_sim=True,
+                                     rebalance_monthly_to_increase_leverage=False)
+        market = Market.Market(inflation_rate=0,medium_black_swan_prob=0,
+                               large_black_swan_prob=0)
+        return (investor,market,num_trials,outpath)
+    elif scenario_name == "No unemployment or inflation or taxes or black swans, don't rebalance monthly":
+        tax_rates = TaxRates.TaxRates(short_term_cap_gains_rate=0,
+                                      long_term_cap_gains_rate=0,
+                                      state_income_tax=0)
+        investor = Investor.Investor(monthly_probability_of_layoff=0,
+                                     tax_rates=tax_rates,
+                                     do_tax_loss_harvesting=False,
+                                     rebalance_monthly_to_increase_leverage=False)
         market = Market.Market(inflation_rate=0,medium_black_swan_prob=0,
                                large_black_swan_prob=0)
         return (investor,market,num_trials,outpath)
@@ -361,8 +374,10 @@ def scenario_to_folder_abbreviation(scenario_name):
         return "default"
     elif scenario_name == "No unemployment or inflation or taxes or black swans, only paid in first month":
         return "uitbf"
-    elif scenario_name == "No unemployment or inflation or taxes or black swans":
-        return "uitb"
+    elif scenario_name == "No unemployment or inflation or taxes or black swans, only paid in first month, don't rebalance monthly":
+        return "uitbfdontreb"
+    elif scenario_name == "No unemployment or inflation or taxes or black swans, don't rebalance monthly":
+        return "uitbdontreb"
     elif scenario_name == "Don't rebalance monthly":
         return "dontreb"
     elif scenario_name == "Favored tax ordering when liquidate":
@@ -397,7 +412,8 @@ def scenario_to_folder_abbreviation(scenario_name):
 def get_all_scenarios_list():
     """Return all the scenarios (http://knowyourmeme.com/memes/x-all-the-y)"""
     return ["No unemployment or inflation or taxes or black swans, only paid in first month",
-            "No unemployment or inflation or taxes or black swans",
+            "No unemployment or inflation or taxes or black swans, only paid in first month, don't rebalance monthly",
+            "No unemployment or inflation or taxes or black swans, don't rebalance monthly",
             "Default",
             "Don't taper off leverage toward end", 
             "Favored tax ordering when liquidate", 
@@ -457,7 +473,9 @@ def file_prefix_for_optimal_leverage_specific_scenario(max_margin_to_assets):
 
 def get_performance_vs_leverage_amount_by_scenario(scenario_name, num_trials, 
                                                    use_timestamped_dirs, cur_working_dir, 
-                                                   approx_num_simultaneous_processes):
+                                                   approx_num_simultaneous_processes,
+                                                   range_start=1.0,range_stop=5.0,
+                                                   step_size=.25):
     print "\n\n==Getting optimal leverage for scenario = {}==".format(scenario_name)
 
     output_queue = Queue() # multiprocessing queue
@@ -470,13 +488,11 @@ def get_performance_vs_leverage_amount_by_scenario(scenario_name, num_trials,
         outdir_name = dir
         os.mkdir(outdir_name) # let it fail if already exists
     
-    RANGE_START = 1.0
-    RANGE_STOP = 5.0
-    STEP_SIZE = .25
-    num_steps = int((RANGE_STOP-RANGE_START)/STEP_SIZE)+1
+    assert range_stop >= range_start, "Stopping range value must be at least as big as starting range value."
+    num_steps = int((range_stop-range_start)/step_size)+1
     processes = []
     process_num = 1
-    for N_to_1_leverage in numpy.linspace(RANGE_START, RANGE_STOP, num_steps):
+    for N_to_1_leverage in numpy.linspace(range_start, range_stop, num_steps):
         max_margin_to_assets = util.N_to_1_leverage_to_max_margin_to_assets_ratio(N_to_1_leverage)
         print "\n\n\nMax margin-to-assets ratio = ", max_margin_to_assets
         args = args_for_this_scenario(scenario_name, num_trials, outdir_name)
@@ -507,17 +523,31 @@ def optimal_leverage_for_all_scenarios(num_trials, use_timestamped_dirs, cur_wor
     """Get graphs of optimal leverage over all scenarios. This may take days/weeks to 
     finish running!"""
     for scenario_name in get_all_scenarios_list():
-        get_performance_vs_leverage_amount_by_scenario(scenario_name,num_trials,
-                                                       use_timestamped_dirs,cur_working_dir,
-                                                       approx_num_simultaneous_processes)
+        if scenario_name in ["No unemployment or inflation or taxes or black swans, only paid in first month",
+                             "No unemployment or inflation or taxes or black swans, only paid in first month, don't rebalance monthly",
+                             "No unemployment or inflation or taxes or black swans, don't rebalance monthly"]:
+            """In this case, only get results for the default margin-to-assets setting
+            because we don't actually care about sensitivity analysis here."""
+            default_investor = Investor.Investor()
+            default_leverage = util.max_margin_to_assets_ratio_to_N_to_1_leverage(default_investor.broker_max_margin_to_assets_ratio)
+            get_performance_vs_leverage_amount_by_scenario(scenario_name,num_trials,
+                                                           use_timestamped_dirs,cur_working_dir,
+                                                           approx_num_simultaneous_processes,
+                                                           range_start=default_leverage,range_stop=default_leverage)
+        else:
+            """Use default range for the param sweep."""
+            get_performance_vs_leverage_amount_by_scenario(scenario_name,num_trials,
+                                                           use_timestamped_dirs,cur_working_dir,
+                                                           approx_num_simultaneous_processes)
 
 def run_one_variant(num_trials):
     outdir_name = util.create_timestamped_dir("one") # concise way of writing "one variant"
     #scenario = "Rebalance to increase leverage"
     #scenario = "Favored tax ordering when liquidate"
     #scenario = "No unemployment or inflation or taxes or black swans, only paid in first month"
-    #scenario = "No unemployment or inflation or taxes or black swans"
-    scenario = "Default"
+    #scenario = "No unemployment or inflation or taxes or black swans, only paid in first month, don't rebalance monthly"
+    #scenario = "No unemployment or inflation or taxes or black swans, don't rebalance monthly"
+    scenario = "Annual mu = -.02"
     #scenario = "Rebalance to increase leverage, no tax-loss harvesting"
     args = args_for_this_scenario(scenario, num_trials, outdir_name)
     run_samples(*args)

@@ -88,8 +88,11 @@ def write_essay(skeleton, outfile, cur_working_dir, num_trials,
             output_text = output_text.replace(REPLACE_STR_FRONT + "margin_better_than_regular_EU_percent" + REPLACE_STR_END, str(percent_better_EU))
         elif scenario == "No unemployment or inflation or taxes or black swans, only paid in first month":
             output_text = add_theoretical_calculations_for_no_unemployment_etc(output_text, results_table_contents)
+        elif scenario == "No unemployment or inflation or taxes or black swans, only paid in first month, don't rebalance monthly":
+            output_text = output_text.replace(REPLACE_STR_FRONT + "uitbfdontreb_percent_margin_better" + REPLACE_STR_END, parse_percent_times_margin_is_better(results_table_contents))
+        elif scenario == "No unemployment or inflation or taxes or black swans, don't rebalance monthly":
+            output_text = output_text.replace(REPLACE_STR_FRONT + "uitbdontreb_percent_margin_better" + REPLACE_STR_END, parse_percent_times_margin_is_better(results_table_contents))
 
-    
     """Add default params and calculations using those params"""
     output_text = output_text.replace(REPLACE_STR_FRONT + "num_trials" + REPLACE_STR_END, str(num_trials))
     output_text = add_param_settings_and_related_calculations(output_text)
@@ -357,7 +360,7 @@ def parse_value_from_results_table(results_table_contents, row_name, column_name
     raise Exception("No matching column found")
 
 def parse_percent_times_margin_is_better(results_table_contents):
-    matches = re.search(r".*Margin is better than regular (\d+)% of the time.*",results_table_contents)
+    matches = re.search(r".*Margin is better than regular (\d+(\.\d)?)% of the time.*",results_table_contents)
     assert matches, "Didn't find a match for % of times margin did better!"
     return matches.group(1)
 
@@ -395,8 +398,8 @@ if __name__ == "__main__":
 
         # Write file.
         with open(essay_path, "w") as outfile:
-            #NUM_TRIALS = 100
-            NUM_TRIALS = 1
+            NUM_TRIALS = 50
+            #NUM_TRIALS = 1
             APPROX_NUM_SIMULTANEOUS_PROCESSES = 1
             #APPROX_NUM_SIMULTANEOUS_PROCESSES = 2
             write_essay(skeleton, outfile, cur_folder, NUM_TRIALS, LOCAL_FILE_PATHS_IN_HTML, 
