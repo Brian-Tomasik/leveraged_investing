@@ -25,9 +25,9 @@ THRESHOLD_FOR_TAX_CONVERGENCE = 50
 def one_run(investor,market,verbosity):
     days_from_start_to_donation_date = int(DAYS_PER_YEAR * investor.years_until_donate)
     accounts = dict()
-    accounts["regular"] = BrokerageAccount.BrokerageAccount(0,0,0,investor.taper_off_leverage_toward_end)
-    accounts["margin"] = BrokerageAccount.BrokerageAccount(0,0,investor.broker_max_margin_to_assets_ratio,investor.taper_off_leverage_toward_end)
-    accounts["matched401k"] = BrokerageAccount.BrokerageAccount(0,0,0,investor.taper_off_leverage_toward_end)
+    accounts["regular"] = BrokerageAccount.BrokerageAccount(0,0,0,investor.taper_off_leverage_toward_end,investor.initial_personal_max_margin_to_assets_relative_to_broker_max)
+    accounts["margin"] = BrokerageAccount.BrokerageAccount(0,0,investor.broker_max_margin_to_assets_ratio,investor.taper_off_leverage_toward_end,investor.initial_personal_max_margin_to_assets_relative_to_broker_max)
+    accounts["matched401k"] = BrokerageAccount.BrokerageAccount(0,0,0,investor.taper_off_leverage_toward_end,investor.initial_personal_max_margin_to_assets_relative_to_broker_max)
     taxes = dict()
     for type in ["regular", "margin", "matched401k"]:
         taxes[type] = Taxes.Taxes(investor.tax_rates)
@@ -320,6 +320,11 @@ def args_for_this_scenario(scenario_name, num_trials, outdir_name):
         market = Market.Market(inflation_rate=0,medium_black_swan_prob=0,
                                large_black_swan_prob=0)
         return (investor,market,num_trials,outpath)
+    elif scenario_name == "Only paid in first month, don't taper off leverage toward end, voluntary max leverage equals broker max leverage":
+        investor = Investor.Investor(only_paid_in_first_month_of_sim=True,
+                                     taper_off_leverage_toward_end=False,
+                                     initial_personal_max_margin_to_assets_relative_to_broker_max=1.0)
+        return (investor,default_market,num_trials,outpath)
     elif scenario_name == "Don't rebalance monthly":
         investor = Investor.Investor(rebalance_monthly_to_increase_leverage=False)
         return (investor,default_market,num_trials,outpath)
@@ -378,6 +383,8 @@ def scenario_to_folder_abbreviation(scenario_name):
         return "uitbfdontreb"
     elif scenario_name == "No unemployment or inflation or taxes or black swans, don't rebalance monthly":
         return "uitbdontreb"
+    elif scenario_name == "Only paid in first month, don't taper off leverage toward end, voluntary max leverage equals broker max leverage":
+        return "closetotheory"
     elif scenario_name == "Don't rebalance monthly":
         return "dontreb"
     elif scenario_name == "Favored tax ordering when liquidate":
@@ -415,6 +422,7 @@ def get_all_scenarios_list():
             "No unemployment or inflation or taxes or black swans, only paid in first month, don't rebalance monthly",
             "No unemployment or inflation or taxes or black swans, don't rebalance monthly",
             "Default",
+            "Only paid in first month, don't taper off leverage toward end, voluntary max leverage equals broker max leverage",
             "Don't taper off leverage toward end", 
             "Favored tax ordering when liquidate", 
             "Annual sigma = 0",

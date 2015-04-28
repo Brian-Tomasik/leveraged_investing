@@ -31,17 +31,18 @@ different possibilities, I set the parameter as .0005/2
 
 FEE_PER_DOLLAR_TRADED = INTERACTIVE_BROKERS_TRADING_FEE_PER_DOLLAR + BID_ASK_EFFECTIVE_FEE_PER_DOLLAR
 
-INITIAL_PERSONAL_MAX_MARGIN_TO_ASSETS_RELATIVE_TO_BROKER_MAX = .9
-
 
 class BrokerageAccount(object):
     """Store parameters about how an investor's brokerage account"""
 
-    def __init__(self, margin, assets, broker_max_margin_to_assets_ratio, taper_off_leverage_toward_end):
+    def __init__(self, margin, assets, broker_max_margin_to_assets_ratio, 
+                 taper_off_leverage_toward_end, 
+                 initial_personal_max_margin_to_assets_relative_to_broker_max):
         self.__margin = margin # amount of debt
         self.__assets = Assets.Assets() # list of the ETFs you own
         self.__broker_max_margin_to_assets_ratio = broker_max_margin_to_assets_ratio
         self.__taper_off_leverage_toward_end = taper_off_leverage_toward_end
+        self.__initial_personal_max_margin_to_assets_relative_to_broker_max = initial_personal_max_margin_to_assets_relative_to_broker_max
 
     def personal_max_margin_to_assets_ratio(self, years_remaining):
         """Keep a personal max margin-to-assets ratio below the broker ratio so that
@@ -49,7 +50,7 @@ class BrokerageAccount(object):
         force you to rebalance.
         Also, reduce leverage amount toward the end of the investing time period if 
         leverage used to be high."""
-        initial_ratio_for_when_not_near_end = self.__broker_max_margin_to_assets_ratio * INITIAL_PERSONAL_MAX_MARGIN_TO_ASSETS_RELATIVE_TO_BROKER_MAX
+        initial_ratio_for_when_not_near_end = self.__broker_max_margin_to_assets_ratio * self.__initial_personal_max_margin_to_assets_relative_to_broker_max
         if years_remaining <= 5 and self.__taper_off_leverage_toward_end:
             two_to_one_leverage_margin_to_assets = util.N_to_1_leverage_to_max_margin_to_assets_ratio(2.0)
             return min(two_to_one_leverage_margin_to_assets, initial_ratio_for_when_not_near_end)

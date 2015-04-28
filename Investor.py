@@ -4,14 +4,15 @@ import TaxRates
 class Investor(object):
     """Store parameters about how an investor behaves"""
 
-    def __init__(self, years_until_donate=1, initial_annual_income_for_investing=30000, 
+    def __init__(self, years_until_donate=15, initial_annual_income_for_investing=30000, 
                  annual_real_income_growth_percent=2, match_percent_from_401k=50,
                  margin_account_bankrupt=False, taper_off_leverage_toward_end=True,
                  tax_rates=TaxRates.TaxRates(), rebalance_monthly_to_increase_leverage=True, 
                  pay_principal_throughout=False, broker_max_margin_to_assets_ratio=.5,
                  monthly_probability_of_layoff=.01, monthly_probability_find_work_after_laid_off=.2,
                  does_broker_liquidation_sell_tax_favored_first=False, do_tax_loss_harvesting=True,
-                 only_paid_in_first_month_of_sim=False):
+                 only_paid_in_first_month_of_sim=False,
+                 initial_personal_max_margin_to_assets_relative_to_broker_max=.9):
         self.years_until_donate = years_until_donate
         self.initial_annual_income_for_investing = initial_annual_income_for_investing
         self.annual_real_income_growth_percent = annual_real_income_growth_percent
@@ -39,6 +40,7 @@ class Investor(object):
         self.__does_broker_liquidation_sell_tax_favored_first = does_broker_liquidation_sell_tax_favored_first
         self.__do_tax_loss_harvesting = do_tax_loss_harvesting
         self.__only_paid_in_first_month_of_sim = only_paid_in_first_month_of_sim
+        self.__initial_personal_max_margin_to_assets_relative_to_broker_max = initial_personal_max_margin_to_assets_relative_to_broker_max
 
     @property
     def years_until_donate(self):
@@ -127,6 +129,10 @@ class Investor(object):
     @property
     def do_tax_loss_harvesting(self):
         return self.__do_tax_loss_harvesting
+
+    @property
+    def initial_personal_max_margin_to_assets_relative_to_broker_max(self):
+        return self.__initial_personal_max_margin_to_assets_relative_to_broker_max
 
     def current_annual_income(self, years_elapsed, day, inflation_rate):
         if self.__laid_off or (self.__only_paid_in_first_month_of_sim and day > 0):
