@@ -338,8 +338,8 @@ def add_theoretical_calculations_for_no_unemployment_etc(output_text, no_unemplo
     output_text = output_text.replace(REPLACE_STR_FRONT + "actual_mean_ignoring_complications" + REPLACE_STR_END, 
                                       util.format_as_dollar_string(actual_mean))
 
-    # sigma_{log(wealth)}
-    actual_sigma_of_log_wealth = parse_value_from_results_table(no_unemployment_etc_results_table_contents, "Regular","&sigma;<sub>log(wealth)</sub>")
+    # sigma_{ln(wealth)}
+    actual_sigma_of_log_wealth = parse_value_from_results_table(no_unemployment_etc_results_table_contents, "Regular","&sigma;<sub>ln(wealth)</sub>")
     output_text = output_text.replace(REPLACE_STR_FRONT + "actual_sigma_of_log_wealth" + REPLACE_STR_END, 
                                       actual_sigma_of_log_wealth)
 

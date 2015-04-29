@@ -200,7 +200,7 @@ I created a <a href="https://github.com/Brian-Tomasik/leveraged_investing">Pytho
 
 <h3>Results</h3>
 
-The Mean, Median, Min, and Max columns of the following table are distributional statistics for the present value of wealth for the different strategies. The E[&radic;<span style="text-decoration: overline">wealth</span>] column represents expected utility if your utility is &radic;<span style="text-decoration: overline">wealth</span>; this helps incorporate <a href="http://reducing-suffering.org/when-should-altruists-be-financially-risk-averse/" title="&quot;When Should Altruists Be Financially Risk-Averse?&quot;">risk aversion</a>. Lastly, because the final wealth distribution is approximately lognormal, &sigma;<sub>log(wealth)</sub> represents roughly the &sigma; parameter of the lognormal distribution.
+The Mean, Median, Min, and Max columns of the following table are distributional statistics for the present value of wealth for the different strategies. The E[&radic;<span style="text-decoration: overline">wealth</span>] column represents expected utility if your utility is &radic;<span style="text-decoration: overline">wealth</span>; this helps incorporate <a href="http://reducing-suffering.org/when-should-altruists-be-financially-risk-averse/" title="&quot;When Should Altruists Be Financially Risk-Averse?&quot;">risk aversion</a>. Lastly, because the final wealth distribution is approximately lognormal, &sigma;<sub>ln(wealth)</sub> represents roughly the &sigma; parameter of the lognormal distribution.
 
 <REPLACE>default_results_table</REPLACE>
 
@@ -339,7 +339,7 @@ The only randomness here is in W<sub>t</sub>, so
 <blockquote>
 StdDev[ln(S<sub>t</sub>)] = StdDev[&sigma;W<sub>t</sub>] = &sigma;StdDev[W<sub>t</sub>] = &sigma;&radic;<span style="text-decoration: overline">t</span> = <REPLACE>annual_sigma</REPLACE> * &radic;<span style="text-decoration: overline"><REPLACE>years_until_donate</REPLACE></span> = <REPLACE>annual_sigma * sqrt(years_until_donate)</REPLACE>.
 </blockquote>
-In the simulations, I found StdDev[ln(S<sub>t</sub>)] = &sigma;<sub>log(wealth)</sub> = <REPLACE>actual_sigma_of_log_wealth</REPLACE> for regular investing, which is again pretty close.<span style="color:orange">CHECK THIS MANUALLY</span>
+In the simulations, I found StdDev[ln(S<sub>t</sub>)] = &sigma;<sub>ln(wealth)</sub> = <REPLACE>actual_sigma_of_log_wealth</REPLACE> for regular investing, which is again pretty close.<span style="color:orange">CHECK THIS MANUALLY</span>
 
 <h4>Prob[margin beats regular]</h4>
 
@@ -522,7 +522,7 @@ However, even though the Kelly criterion beats any other investment policy after
 
 A better policy for finite time horizons is just to optimize the expected utility that will result from the donated wealth. Let u(V<sub>t</sub>) be the utility of donating an amount V<sub>t</sub>. Typically u is concave because additional dollars contribute less value. Also, in a world where other charity donations are highly correlated with yours based on market performance, if you get a lot of wealth because the market does well, other investors are also getting a lot of wealth, and hence, the value of a donate dollar <a href="http://reducing-suffering.org/when-should-altruists-be-financially-risk-averse/#Money_is_less_valuable_in_richer_worlds">isn't quite as high</a>. For these reasons, I've used u(V<sub>t</sub>) = &radic;<span style="text-decoration: overline">V</span><sub>t</sub> in the results tables of this piece.
 
-<h4>Case 1: utility(wealth) = log(wealth)</h4>
+<h4>Case 1: utility(wealth) = ln(wealth)</h4>
 
 For a given time horizon t, maximizing E[u(V<sub>t</sub>)] is equivalent to maximizing E[u(V<sub>t</sub>) - u(V<sub>0</sub>)], since V<sub>0</sub> is a known constant. It's also equivalent to maximizing E{ (1/t) [u(V<sub>t</sub>) - u(V<sub>0</sub>)] }, since t is a constant. Note that if u(V<sub>t</sub>) = ln(V<sub>t</sub>), then maximizing E{ (1/t) [u(V<sub>t</sub>) - u(V<sub>0</sub>)] } means maximizing E[ (1/t) ln(V<sub>t</sub>/V<sub>0</sub>) ] = E[R<sub>t</sub>]. This is the Kelly optimization problem from before. So in this case, the Kelly criterion also optimizes expected utility.
 
@@ -690,7 +690,7 @@ The peaks of the curves seem to be around 2.5X leverage<span style="color:orange
 
 <span class="fullwidthimage"><img src="<REPLACE>donttaper_optimal_leverage_graph</REPLACE>" title="I release this image into the public domain worldwide." /></span>
 
-<h3>Don't rebalance up to 2X leverage monthly</h3>
+<h3>Don't rebalance monthly</h3>
 
 In my default simulation configuration, the investor may become less leveraged over time because she only takes 2X leverage on new equity purchases. If the market rises, her leverage becomes less than 2X due to higher equity without correspondingly higher debt. By default I avoided rebalancing to increase leverage in these cases out of concern that too much rebalancing would be harmful, along the lines of what we see with leveraged ETFs. But I wanted to try a variant where this kind of rebalancing was done monthly if the margin-to-equity ratio fell below <REPLACE>volunary_max_margin_to_assets_as_percent</REPLACE>% (the investor's personal not-quite-2X leverage target). In order to avoid incurring transactions costs on trivially small equity purchases, the investor only buys new ETF shares for rebalancing if she can buy at least $<REPLACE>min_additional_purchase_amount</REPLACE> of such shares at once.
 
@@ -710,13 +710,13 @@ Also, there are many fewer accumulated capital losses because if leverage is les
 
 <span class="fullwidthimage"><img src="<REPLACE>dontreb_carrcg</REPLACE>" title="I release this image into the public domain worldwide." /></span>
 
-<h3>Don't rebalance up to 2X leverage monthly and don't taper off leverage toward end</h3>
+<h3>Don't rebalance monthly and don't taper off leverage toward end</h3>
 
 <REPLACE>dontrebtaper_results_table</REPLACE>
 
 <span class="fullwidthimage"><img src="<REPLACE>dontrebtaper_optimal_leverage_graph</REPLACE>" title="I release this image into the public domain worldwide." /></span>
 
-<h3>Don't rebalance up to 2X leverage monthly and pay principal throughout</h3>
+<h3>Don't rebalance monthly and pay principal throughout</h3>
 
 This is the most conservative strategy. Leverage can be made less risky if, instead of keeping your loans around until the end of the investing period, you pay them off over time as if you were paying off a home mortgage. Doing this means you're less leveraged at later times, as this graph shows (for the 2X leverage configuration):
 
