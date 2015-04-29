@@ -27,7 +27,7 @@
     <Compile Include="BrokerageAccount.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="compounding_error.py">
+    <Compile Include="leveraged_etf_returns.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="EtfLot.py">
@@ -55,7 +55,7 @@
     <Compile Include="write_results.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="simulate_leveraged_etf.py" />
+    <Compile Include="oldversion_leveraged_etf_returns.py" />
     <Compile Include="Taxes.py">
       <SubType>Code</SubType>
     </Compile>

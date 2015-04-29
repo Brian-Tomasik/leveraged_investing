@@ -10,4 +10,5 @@ A run of a single variant of the simulation with 1000 random samples of 30-year 
 
 # Leveraged-ETF simulations
 
-Run "simulate_leveraged_etf.py"
+New version: "leveraged_etf_returns.py"
+Old version: "_oldversion_leveraged_etf_returns.py"
