@@ -48,10 +48,10 @@ def write_essay(skeleton, outfile, cur_working_dir, num_trials,
     file_prefix_for_default_MTA = margin_leverage.file_prefix_for_optimal_leverage_specific_scenario(default_broker_max_margin_to_assets_ratio)
 
     # Loop through scenarios, recording their results.
-    all_scenarios = margin_leverage.get_all_scenarios_list()
+    all_scenarios = margin_leverage.SCENARIOS.keys()
     for scenario in all_scenarios:
         # Get scenario abbreviation
-        abbrev = margin_leverage.scenario_to_folder_abbreviation(scenario)
+        abbrev = margin_leverage.SCENARIOS[scenario]
 
         # Navigate to the right folder and paths
         folder_for_this_scenario = margin_leverage.dir_prefix_for_optimal_leverage_specific_scenario(scenario)
@@ -90,7 +90,7 @@ def write_essay(skeleton, outfile, cur_working_dir, num_trials,
             output_text = output_text.replace(REPLACE_STR_FRONT + "margin_better_than_regular_median_percent" + REPLACE_STR_END, str(percent_better_median))
             (amount_better_EU, percent_better_EU) = how_much_better_is_margin_in_thousands_of_dollars(results_table_contents, 'E[&radic;<span style="text-decoration: overline">wealth</span>] &plusmn; stderr')
             output_text = output_text.replace(REPLACE_STR_FRONT + "margin_better_than_regular_EU_percent" + REPLACE_STR_END, str(percent_better_EU))
-        elif scenario == "No unemployment or inflation or taxes or black swans, only paid in first month":
+        elif scenario == "No unemployment or inflation or taxes or black swans, only paid in first month, voluntary max leverage equals broker max leverage":
             output_text = add_theoretical_calculations_for_no_unemployment_etc(output_text, results_table_contents)
         elif scenario == "No unemployment or inflation or taxes or black swans, only paid in first month, don't rebalance monthly":
             output_text = output_text.replace(REPLACE_STR_FRONT + "uitbfdontreb_percent_margin_better" + REPLACE_STR_END, parse_percent_times_margin_is_better(results_table_contents))
@@ -148,10 +148,6 @@ def add_investor_params_and_calculations(output_text):
     return output_text
 
 def add_market_params_and_calculations(output_text):
-    # global variable
-    output_text = output_text.replace(REPLACE_STR_FRONT + "trading_days_per_year" + REPLACE_STR_END, str(Market.TRADING_DAYS_PER_YEAR))
-
-    # Now do default param values
     default_market = Market.Market()
 
     for param in ["annual_mu", "annual_sigma", 
@@ -159,7 +155,8 @@ def add_market_params_and_calculations(output_text):
                   "inflation_rate", "medium_black_swan_prob", 
                   "annual_sigma_for_medium_black_swan",
                   "large_black_swan_prob", 
-                  "annual_sigma_for_large_black_swan"]:
+                  "annual_sigma_for_large_black_swan",
+                  "trading_days_per_year"]:
         output_text = output_text.replace(REPLACE_STR_FRONT + param + REPLACE_STR_END, 
                                           str(getattr(default_market,param)))
 
@@ -179,7 +176,7 @@ def add_market_params_and_calculations(output_text):
 
     # Check that some params haven't changed because they're not parameterized in the HTML!
     assert default_market.annual_mu==.054, "Mu has changed, but the essay text still says \"ln(1 + .056) = .054\". Change that."
-    assert Market.TRADING_DAYS_PER_YEAR==252, "Trading days per year have changed, but the essay text still uses 252 days per year for black-swan calculations. Change that."
+    assert default_market.trading_days_per_year==252, "Trading days per year have changed, but the essay text still uses 252 days per year for black-swan calculations. Change that."
     assert default_market.medium_black_swan_prob==.004 and default_market.annual_sigma_for_medium_black_swan==1.1 and default_market.large_black_swan_prob==.0001 and default_market.annual_sigma_for_large_black_swan==4.1, "Market params have changed relative to the skeleton HTML. That needs updating in the section Explanation of \"black swan\" probabilities"
 
     return output_text
@@ -220,16 +217,16 @@ def add_general_theoretical_calculations(output_text, cur_working_dir, timestamp
 
     # Daily mu and sigma
     output_text = output_text.replace(REPLACE_STR_FRONT + "annual_mu/trading_days_per_year" + REPLACE_STR_END, 
-                                      str(util.round_decimal_to_given_num_of_sig_figs(default_market.annual_mu/Market.TRADING_DAYS_PER_YEAR,2)))
+                                      str(util.round_decimal_to_given_num_of_sig_figs(default_market.annual_mu/default_market.trading_days_per_year,2)))
     output_text = output_text.replace(REPLACE_STR_FRONT + "annual_sigma/sqrt(trading_days_per_year)" + REPLACE_STR_END, 
-                                      str(util.round_decimal_to_given_num_of_sig_figs( default_market.annual_sigma/math.sqrt(Market.TRADING_DAYS_PER_YEAR) ,2)))
+                                      str(util.round_decimal_to_given_num_of_sig_figs( default_market.annual_sigma/math.sqrt(default_market.trading_days_per_year) ,2)))
 
     # Sigma for whole period
     output_text = output_text.replace(REPLACE_STR_FRONT + "annual_sigma * sqrt(years_until_donate)" + REPLACE_STR_END, 
                                       str(round( default_market.annual_sigma * math.sqrt(default_investor.years_until_donate) ,2)))
 
     # Prob(at least 1 large-scale black swan)
-    prob_at_least_1_big_black_swan = 1.0-.9999**(default_investor.years_until_donate * Market.TRADING_DAYS_PER_YEAR)
+    prob_at_least_1_big_black_swan = 1.0-.9999**(default_investor.years_until_donate * default_market.trading_days_per_year)
     output_text = output_text.replace(REPLACE_STR_FRONT + "prob_at_least_1_big_black_swan" + REPLACE_STR_END, 
                                       str(round(prob_at_least_1_big_black_swan,2)))
 
@@ -319,19 +316,23 @@ def add_theoretical_calculations_for_no_unemployment_etc(output_text, no_unemplo
     default_investor = Investor.Investor()
     default_market = Market.Market()
 
+    # initial investment for the "no complications" runs
+    one_month_pay = default_investor.initial_annual_income_for_investing/12
+    output_text = output_text.replace(REPLACE_STR_FRONT + "one_month_pay" + REPLACE_STR_END, 
+                                      util.format_as_dollar_string(one_month_pay))
+
     # Theoretical vs. actual median
-    theoretical_median = default_investor.initial_annual_income_for_investing/12
+    theoretical_median_PV_ignoring_complications = one_month_pay * math.exp(-default_market.annual_sigma**2*default_investor.years_until_donate/2)
     output_text = output_text.replace(REPLACE_STR_FRONT + "theoretical_median_PV_ignoring_complications" + REPLACE_STR_END, 
-                                      util.format_as_dollar_string(theoretical_median))
+                                      util.format_as_dollar_string(theoretical_median_PV_ignoring_complications))
     actual_median_string = parse_value_from_results_table(no_unemployment_etc_results_table_contents, "Regular","Median")
-    actual_median = int(actual_median_string.replace("$","").replace(",",""))
     output_text = output_text.replace(REPLACE_STR_FRONT + "actual_median_ignoring_complications" + REPLACE_STR_END, 
                                       actual_median_string)
 
     # Theoretical vs. actual mean
-    theoretical_mean = theoretical_median * math.exp(default_market.annual_sigma**2 * default_investor.years_until_donate/2)
+    theoretical_mean_PV_ignoring_complications = one_month_pay
     output_text = output_text.replace(REPLACE_STR_FRONT + "theoretical_mean_PV_ignoring_complications" + REPLACE_STR_END, 
-                                      util.format_as_dollar_string(theoretical_mean))
+                                      util.format_as_dollar_string(theoretical_mean_PV_ignoring_complications))
     actual_mean_string = parse_value_from_results_table(no_unemployment_etc_results_table_contents, "Regular","Mean &plusmn; stderr")
     actual_mean = get_mean_as_int_from_mean_plus_or_minus_stderr(actual_mean_string)
     output_text = output_text.replace(REPLACE_STR_FRONT + "actual_mean_ignoring_complications" + REPLACE_STR_END, 
@@ -342,8 +343,16 @@ def add_theoretical_calculations_for_no_unemployment_etc(output_text, no_unemplo
     output_text = output_text.replace(REPLACE_STR_FRONT + "actual_sigma_of_log_wealth" + REPLACE_STR_END, 
                                       actual_sigma_of_log_wealth)
 
+    # leverage amount, c
+    broker_imposed_leverage_limit = util.max_margin_to_assets_ratio_to_N_to_1_leverage(default_investor.broker_max_margin_to_assets_ratio)
+    output_text = output_text.replace(REPLACE_STR_FRONT + "broker_imposed_leverage_limit" + REPLACE_STR_END, 
+                                      str(round(broker_imposed_leverage_limit,1)))
+
     # Z-value threshold
-    Z_value_threshold = math.sqrt(default_investor.years_until_donate) * (default_market.annual_margin_interest_rate - default_market.annual_mu) / default_market.annual_sigma
+    Z_value_threshold = math.sqrt(default_investor.years_until_donate) * \
+        ((broker_imposed_leverage_limit+1)*default_market.annual_sigma/2 - \
+        (default_market.annual_mu - default_market.annual_margin_interest_rate) \
+        / default_market.annual_sigma)
     output_text = output_text.replace(REPLACE_STR_FRONT + "Z_value_threshold" + REPLACE_STR_END, 
                                       str(round(Z_value_threshold,2)))
 
@@ -450,7 +459,8 @@ def parse_percent_times_margin_is_better(results_table_contents):
 
 if __name__ == "__main__":
     DATA_ALREADY_EXISTS_AND_HAS_THIS_TIMESTAMP = None
-    #DATA_ALREADY_EXISTS_AND_HAS_THIS_TIMESTAMP = "2015Apr28_10h49m44s" # sample size of 5 but has all variants as of 28 Apr 2015
+    #DATA_ALREADY_EXISTS_AND_HAS_THIS_TIMESTAMP = "2015Apr28_23h10m51s"
+    #DATA_ALREADY_EXISTS_AND_HAS_THIS_TIMESTAMP = "2015Apr28_13h27m05s" # sample size of 5 but has all variants as of 28 Apr 2015
     """if the above variable is non-None, it saves lots of computation and just computes the HTML 
     and copies the required figures from saved data"""
     data_already_exists = DATA_ALREADY_EXISTS_AND_HAS_THIS_TIMESTAMP is not None
@@ -483,14 +493,14 @@ if __name__ == "__main__":
         # Write file.
         with open(essay_path, "w") as outfile:
             print """
-            ==========
-            WARNING: If you're using saved data, all default values now, 
-            including NUM_TRIALS here, should be
-            _the same as when you ran the results being pointed to_
-            or else the params filled in to the output HTMl file will be wrong!
-            ============
-            """
-            NUM_TRIALS = 5
+==========
+WARNING: If you're using saved data, all default values now, 
+including NUM_TRIALS here, should be
+_the same as when you ran the results being pointed to_
+or else the params filled in to the output HTMl file will be wrong!
+============
+"""
+            NUM_TRIALS = 50
             #NUM_TRIALS = 1
             #APPROX_NUM_SIMULTANEOUS_PROCESSES = 1
             APPROX_NUM_SIMULTANEOUS_PROCESSES = 2

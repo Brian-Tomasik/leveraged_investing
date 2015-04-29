@@ -1,15 +1,14 @@
 import random
 import math
 
-TRADING_DAYS_PER_YEAR = 252
-
 class Market(object):
     """Parameters about the behavior of the stock market and interest rates"""
 
     def __init__(self, annual_mu=.054, annual_sigma=.22, annual_margin_interest_rate=.03,
                  inflation_rate=.03, use_VIX_data_for_volatility=False, 
                  medium_black_swan_prob=.004, annual_sigma_for_medium_black_swan=1.1,
-                 large_black_swan_prob=.0001, annual_sigma_for_large_black_swan=4.1):
+                 large_black_swan_prob=.0001, annual_sigma_for_large_black_swan=4.1,
+                 trading_days_per_year=252):
         self.annual_mu = annual_mu
         self.annual_sigma = annual_sigma
         self.annual_margin_interest_rate = annual_margin_interest_rate
@@ -29,6 +28,7 @@ class Market(object):
         self.__annual_sigma_for_medium_black_swan = annual_sigma_for_medium_black_swan
         self.__large_black_swan_prob = large_black_swan_prob
         self.__annual_sigma_for_large_black_swan = annual_sigma_for_large_black_swan
+        self.__trading_days_per_year = trading_days_per_year
 
         # Get VIX data if needed
         if self.__use_VIX_data_for_volatility:
@@ -83,6 +83,10 @@ class Market(object):
     def annual_sigma_for_large_black_swan(self):
         return self.__annual_sigma_for_large_black_swan
 
+    @property
+    def trading_days_per_year(self):
+        return self.__trading_days_per_year
+
     def read_VIX_data(self):
         """Read in daily VIX prices, which I took from 
         http://www.cboe.com/publish/scheduledtask/mktdata/datahouse/vixcurrent.csv ,
@@ -92,7 +96,7 @@ class Market(object):
             self.__VIX_data = [float(price.strip())/100 for price in data.readlines()]
 
     def random_daily_return(self, day):
-        delta_t = 1.0/TRADING_DAYS_PER_YEAR
+        delta_t = 1.0/self.__trading_days_per_year
         if self.__use_VIX_data_for_volatility:
             sigma_to_use = self.__VIX_data[day % self.__num_days_VIX_data]
             """ ^ Cycle through the VIX data in order, repeating after we hit the end"""

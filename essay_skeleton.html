@@ -14,6 +14,8 @@ I simulated margin vs. regular investing and found that over <REPLACE>years_unti
 
 I'm not an expert on leveraged investing. This piece represents my own efforts to explore this topic rather than solid advice from experience. There are probably errors in what I say, and I encourage readers to give me feedback. Also, this analysis assumes you live in the USA, and many details (especially about taxes) may not extend to other countries.
 
+<span style="color:orange">REMINDER to self: if I ever switch the default to not rebalancing monthly, I'd need to change the "results vs. theory" configurations to force monthly rebalancing to make the numbers comparable</span>
+
 [toc]
 
 <h2>Why leverage</h2>
@@ -235,7 +237,7 @@ The following parameters are what I refer to as the "default" setting in the res
 <li>state income-tax rate (whether short-term or long-term gains) = <REPLACE>state_income_tax</REPLACE></li>
 <li>monthly probability of being laid off = <REPLACE>monthly_probability_of_layoff</REPLACE></li>
 <li>monthly probability of finding work after being laid off = <REPLACE>monthly_probability_find_work_after_laid_off</REPLACE></li>
-<li>average annual returns (continuously compounded) of index ETF = <REPLACE>annual_mu_as_percent</REPLACE> (This assumes a return of <a href="http://www.marketwatch.com/story/stocks-future-return-just-56-annualized-2012-09-21" title="&quot;Stocks’ future return: Just 5.6% annualized&quot;">5.6%</a> not continuously compounded, since ln(1 + 0.056) = 0.054. This estimate is conservative, since historical returns have been more like ~10% in the USA.)</li>
+<li>average annual returns (continuously compounded) of index ETF = <REPLACE>annual_mu_as_percent</REPLACE> (This assumes a return of <a href="http://www.marketwatch.com/story/stocks-future-return-just-56-annualized-2012-09-21" title="&quot;Stocks’ future return: Just 5.6% annualized&quot;">5.6%</a> not continuously compounded, since ln(1 + 0.056) = 0.054. This estimate is conservative, since historical returns have been more like ~10% in the USA. The reason to use continuous interest is that stock prices are compounded daily <REPLACE>trading_days_per_year</REPLACE> times per year, so the return is approximately continuously compounded anyway. To see this, note that (1+ln(1.056)/<REPLACE>trading_days_per_year</REPLACE>)<sup><REPLACE>trading_days_per_year</REPLACE></sup> &asymp; 1.056.)<!--I THINK MY LN(1.056) = .054 THING MIGHT BE MISGUIDED. I don't use continuously compounded returns after fixing the bug?? Oh no, I do. :) because a daily mu of .054 is like a yearly mu of .056 :)--></li>
 <li>annual volatility of index ETF = <REPLACE>annual_sigma_as_percent</REPLACE> (see "<a href="http://reducing-suffering.org/do-leveraged-etfs-have-higher-long-run-returns/">Do Leveraged ETFs Have Higher Long-Run Returns?</a>" for how I calculated this; you could also <a href="http://www.indexologyblog.com/2014/02/04/whats-a-normal-vix-level/" title="&quot;What’s a Normal VIX Level?&quot;">look</a> at the <a href="https://en.wikipedia.org/wiki/VIX">VIX index</a>)</li>
 <li>"medium black swan" probability = <REPLACE>medium_black_swan_prob</REPLACE></li>
 <li>annual volatility for "medium black swan" event = <REPLACE>annual_sigma_for_medium_black_swan</REPLACE></li>
@@ -256,7 +258,7 @@ Simple stock-market models typically use geometric Brownian motion. This is fine
 
 The parameters of my normal distribution are &mu; = <REPLACE>annual_mu</REPLACE> and &sigma; = <REPLACE>annual_sigma</REPLACE>. Consider a one-day market movement. Assuming <REPLACE>trading_days_per_year</REPLACE> trading days per year, the expected daily movement is <REPLACE>annual_mu</REPLACE>/<REPLACE>trading_days_per_year</REPLACE> = <REPLACE>annual_mu/trading_days_per_year</REPLACE>, and the standard deviation is <REPLACE>annual_sigma</REPLACE> / &radic;<span style="text-decoration: overline"><REPLACE>trading_days_per_year</REPLACE></span> = <REPLACE>annual_sigma/sqrt(trading_days_per_year)</REPLACE>. Since the standard deviation is so much bigger than the mean, let's just focus on the standard deviation and assume a mean of 0.
 
-A loss of 23% in a single day (Black Monday) means multiplying previous prices by (1-0.23). Since geometric Brownian motion uses continuous compounding, we should convert this to a continuous rate. We want a change C such that exp(C) = 1-0.23, which means C = ln(1-0.23) = -0.26. This is a daily return that should be able to be sampled from our distribution of daily returns -- the distribution with a mean of (roughly) 0 and a standard deviation of 0.014. But the <a href="https://en.wikipedia.org/wiki/Standard_score">z-value</a> for a -0.26 return is -0.26/.014 = -19, which has a probability so small that online normal-distribution calculators can't handle it. Basically, this event should have never happened. But it did once over the 51-year period from 1950 to 2001. This needs to be addressed in the simulations or else they risk ignoring huge risk from black swans.
+A loss of 23% in a single day (Black Monday) means multiplying previous prices by (1-0.23). Since geometric Brownian motion implies continuous compounding, we should convert this to a continuous rate. We want a change C such that exp(C) = 1-0.23, which means C = ln(1-0.23) = -0.26. This is a daily return that should be able to be sampled from our distribution of daily returns -- the distribution with a mean of (roughly) 0 and a standard deviation of 0.014. But the <a href="https://en.wikipedia.org/wiki/Standard_score">z-value</a> for a -0.26 return is -0.26/.014 = -19, which has a probability so small that online normal-distribution calculators can't handle it. Basically, this event should have never happened. But it did once over the 51-year period from 1950 to 2001. This needs to be addressed in the simulations or else they risk ignoring huge risk from black swans.
 
 There are many proposals for modeling fat-tailed distributions in finance. To keep things simple, I chose a finite mixture of normal distributions (see section 6.3 of <a href="http://ect-pigorsch.mee.uni-bonn.de/data/research/papers/Financial_Economics,_Fat-tailed_Distributions.pdf" title="&quot;Financial Economics, Fat-tailed Distributions&quot;">this paper</a>). I estimated the parameters by hand in a quick-and-dirty way as described below, but of course it would help to use more systematically determined parameters, as well as to try other fat-tailed distributions.
 
@@ -272,11 +274,13 @@ I implemented the mixture of normal distributions by picking a random floating-p
 
 <h3>Results vs. theory</h3>
 
-To compare the simulation results against theory, it helps to strip away some of the complicating features of the simulation. The following numbers show what happens if unemployment, inflation, taxes, and black swans are ignored (set to 0), and if the investor gets paid on only one occasion -- namely, her first pay period right when the simulation starts:
+<span style="color:red">ADD COMPARISON OF THEORETICAL LEVERAGED RESULTS VS. ACTUAL</span>
 
-<REPLACE>uitbf_results_table</REPLACE>
+To compare the simulation results against theory, it helps to strip away some of the complicating features of the simulation. The following numbers show what happens if unemployment, inflation, taxes, and black swans are ignored (set to 0), and if the investor gets paid on only one occasion -- namely, her first pay period right when the simulation starts. I also assume that the investor rebalances monthly toward a leverage ratio exactly equal to the broker-imposed leverage limit rather than comfortably under that limit as in the default scenario.
 
-In a geometric Brownian motion framework for stock-price evolution, the final price S<sub>t</sub> of a security S after t years <a href="http://www.columbia.edu/~ks20/FE-Notes/4700-07-Notes-GBM.pdf" title="&quot;Geometric Brownian motion&quot;">is</a> the initial price, S<sub>0</sub>, times exp(X<sub>t</sub>), where X<sub>t</sub> is a Brownian motion with annual drift &mu; and variance &sigma;<sup>2</sup>. Since X<sub>t</sub> is normally distributed, S<sub>t</sub>/S<sub>0</sub> = exp(X<sub>t</sub>) is lognormally distributed, i.e., ln(S<sub>t</sub>/S<sub>0</sub>) is normally distributed with mean &mu;t and variance &sigma;<sup>2</sup>t. For a <a href="https://en.wikipedia.org/wiki/Log-normal_distribution">lognormal distribution</a>, the median is exp(&mu;t), and the mean is exp(&mu;t + &sigma;<sup>2</sup>t/2). Hence, the median final value of wealth from investing should be S<sub>0</sub> exp(&mu;t), and the mean final value should be S<sub>0</sub> exp(&mu;t + &sigma;<sup>2</sup>t/2). For more explanation, see <a href="https://books.google.com/books?id=DFJg_3PJ5ToC&pg=PA83&lpg=PA83&dq=%22geometric+brownian+motion%22+median&source=bl&ots=arNDISdxak&sig=wT1rLUBmWkHDqt2EmCBAw5KYOg8&hl=en&sa=X&ei=GFQ-Vb3fMNa1sQSv4YGwAw&ved=0CD0Q6AEwBA#v=onepage&q=%22geometric%20brownian%20motion%22%20median&f=false" title="'Statistics and Finance: An Introduction' by David Ruppert, p. 83">here</a>.((I'm still confused about something. If you have insights, let me know.
+<REPLACE>uitbfv_results_table</REPLACE>
+<!--
+the final price S<sub>t</sub> of a security S after t years <a href="http://www.columbia.edu/~ks20/FE-Notes/4700-07-Notes-GBM.pdf" title="&quot;Geometric Brownian motion&quot;">is</a> the initial price, S<sub>0</sub>, times exp(X<sub>t</sub>), where X<sub>t</sub> is a Brownian motion with annual drift &mu; and variance &sigma;<sup>2</sup>. Since X<sub>t</sub> is normally distributed, S<sub>t</sub>/S<sub>0</sub> = exp(X<sub>t</sub>) is lognormally distributed, i.e., ln(S<sub>t</sub>/S<sub>0</sub>) is normally distributed with mean &mu;t and variance &sigma;<sup>2</sup>t. For a <a href="https://en.wikipedia.org/wiki/Log-normal_distribution">lognormal distribution</a>, the median is exp(&mu;t), and the mean is exp(&mu;t + &sigma;<sup>2</sup>t/2). Hence, the median final value of wealth from investing should be S<sub>0</sub> exp(&mu;t), and the mean final value should be S<sub>0</sub> exp(&mu;t + &sigma;<sup>2</sup>t/2). For more explanation, see <a href="https://books.google.com/books?id=DFJg_3PJ5ToC&pg=PA83&lpg=PA83&dq=%22geometric+brownian+motion%22+median&source=bl&ots=arNDISdxak&sig=wT1rLUBmWkHDqt2EmCBAw5KYOg8&hl=en&sa=X&ei=GFQ-Vb3fMNa1sQSv4YGwAw&ved=0CD0Q6AEwBA#v=onepage&q=%22geometric%20brownian%20motion%22%20median&f=false" title="'Statistics and Finance: An Introduction' by David Ruppert, p. 83">here</a>.((I'm still confused about something. If you have insights, let me know.
 
 On the one hand, since X<sub>t</sub> is normal with mean &mu;t and variance &sigma;<sup>2</sup>t, S<sub>t</sub> = S<sub>0</sub> exp(X<sub>t</sub>) is lognormal with mean S<sub>0</sub> exp(&mu;t + &sigma;<sup>2</sup>t/2). This is a basic fact about a lognormal distribution. And when I compare predictions with this formula against my actual results, the match is very good.
 
@@ -285,28 +289,110 @@ On the other hand, consider the <a href="https://en.wikipedia.org/wiki/Geometric
 &part;S<sub>t</sub>/S<sub>t</sub> = &mu; &part;t + &sigma; &part;W<sub>t</sub>.
 </blockquote>
 This seems to be what I'm using in my simulation (modulo the fact that my simulation has a granularity of a day at a time, not the infinitesimal granularity of the above continuous-time SDE). Solving this SDE <a href="https://en.wikipedia.org/wiki/Geometric_Brownian_motion#Solving_the_SDE">tells us</a> that S<sub>t</sub> is not actually S<sub>0</sub> exp(X<sub>t</sub>) but is instead S<sub>0</sub> exp(X<sub>t</sub> - &sigma;<sup>2</sup>t/2). Then, because of how expectations work for lognormal distributions, <a href="https://en.wikipedia.org/wiki/Geometric_Brownian_motion#Properties">we have that</a> E[S<sub>t</sub>] = S<sub>0</sub> exp(&mu;t). The -&sigma;<sup>2</sup>t/2 cancelled with a +&sigma;<sup>2</sup>t/2. However, this formula doesn't agree with my simulation results. Why not?))
+-->
+<h4>Background</h4>
 
-When I reported my numbers in this simulation, I discounted with <a href="https://en.wikipedia.org/wiki/Compound_interest#Continuous_compounding">continuous interest</a> using an interest rate of &mu; = <REPLACE>annual_mu</REPLACE> per year and a time of t = <REPLACE>years_until_donate</REPLACE> years. That is, I multiplied the final amounts by exp(- <REPLACE>annual_mu</REPLACE> * <REPLACE>years_until_donate</REPLACE>). The reason to use continuous interest is that the geometric Brownian motion model assumes it, and since stock prices are compounded <REPLACE>trading_days_per_year</REPLACE> times per year, the return is approximately continuously compounded anyway. As a result of this discounting, we should actually observe that the median of the distribution will be S<sub>0</sub> exp(&mu;t) exp(-&mu;t) = S<sub>0</sub>, while the mean should be S<sub>0</sub> exp(&mu;t + &sigma;<sup>2</sup>t/2) exp(-&mu;t) = S<sub>0</sub> exp(&sigma;<sup>2</sup>t/2).
+Let S<sub>t</sub> be the price of a stock or ETF at year t. The <a href="https://en.wikipedia.org/wiki/Geometric_Brownian_motion#Technical_definition:_the_SDE">geometric Brownian motion stochastic differential equation</a> (SDE) is
+<blockquote>
+dS<sub>t</sub>/S<sub>t</sub> = &mu; dt + &sigma; dW<sub>t</sub>,
+</blockquote>
+where W<sub>t</sub> is a Weiner process with mean 0 and variance t. That is, if Z is a standard-normal random variable, then dW<sub>t</sub> = Z &radic;<span style="text-decoration: overline">dt</span>. This is what I'm using in my simulation, except that "dt" is not infinitesimal but a whole day of time.
 
-In the simulation, I used t = <REPLACE>years_until_donate</REPLACE> years, &mu; = <REPLACE>annual_mu</REPLACE> per year, &sigma; = <REPLACE>annual_sigma</REPLACE>, and S<sub>0</sub> = <REPLACE>theoretical_median_PV_ignoring_complications</REPLACE>.<!-- There's not actually a single initial price S<sub>0</sub> because the securities are bought over time. However, we can pretend that the investor buys just one big initial security whose price equals the present value of purchases discounted at an interest rate of <REPLACE>annual_mu_as_percent</REPLACE>. An analytic formula for this discounted sum is messy, so I just computed it <a href="https://docs.google.com/spreadsheets/d/1STH-QEMwybDKrouTnNEWeXQXU9VK1SEmq_qNxPCdUTc/edit?usp=sharing">in a spreadsheet</a>. If we ignore periods of unemployment and inflation, the result is that S<sub>0</sub> = <REPLACE>theoretical_median_PV_ignoring_complications</REPLACE>.--> The actual median from the above table, <REPLACE>actual_median_ignoring_complications</REPLACE>, is very close to<span style="color:orange">CHECK THIS MANUALLY</span> the theoretical value, S<sub>0</sub>.
+Solving this SDE <a href="https://en.wikipedia.org/wiki/Geometric_Brownian_motion#Solving_the_SDE">tells us</a> that
+<blockquote>
+S<sub>t</sub> = S<sub>0</sub> exp(&mu;t - &sigma;<sup>2</sup>t/2 + &sigma;W<sub>t</sub>).
+</blockquote>
+S<sub>t</sub>/S<sub>0</sub> has a <a href="https://en.wikipedia.org/wiki/Log-normal_distribution">lognormal distribution</a> with location parameter &mu;t - &sigma;<sup>2</sup>t/2 and scale parameter &sigma;&radic;<span style="text-decoration: overline">t</span>.
 
-The theoretical prediction for the mean of the regular account's present value is S<sub>0</sub> exp(&sigma;<sup>2</sup> * <REPLACE>years_until_donate</REPLACE>/2) = <REPLACE>theoretical_median_PV_ignoring_complications</REPLACE> exp(<REPLACE>annual_sigma</REPLACE><sup>2</sup> * <REPLACE>years_until_donate</REPLACE>/2) = <REPLACE>theoretical_mean_PV_ignoring_complications</REPLACE>. For some reason this is slightly bigger than<span style="color:orange">CHECK THIS MANUALLY</span> the actual mean value of the regular account's present value when I set probability of layoffs and inflation both to zero (<REPLACE>actual_mean_ignoring_complications</REPLACE> in the above table), but it's somewhat close.
+<h4>Median wealth</h4>
 
-Since X<sub>t</sub> = ln(S<sub>t</sub>/S<sub>0</sub>) = ln(S<sub>t</sub>) - ln(S<sub>0</sub>), StdDev[X<sub>t</sub>] = StdDev[ln(S<sub>t</sub>)]. In theory, StdDev[X<sub>t</sub>] should be just &sigma; * &radic;<span style="text-decoration: overline"><REPLACE>years_until_donate</REPLACE></span> = <REPLACE>annual_sigma</REPLACE> * &radic;<span style="text-decoration: overline"><REPLACE>years_until_donate</REPLACE></span> = <REPLACE>annual_sigma * sqrt(years_until_donate)</REPLACE>. In the simulations, I found StdDev[ln(S<sub>t</sub>)] = &sigma;<sub>log(wealth)</sub> = <REPLACE>actual_sigma_of_log_wealth</REPLACE> for regular investing, which is again pretty close.<span style="color:orange">CHECK THIS MANUALLY</span>
+The <a href="https://en.wikipedia.org/wiki/Log-normal_distribution#Mode_and_median">median</a> of a lognormal distribution is exp(location_parameter). Thus
+<blockquote>
+median(S<sub>t</sub>/S<sub>0</sub>) = exp(&mu;t - &sigma;<sup>2</sup>t/2), which implies<br />
+median(S<sub>t</sub>) = S<sub>0</sub> exp(&mu;t - &sigma;<sup>2</sup>t/2)
+</blockquote>
+because S<sub>0</sub> is constant and so doesn't affect the sorted ranking of S<sub>t</sub> values.
 
-The probability of margin outperforming regular investing in the above table is discouragingly low: <REPLACE>actual_percent_times_margin_is_better</REPLACE>%. Based on other variants I ran, I tracked this low performance down to at least three factors, in rough order of importance:
+When I reported my numbers in this simulation, I discounted with <a href="https://en.wikipedia.org/wiki/Compound_interest#Continuous_compounding">continuous interest</a> using an interest rate of &mu; = <REPLACE>annual_mu</REPLACE> per year and a time of t = <REPLACE>years_until_donate</REPLACE> years. That is, I multiplied the final amounts by exp(- <REPLACE>annual_mu</REPLACE> * <REPLACE>years_until_donate</REPLACE>). As a result of this discounting, we should actually observe that the median of the distribution will be S<sub>0</sub> exp(&mu;t - &sigma;<sup>2</sup>t/2) exp(-&mu;t) = S<sub>0</sub> exp(-&sigma;<sup>2</sup>t/2).
+
+In the simulation, I used t = <REPLACE>years_until_donate</REPLACE> years, &mu; = <REPLACE>annual_mu</REPLACE> per year, &sigma; = <REPLACE>annual_sigma</REPLACE>, and S<sub>0</sub> = <REPLACE>one_month_pay</REPLACE>.<!-- There's not actually a single initial price S<sub>0</sub> because the securities are bought over time. However, we can pretend that the investor buys just one big initial security whose price equals the present value of purchases discounted at an interest rate of <REPLACE>annual_mu_as_percent</REPLACE>. An analytic formula for this discounted sum is messy, so I just computed it <a href="https://docs.google.com/spreadsheets/d/1STH-QEMwybDKrouTnNEWeXQXU9VK1SEmq_qNxPCdUTc/edit?usp=sharing">in a spreadsheet</a>. If we ignore periods of unemployment and inflation, the result is that S<sub>0</sub> = <REPLACE>one_month_pay</REPLACE>.--> The actual median from the above table, <REPLACE>actual_median_ignoring_complications</REPLACE>, is very close to<span style="color:orange">CHECK THIS MANUALLY</span> the theoretical value, <REPLACE>one_month_pay</REPLACE> exp(-<REPLACE>annual_sigma</REPLACE><sup>2</sup><REPLACE>years_until_donate</REPLACE>/2) = <REPLACE>theoretical_median_PV_ignoring_complications</REPLACE>.
+
+<h4>Mean wealth</h4>
+
+The mean of a lognormal distribution is exp(location_parameter + scale_parameter<sup>2</sup>/2). Hence
+<blockquote>
+mean(S<sub>t</sub>/S<sub>0</sub>) = exp(&mu;t - &sigma;<sup>2</sup>t/2 + [&sigma;&radic;<span style="text-decoration: overline">t</span>]<sup>2</sup>/2)<br />
+= exp(&mu;t), which implies that<br />
+mean(S<sub>t</sub>) = S<sub>0</sub> exp(&mu;t),
+</blockquote>
+since the constant S<sub>0</sub> can come out of the mean() operator. This equation is confirmed <a href="https://en.wikipedia.org/wiki/Geometric_Brownian_motion#Properties">by Wikipedia</a>.
+
+Because I discounted my results by exp(-&mu;t), the mean reported in the table above should be approximately S<sub>0</sub> exp(&mu;t) exp(-&mu;t) = S<sub>0</sub>, i.e., just the initial price, <REPLACE>one_month_pay</REPLACE>. The actual mean value from the above table is <REPLACE>actual_mean_ignoring_complications</REPLACE>.
+
+<h4>Std dev of log wealth</h4>
+
+<blockquote>
+S<sub>t</sub> = S<sub>0</sub> exp(&mu;t - &sigma;<sup>2</sup>t/2 + &sigma;W<sub>t</sub>) implies<br />
+ln(S<sub>t</sub>) = ln(S<sub>0</sub>) + &mu;t - &sigma;<sup>2</sup>t/2 + &sigma;W<sub>t</sub>.
+</blockquote>
+The only randomness here is in W<sub>t</sub>, so
+<blockquote>
+StdDev[ln(S<sub>t</sub>)] = StdDev[&sigma;W<sub>t</sub>] = &sigma;StdDev[W<sub>t</sub>] = &sigma;&radic;<span style="text-decoration: overline">t</span> = <REPLACE>annual_sigma</REPLACE> * &radic;<span style="text-decoration: overline"><REPLACE>years_until_donate</REPLACE></span> = <REPLACE>annual_sigma * sqrt(years_until_donate)</REPLACE>.
+</blockquote>
+In the simulations, I found StdDev[ln(S<sub>t</sub>)] = &sigma;<sub>log(wealth)</sub> = <REPLACE>actual_sigma_of_log_wealth</REPLACE> for regular investing, which is again pretty close.<span style="color:orange">CHECK THIS MANUALLY</span>
+
+<h4>Prob[margin beats regular]</h4>
+
+Let V<sub>t</sub> denote the net wealth of a leveraged portfolio at year t. (V<sub>t</sub> is just like S<sub>t</sub> but for leveraged investing.) <a href="http://www.fsa.ulaval.ca/nfa2003/papiers/Craig%20Wilson.pdf" title="'Leveraged Stock Portfolios over Long Holding Periods: A Continuous Time Model' (2003)">Domian et al. (2003)</a> show (p. 5, eqn. 13) that for a c-times leveraged portfolio (e.g., c = 2 means 2X leverage) and borrowing interest rate r, the applicable SDE is
+<blockquote>
+dV<sub>t</sub>/V<sub>t</sub> = (r + (&mu;-r)c) dt + c &sigma; dW<sub>t</sub>.
+</blockquote>
+This makes sense because the infinitesimal expected return should be c&mu; dt, the infinitesimal standard deviation should be c&sigma;, and the infinitesimal borrowing cost should be (c-1)r dt (since only c-1 of the purchased units are borrowed).
+
+<a href="http://www.fsa.ulaval.ca/nfa2003/papiers/Craig%20Wilson.pdf" title="'Leveraged Stock Portfolios over Long Holding Periods: A Continuous Time Model' (2003)">Domian et al. (2003)</a> solve this equation in the same way as we solved the standard SDE before (p. 5, eqn. 14). The result is
+<blockquote>
+V<sub>t</sub> = V<sub>0</sub> exp{ (r + (&mu;-r)c) t - c<sup>2</sup>&sigma;<sup>2</sup>t/2 + c&sigma;W<sub>t</sub> }.
+</blockquote>
+
+Now we want to know the probability that margin investing does better than regular, Prob[V<sub>t</sub> > S<sub>t</sub>], on the same underlying asset trajectory. Assume both portfolios start out with equal initial capital: V<sub>0</sub> = S<sub>0</sub> = K. Then
+<blockquote>
+Prob[V<sub>t</sub> > S<sub>t</sub>] = Prob[ln(V<sub>t</sub>) > ln(S<sub>t</sub>)]<br />
+= Prob[ln(K) + (r + (&mu;-r)c) t - c<sup>2</sup>&sigma;<sup>2</sup>t/2 + c&sigma;W<sub>t</sub> > ln(K) + &mu;t - &sigma;<sup>2</sup>t/2 + &sigma;W<sub>t</sub>]<br />
+= Prob[(r + (&mu;-r)c) t - (c<sup>2</sup>-1)&sigma;<sup>2</sup>t/2 + (c-1)&sigma;W<sub>t</sub> > &mu;t]<br />
+= Prob[r + (&mu;-r)c - (c<sup>2</sup>-1)&sigma;<sup>2</sup>/2 + (c-1)&sigma;W<sub>t</sub>/t > &mu;]<br />
+= Prob[(1-c)r + &mu;(c-1) - (c<sup>2</sup>-1)&sigma;<sup>2</sup>/2 + (c-1)&sigma;W<sub>t</sub>/t > 0]<br />
+= Prob[(&mu;-r)(c-1) - (c<sup>2</sup>-1)&sigma;<sup>2</sup>/2 + (c-1)&sigma;W<sub>t</sub>/t > 0]<br />
+= Prob[(c-1)&sigma;W<sub>t</sub>/t > (c<sup>2</sup>-1)&sigma;<sup>2</sup>/2 - (&mu;-r)(c-1)]<br />
+= Prob[(c-1)&sigma;W<sub>t</sub>/t > (c-1)(c+1)&sigma;<sup>2</sup>/2 - (&mu;-r)(c-1)]<br />
+= Prob[&sigma;W<sub>t</sub>/t > (c+1)&sigma;<sup>2</sup>/2 - (&mu;-r)]<br />
+= Prob[W<sub>t</sub>/t > (c+1)&sigma;/2 - (&mu;-r)/&sigma;].
+</blockquote>
+Now recall that if Z is a standard-normal random variable, W<sub>t</sub> = &radic;<span style="text-decoration: overline">t</span>Z. Substituting in:
+<blockquote>
+Prob[V<sub>t</sub> > S<sub>t</sub>] = Prob[Z/&radic;<span style="text-decoration: overline">t</span> > (c+1)&sigma;/2 - (&mu;-r)/&sigma;]<br />
+= Prob[Z > &radic;<span style="text-decoration: overline">t</span>( (c+1)&sigma;/2 - (&mu;-r)/&sigma; )]<br />
+= 1 - Prob[Z &leq; &radic;<span style="text-decoration: overline">t</span>( (c+1)&sigma;/2 - (&mu;-r)/&sigma; )]<br />
+= 1 - Prob[Z &leq; &radic;<span style="text-decoration: overline"><REPLACE>years_until_donate</REPLACE></span>( (<REPLACE>broker_imposed_leverage_limit</REPLACE>+1)<REPLACE>annual_sigma</REPLACE>/2 - (<REPLACE>annual_mu</REPLACE>-<REPLACE>annual_margin_interest_rate</REPLACE>)/<REPLACE>annual_sigma</REPLACE> )]<br />
+= 1 - Prob[&nbsp;Z &le; <REPLACE>Z_value_threshold</REPLACE>&nbsp;]<br />
+<a href="https://surfstat.anu.edu.au/surfstat-home/tables/normal.php" title="&quot;SurfStat standard normal calculator&quot;">= 1 - <REPLACE>prob_Z_leq_threshold</REPLACE></a><br />
+= <REPLACE>prob_Z_gt_threshold</REPLACE>.
+</blockquote>
+The empirical probability of margin outperforming regular investing in the above table is <REPLACE>actual_percent_times_margin_is_better</REPLACE>%.
+
+Based only on the fraction of times it wins, margin doesn't look so promising. I tracked this low performance down to at least three factors, in rough order of importance:
 <ol>
 <li>Rebalancing monthly dramatically reduces the chance that margin beats regular investing.</li>
 <li>A <REPLACE>years_until_donate</REPLACE>-year time horizon for investing has a lower rate of margin beating regular investing than a 30-year time horizon.</li>
 <li>Investing a single amount of cash one time has a lower rate of margin beating regular investing than investing many regular salary payments.</li>
 </ol>
 
-If we take the same settings in the results table immediately above but instead don't rebalance monthly, the probability of margin outperforming regular investing rises<span style="color:orange">CHECK THIS MANUALLY</span> to <REPLACE>uitbfdontreb_percent_margin_better</REPLACE>%, and if we also let the investor earn paychecks every month rather than only in the first month, the probability of margin outperforming regular investing rises further<span style="color:orange">CHECK THIS MANUALLY</span> to <REPLACE>uitbdontreb_percent_margin_better</REPLACE>%. This last value is closest<span style="color:orange">CHECK THIS MANUALLY</span> to a quick-and-dirty theoretical calculation of what we'd expect the probability to be of margin investing outperforming regular, as discussed in the next paragraph.
-
+If we take the same settings in the results table immediately above but instead don't rebalance monthly, the probability of margin outperforming regular investing rises<span style="color:orange">CHECK THIS MANUALLY</span> to <REPLACE>uitbfdontreb_percent_margin_better</REPLACE>%, and if we also let the investor earn paychecks every month rather than only in the first month, the probability of margin outperforming regular investing rises further<span style="color:orange">CHECK THIS MANUALLY</span> to <REPLACE>uitbdontreb_percent_margin_better</REPLACE>%.
+<!--
 "<a href="http://www.mathisen.ca/leveraging/leveraging.pdf">Understanding Investment Leverage</a>" notes that margin performs better when the average stock/ETF returns exceed a "break-even" threshold. Assuming that capital-gains taxes and tax deductions aren't especially relevant, the break-even threshold should roughly be the margin interest rate -- call it r. In other words, the probability that margin beats non-margin for a given dollar invested is roughly the probability that the t-year returns of investing in the market beat the t-year accumulation of interest at rate r. Let X<sub>t</sub> be the random variable representing the accumulated t-year market return, and let Z be a standard-normal random variable. Then
 <blockquote>
 Prob[&nbsp;margin beats regular&nbsp;] &asymp; Prob[&nbsp;investments exceed break-even threshold&nbsp;] = Prob[&nbsp;exp(X<sub>t</sub>) > exp(rt)&nbsp;] = Prob[&nbsp;X<sub>t</sub> > rt&nbsp;] = Prob[&nbsp;&mu;t + Z&sigma;&radic;<span style="text-decoration: overline">t</span> > rt&nbsp;] = Prob[&nbsp;Z&sigma;&radic;<span style="text-decoration: overline">t</span> > (r-&mu;)t&nbsp;] = Prob[&nbsp;Z > ( (r-&mu;)/&sigma; ) &radic;<span style="text-decoration: overline">t</span>&nbsp;] = 1 - Prob[&nbsp;Z &le; ( (r-&mu;)/&sigma; ) &radic;<span style="text-decoration: overline">t</span>&nbsp;&nbsp;] = 1 - Prob[&nbsp;Z &le; ( (<REPLACE>annual_margin_interest_rate</REPLACE>-<REPLACE>annual_mu</REPLACE>)/<REPLACE>annual_sigma</REPLACE> ) &radic;<span style="text-decoration: overline"><REPLACE>years_until_donate</REPLACE></span>&nbsp;&nbsp;] = 1 - Prob[&nbsp;Z &le; <REPLACE>Z_value_threshold</REPLACE>&nbsp;] <a href="https://surfstat.anu.edu.au/surfstat-home/tables/normal.php" title="&quot;SurfStat standard normal calculator&quot;">= 1 - <REPLACE>prob_Z_leq_threshold</REPLACE></a> = <REPLACE>prob_Z_gt_threshold</REPLACE>.
 </blockquote>
+-->
 
 <h3>How the simulation works</h3>
 
@@ -555,16 +641,16 @@ The equation c<sup>*</sup> = (&mu;-r) / [&sigma;<sup>2</sup>(1-&alpha;)] works n
 
 "<a href="https://www.questia.com/library/journal/1P3-977793091/wealth-and-risk-from-leveraged-stock-portfolios">Wealth and Risk from Leveraged Stock Portfolios</a>" (2002) found optimal leverage of 1.7X assuming borrowing at 2% above Treasury bills. The authors note: "A modest amount of leverage enhances the performance of stock portfolios in the long run. However, higher amounts of leverage produce dramatic declines in long-run wealth."
 
-"<a href="http://www.fsa.ulaval.ca/nfa2003/papiers/Craig%20Wilson.pdf">Leveraged Stock Portfolios over Long Holding Periods: A Continuous Time Model</a>" (2003) found optimal leverage of 2.41X based on historical parameters.
-
 <h3>My results</h3>
 
-<h4>Case 1: Only one pay period</h4>
+<h4>Case 1: Simplifying parameters in an attempt to match theory</h4>
 
-Since the theoretical results discussed above focused on the case of investing with a single lump sum at the beginning, I tried a version of my simulation where the investor only earns one initial monthly paycheck on day 0. In order to get closer to the theoretical set-up discussed above, I also made these changes relative to the default:
+Before getting simulation results for realistic parameter settings, I wanted to see how close I could get to the theoretical optimal-leverage results discussed above. Thus, I made many simplifying assumptions relative to the default configuration:
 <ol>
+<li>no unemployment, inflation, taxes, or black swans</li>
+<li>invest a single lump sum at the beginning (the investor only earns one initial monthly paycheck on day 0)</li>
 <li>the investor doesn't ramp down leverage toward the end of the investing period</li>
-<li>the investor's voluntary leverage amount exactly equals the broker max rather than being set comfortably below the broker max.</li>
+<li>the investor's voluntary leverage amount exactly equals the broker max rather than being set comfortably below the broker max, so that the investor maintains constant leverage.</li>
 </ol>
 While in the theoretical equations, the investor rebalances continuously, here the investor still rebalances only monthly (or daily when the broker liquidates securities to pay excessive margin).
 
@@ -574,13 +660,19 @@ if f = A/B then &sigma;<sub>f</sub> is roughly |f| &radic;[ (&sigma;<sub>A</sub>
 </blockquote>
 For simplicity, I omitted the correlation component of the equation (the -2&sigma;<sub>AB</sub>/AB part), which only makes my error bars conservatively big given that the sample-mean margin investment performance has a high correlation with the sample-mean regular investment performance, since the sample means for both quantities will be too high when particularly good stock returns are sampled and too low when particularly bad returns are sampled.
 
-Unfortunately, it looks like the error bars in this graph are actually too small. This is because the averages for some leverage amounts clearly deviate from the trend of the curve, and their error bars don't even overlap with the error bars of neighboring points on the curve. But the curve should be continuous in theory. Hence, the error bars must be too small.)) shows how well leverage does compared with non-leveraged investing as a function of the leverage amount:
+Unfortunately, it looks like the error bars in this graph are actually too small. This is because the averages for some leverage amounts clearly deviate from the trend of the curve, and their error bars don't even overlap with the error bars of neighboring points on the curve. But the curve should be continuous in theory. Hence, the error bars must be too small.)) shows how well leverage does compared with non-leveraged investing as a function of the leverage amount. As in the tables above, I took utility(wealth) = &radic;<span style="text-decoration: overline">wealth</span>. Each data point came from <REPLACE>num_trials</REPLACE><span style="color:orange">This often gets messed up</span> trials.
 
 <span class="fullwidthimage"><img src="<REPLACE>closetotheory_optimal_leverage_graph</REPLACE>" title="I release this image into the public domain worldwide." /></span>
 
-As in the tables above, I took utility(wealth) = &radic;<span style="text-decoration: overline">wealth</span>. Each data point came from <REPLACE>num_trials</REPLACE><span style="color:orange">This often gets messed up</span> trials.
+<span style="color:red">HOW DOES optimum COMPARE TO THEORY? optimal lev should be ~1 for sqrt() utility or max val for linear utility</span>
 
-<h4>Case 2: Many pay periods (default configuration)</h3>
+The sharp drop in the median with higher leverage underscores why commentators typically warn against constant-leverage investments like leveraged ETFs: Most of the time, the result is terrible, and it's only on rare occasions that you hit the jackpot.
+
+How would the results change if, instead of investing a single lump sum at the beginning, the investor earned a monthly salary? As the <i>Lifecycle Investing</i> authors note, a regular salary is like a bond, so in some sense, investing salary each month should be less leveraged when the investor's whole lifetime assets. If the investor incurs huge losses early on, they can be compensated by later earnings. Following is the same graph as before except that the investor now earns a salary each month.
+
+<span class="fullwidthimage"><img src="<REPLACE>closetotheoryregularsalary_optimal_leverage_graph</REPLACE>" title="I release this image into the public domain worldwide." /></span>
+
+<h4>Case 2: Default (realistic) parameter values</h3>
 
 The theoretical equations above assume investing a single lump sum. But for real-world investors, buying securities every month using a salary income stream is generally more realistic.
 
@@ -644,6 +736,12 @@ We can see from the results table for this method that it's more certain to outp
 
 look at graphs...
 
+
+<h2>But isn't monthly rebalancing bad?</h2>
+
+<span style="color:purple">when started out I thought so, but results showed otherwise. But now I'm not sure my results are correct b/c of SDE problem
+
+the SDE question is ruining all my results! this is why my optimal leverage is so high and why I can't get bad results for leveraged etfs</span>
 
 <h2>Parameter sensitivity analysis</h2>
 

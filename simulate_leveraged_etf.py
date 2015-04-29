@@ -5,8 +5,6 @@ from InvestmentComparison import InvestmentComparison
 
 # TODO: ADD TAXES to leveraged fund
 
-USE_CONTINUOUS_COMPOUNDING = True # There's less deviation from theory without continuous compounding....
-
 # ~252 trading days per year: http://en.wikipedia.org/wiki/Trading_day
 def one_run(params):
     """Run through one random simulated trajectory of the regular ETF and its leveraged counterpart"""
@@ -27,12 +25,13 @@ def one_run(params):
         then daily_sigma = yearly_sigma * sqrt(delta_t)"""
         daily_returns_so_far = numpy.append(daily_returns_so_far, daily_return)
 
-        if USE_CONTINUOUS_COMPOUNDING:
-            regular_price *= math.exp(daily_return)
-            leveraged_price *= math.exp(params.leverage_ratio*daily_return - ((params.leverage_ratio-1) * params.annual_leverage_interest_rate + params.annual_leverage_expense_ratio) * delta_t)
-        else:
-            regular_price *= (1+daily_return)
-            leveraged_price *= (1+params.leverage_ratio*daily_return - ((params.leverage_ratio-1) * params.annual_leverage_interest_rate + params.annual_leverage_expense_ratio) * delta_t) # see equation (1) in section 2.1 of "Path-dependence of Leveraged ETF returns", http://www.math.nyu.edu/faculty/avellane/LeveragedETF20090515.pdf
+        regular_price = update_price_without_going_below_zero(regular_price,daily_return)
+        leveraged_price = update_price_without_going_below_zero(leveraged_price, \
+            params.leverage_ratio*daily_return - \
+            ((params.leverage_ratio-1) * params.annual_leverage_interest_rate + \
+            params.annual_leverage_expense_ratio) * delta_t) 
+        """For the above line, see equation (1) in section 2.1 of "Path-dependence of Leveraged ETF returns", 
+        http://www.math.nyu.edu/faculty/avellane/LeveragedETF20090515.pdf"""
 
         # Check prices against theoretical formula to make sure simulation is on track
         theoretical_value = formula_for_L_over_S_to_the_beta(params, numpy.var(daily_returns_so_far)*total_days)
@@ -40,6 +39,12 @@ def one_run(params):
         frac_diff = abs_fractional_difference(theoretical_value, actual_value)
         assert frac_diff < .35, "Simulated value doesn't match theoretical value; fractional difference is " + str(frac_diff)
     return (regular_price,leveraged_price,numpy.var(daily_returns_so_far)*total_days)
+
+def update_price_without_going_below_zero(prev_price, daily_return):
+    """A stock can't be worth less than $0, so impose 0 as a lower limit as we update
+    its price with today's return."""
+    new_price = prev_price * (1+daily_return)
+    return 0 if new_price < 0 else new_price
 
 def formula_for_L_over_S_to_the_beta(params, realized_variance):
     """This formula comes from my write-up document. It's easily derived from equation (4) 
@@ -51,8 +56,11 @@ def formula_for_alpha(params,S_T,final_realized_variance):
     """alpha is defined in my write-up at 
     http://reducing-suffering.org/do-leveraged-etfs-have-higher-long-run-returns/
     and this formula comes from there. alpha is (L_t/L_0)/(S_T/S_0)"""
+    USE_CONTINUOUS_COMPOUNDING = True
     if USE_CONTINUOUS_COMPOUNDING:
         mu = math.log(S_T/params.initial_value)/params.years_held # math.log is natural log
+        """It's ok/good to use continuous compounding because mu is compounded daily, which is
+        close enough to continuously."""
     else:
         mu = (S_T/params.initial_value)**(1.0/params.years_held) - 1
     return (math.exp( (params.leverage_ratio-1)*mu + .5 * (params.leverage_ratio - params.leverage_ratio**2)*final_realized_variance/params.years_held + (1-params.leverage_ratio)*params.annual_leverage_interest_rate - params.annual_leverage_expense_ratio ))**params.years_held
@@ -89,7 +97,7 @@ def run_trials(params,num_trials=1000,allowable_deviation_from_theory=.05,debug=
     
     # Print results
     print ""
-    print str(int(round(100 * num_prices_omitted/num_trials,0))) + "% of simulated values omitted due to deviating more than " + str(int(round(allowable_deviation_from_theory * 100,0))) + "% from theory."
+    print str(round(100 * num_prices_omitted/num_trials,2)) + "% of simulated values omitted due to deviating more than " + str(round(allowable_deviation_from_theory * 100,2)) + "% from theory."
     print "Mean regular = " + str(int(round(mean(regular_prices),0))) + "\tMean leveraged = " + str(int(round(mean(leveraged_prices),0)))
     print "0th percentile regular = " + str(int(round(percentile(regular_prices, 0),0))) + "\t0th percentile leveraged = " + str(int(round(percentile(leveraged_prices, 0),0)))
     print "25th percentile regular = " + str(int(round(percentile(regular_prices, .25),0))) + "\t25th percentile leveraged = " + str(int(round(percentile(leveraged_prices, .25),0)))
@@ -115,7 +123,7 @@ def percentile(list, percentile_as_fraction):
 
 if __name__ == "__main__":
     params = InvestmentComparison(years_held=1,trading_days_per_year=252,
-                                  annual_mu=.054,annual_sigma=.22,leverage_ratio=2,
-                                  initial_value=100,annual_leverage_interest_rate=.0137,
-                                  annual_leverage_expense_ratio=.0089)
-    run_trials(params,num_trials=1000,allowable_deviation_from_theory=.05,debug=False)
+                                  annual_mu=.054,annual_sigma=.22,leverage_ratio=2.0,
+                                  initial_value=1000.0,annual_leverage_interest_rate=.03,
+                                  annual_leverage_expense_ratio=.009)
+    run_trials(params,num_trials=1000,allowable_deviation_from_theory=.01,debug=False)

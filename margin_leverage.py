@@ -14,6 +14,27 @@ from os import path
 from multiprocessing import Process, Queue
 import time
 
+SCENARIOS = {"Default":"default",
+             "No unemployment or inflation or taxes or black swans, only paid in first month, voluntary max leverage equals broker max leverage":"uitbfv",
+             "No unemployment or inflation or taxes or black swans, only paid in first month, don't rebalance monthly":"uitbfdontreb",
+             "No unemployment or inflation or taxes or black swans, don't rebalance monthly":"uitbdontreb",
+             "No unemployment or inflation or taxes or black swans, only paid in first month, don't taper off leverage toward end, voluntary max leverage equals broker max leverage":"closetotheory",
+             "No unemployment or inflation or taxes or black swans, don't taper off leverage toward end, voluntary max leverage equals broker max leverage":"closetotheoryregularsalary",
+             "Don't rebalance monthly":"dontreb",
+             "Favored tax ordering when liquidate":"FO",
+             "Use VIX data":"VIX",
+             "Pay down principal throughout investment period":"princthru",
+             "Annual sigma = .4":"sig4",
+             "Annual sigma = 0":"sig0",
+             "Annual mu = .07":"mu07",
+             "Annual mu = .04":"mu04",
+             "Annual mu = -.02":"mu02minus",
+             "Annual margin interest rate = .015":"int_r015",
+             "Donate after 5 years":"yrs5",
+             "Donate after 30 years":"yrs30",
+             "Don't taper off leverage toward end":"donttaper",
+             "Don't rebalance monthly and don't taper off leverage toward end":"dontrebtaper"}
+
 DAYS_PER_YEAR = 365
 SATURDAY = 6
 SUNDAY = 0
@@ -281,19 +302,20 @@ def args_for_this_scenario(scenario_name, num_trials, outdir_name):
     # Get default values
     default_investor = Investor.Investor()
     default_market = Market.Market()
-    prefix = scenario_to_folder_abbreviation(scenario_name)
+    prefix = SCENARIOS[scenario_name]
     outpath = path.join(outdir_name, prefix)
 
     if scenario_name == "Default":
         return (default_investor,default_market,num_trials,outpath)
-    elif scenario_name == "No unemployment or inflation or taxes or black swans, only paid in first month":
+    elif scenario_name == "No unemployment or inflation or taxes or black swans, only paid in first month, voluntary max leverage equals broker max leverage":
         tax_rates = TaxRates.TaxRates(short_term_cap_gains_rate=0,
                                       long_term_cap_gains_rate=0,
                                       state_income_tax=0)
         investor = Investor.Investor(monthly_probability_of_layoff=0,
                                      tax_rates=tax_rates,
                                      do_tax_loss_harvesting=False,
-                                     only_paid_in_first_month_of_sim=True)
+                                     only_paid_in_first_month_of_sim=True,
+                                     initial_personal_max_margin_to_assets_relative_to_broker_max=1.0)
         market = Market.Market(inflation_rate=0,medium_black_swan_prob=0,
                                large_black_swan_prob=0)
         return (investor,market,num_trials,outpath)
@@ -320,11 +342,31 @@ def args_for_this_scenario(scenario_name, num_trials, outdir_name):
         market = Market.Market(inflation_rate=0,medium_black_swan_prob=0,
                                large_black_swan_prob=0)
         return (investor,market,num_trials,outpath)
-    elif scenario_name == "Only paid in first month, don't taper off leverage toward end, voluntary max leverage equals broker max leverage":
-        investor = Investor.Investor(only_paid_in_first_month_of_sim=True,
+    elif scenario_name == "No unemployment or inflation or taxes or black swans, only paid in first month, don't taper off leverage toward end, voluntary max leverage equals broker max leverage":
+        tax_rates = TaxRates.TaxRates(short_term_cap_gains_rate=0,
+                                      long_term_cap_gains_rate=0,
+                                      state_income_tax=0)
+        investor = Investor.Investor(monthly_probability_of_layoff=0,
+                                     tax_rates=tax_rates,
+                                     do_tax_loss_harvesting=False,
+                                     only_paid_in_first_month_of_sim=True,
                                      taper_off_leverage_toward_end=False,
                                      initial_personal_max_margin_to_assets_relative_to_broker_max=1.0)
-        return (investor,default_market,num_trials,outpath)
+        market = Market.Market(inflation_rate=0,medium_black_swan_prob=0,
+                               large_black_swan_prob=0)
+        return (investor,market,num_trials,outpath)
+    elif scenario_name == "No unemployment or inflation or taxes or black swans, don't taper off leverage toward end, voluntary max leverage equals broker max leverage":
+        tax_rates = TaxRates.TaxRates(short_term_cap_gains_rate=0,
+                                      long_term_cap_gains_rate=0,
+                                      state_income_tax=0)
+        investor = Investor.Investor(monthly_probability_of_layoff=0,
+                                     tax_rates=tax_rates,
+                                     do_tax_loss_harvesting=False,
+                                     taper_off_leverage_toward_end=False,
+                                     initial_personal_max_margin_to_assets_relative_to_broker_max=1.0)
+        market = Market.Market(inflation_rate=0,medium_black_swan_prob=0,
+                               large_black_swan_prob=0)
+        return (investor,market,num_trials,outpath)
     elif scenario_name == "Don't rebalance monthly":
         investor = Investor.Investor(rebalance_monthly_to_increase_leverage=False)
         return (investor,default_market,num_trials,outpath)
@@ -373,75 +415,12 @@ def args_for_this_scenario(scenario_name, num_trials, outdir_name):
     else:
         raise Exception(scenario_name + " is not a known scenario type.")
 
-def scenario_to_folder_abbreviation(scenario_name):
-    """Return the abbreviation of a scenario's name for use in naming output files."""
-    if scenario_name == "Default":
-        return "default"
-    elif scenario_name == "No unemployment or inflation or taxes or black swans, only paid in first month":
-        return "uitbf"
-    elif scenario_name == "No unemployment or inflation or taxes or black swans, only paid in first month, don't rebalance monthly":
-        return "uitbfdontreb"
-    elif scenario_name == "No unemployment or inflation or taxes or black swans, don't rebalance monthly":
-        return "uitbdontreb"
-    elif scenario_name == "Only paid in first month, don't taper off leverage toward end, voluntary max leverage equals broker max leverage":
-        return "closetotheory"
-    elif scenario_name == "Don't rebalance monthly":
-        return "dontreb"
-    elif scenario_name == "Favored tax ordering when liquidate":
-        return "FO"
-    elif scenario_name == "Use VIX data":
-        return "VIX"
-    elif scenario_name == "Pay down principal throughout investment period":
-        return "princthru"
-    elif scenario_name == "Annual sigma = .4":
-        return "sig4"
-    elif scenario_name == "Annual sigma = 0":
-        return "sig0"
-    elif scenario_name == "Annual mu = .07":
-        return "mu07"
-    elif scenario_name == "Annual mu = .04":
-        return "mu04"
-    elif scenario_name == "Annual mu = -.02":
-        return "mu02minus"
-    elif scenario_name == "Annual margin interest rate = .015":
-        return "int_r015"
-    elif scenario_name == "Donate after 5 years":
-        return "yrs5"
-    elif scenario_name == "Donate after 30 years":
-        return "yrs30"
-    elif scenario_name == "Don't taper off leverage toward end":
-        return "donttaper"
-    elif scenario_name == "Don't rebalance monthly and don't taper off leverage toward end":
-        return "dontrebtaper"
-    else:
-        raise Exception(scenario_name + " is not a known scenario type.")
-
-def get_all_scenarios_list():
-    """Return all the scenarios (http://knowyourmeme.com/memes/x-all-the-y)"""
-    return ["No unemployment or inflation or taxes or black swans, only paid in first month",
-            "No unemployment or inflation or taxes or black swans, only paid in first month, don't rebalance monthly",
-            "No unemployment or inflation or taxes or black swans, don't rebalance monthly",
-            "Default",
-            "Only paid in first month, don't taper off leverage toward end, voluntary max leverage equals broker max leverage",
-            "Don't taper off leverage toward end", 
-            "Favored tax ordering when liquidate", 
-            "Annual sigma = 0",
-            "Don't rebalance monthly", 
-            "Use VIX data", 
-            "Pay down principal throughout investment period", 
-            "Annual sigma = .4", 
-            "Annual mu = .07",
-            "Annual mu = .04",
-            "Annual mu = -.02", 
-            "Annual margin interest rate = .015", 
-            "Donate after 5 years", "Donate after 30 years",
-            "Don't rebalance monthly and don't taper off leverage toward end"]
-
 def sweep_scenarios(approx_num_simultaneous_processes, num_trials):
+    """Sweep all the scenarios! (http://knowyourmeme.com/memes/x-all-the-y)"""
     outdir_name = util.create_timestamped_dir("swp") # concise way of writing "sweep scenarios"
 
     # Scenarios
-    scenarios_to_run = get_all_scenarios_list()
+    scenarios_to_run = SCENARIOS.keys()
 
     # Run scenarios
     processes = []
@@ -473,7 +452,7 @@ def enough_processes_running(process_num, approx_num_simultaneous_processes):
 
 def dir_prefix_for_optimal_leverage_specific_scenario(scenario_name):
     # sclev is short for "scenario-specific optimal leverage graph"
-    return "sclev_{}".format(scenario_to_folder_abbreviation(scenario_name))
+    return "sclev_{}".format(SCENARIOS[scenario_name])
 
 def file_prefix_for_optimal_leverage_specific_scenario(max_margin_to_assets):
     max_margin_to_assets_without_decimal = int(round(max_margin_to_assets * 100,0))
@@ -530,7 +509,7 @@ def optimal_leverage_for_all_scenarios(num_trials, use_timestamped_dirs, cur_wor
                                        approx_num_simultaneous_processes):
     """Get graphs of optimal leverage over all scenarios. This may take days/weeks to 
     finish running!"""
-    for scenario_name in get_all_scenarios_list():
+    for scenario_name in SCENARIOS.keys():
         if scenario_name in ["No unemployment or inflation or taxes or black swans, only paid in first month",
                              "No unemployment or inflation or taxes or black swans, only paid in first month, don't rebalance monthly",
                              "No unemployment or inflation or taxes or black swans, don't rebalance monthly"]:
@@ -562,4 +541,4 @@ def run_one_variant(num_trials):
 
 if __name__ == "__main__":
     #sweep_scenarios(1,1)
-    run_one_variant(100)
+    run_one_variant(10)

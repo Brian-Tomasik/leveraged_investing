@@ -16,8 +16,18 @@ class EtfLot(object):
         return self.__current_price
 
     def update_price(self, rate_of_return):
-        #self.__current_price *= (1+rate_of_return)
+        """Let R dt be the rate of return for this small time step. dS = S R dt. 
+        Then to update S, we set S = S + dS = S + S R dt = S (1 + R dt),
+        i.e., S *= (1+rate_of_return)"""
+        self.__current_price *= (1+rate_of_return)
+        """
+        THIS IS WRONG AND CAUSED A BIG BUG WHEN I USED IT:
         self.__current_price *= math.exp(rate_of_return) # this is the technically correct way to update returns in a lognormal model, c.f.: http://www.columbia.edu/~ks20/FE-Notes/4700-07-Notes-GBM.pdf
+        """
+        if self.__current_price < 0:
+            self.__current_price = 0
+            return True
+        return False
 
     def __capital_gain(self):
         return self.__current_price - self.__purchase_price

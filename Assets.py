@@ -18,8 +18,12 @@ class Assets(object):
         return total
 
     def update_prices(self, rate_of_return):
+        lots_to_delete_because_lost_all_value = []
         for lot in self.__lots_list:
-            lot.update_price(rate_of_return)
+            if lot.update_price(rate_of_return):
+                lots_to_delete_because_lost_all_value.append(lot)
+        for lot_to_delete in lots_to_delete_because_lost_all_value:
+            self.__lots_list.remove(lot_to_delete)
 
     def __get_sorted_tax_rates_and_lots(self, day, taxes):
         """Sort lots by most-tax-advantaged-to-sell first"""
