@@ -1,7 +1,31 @@
-from datetime import datetime
+from datetime import datetime, date, timedelta
 import os
 import numpy
 import math
+
+SATURDAY = 5
+SUNDAY = 6
+DAYS_PER_WEEK = 7
+
+# pretend it's 2015 for date calculations
+"""NYSE holidays: https://www.nyse.com/markets/hours-calendars"""
+TRADING_HOLIDAYS = [date(2015,1,1), date(2015,1,19), date(2015,2,16),
+                    date(2015,4,3), date(2015,5,25), date(2015,7,3),
+                    date(2015,9,7), date(2015,11,26), date(2015,12,25)]
+NEW_YEARS_DAY = date(2015,1,1)
+
+def day_is_weekend(day_number_in_the_year):
+    date = NEW_YEARS_DAY + timedelta(days=day_number_in_the_year)
+    return date.weekday() in [SATURDAY, SUNDAY]
+
+def day_is_holiday(day_number_in_the_year):
+    for holiday in TRADING_HOLIDAYS:
+        if (holiday - NEW_YEARS_DAY).days == day_number_in_the_year:
+            return True
+    return False
+
+def utility(wealth, alpha):
+    return wealth**alpha
 
 def format_as_dollar_string(float_or_int_amount):
     return "${:,}".format(int(round(float_or_int_amount,0)))

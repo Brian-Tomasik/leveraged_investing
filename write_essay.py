@@ -14,6 +14,8 @@ from scipy.stats import norm
 #from scipy.optimize import fsolve # don't need this anymore
 import numpy
 import time
+import leveraged_etf_returns
+import write_results
 
 """This file writes the full text of my essay about leveraged 
 investing. It dynamically computes the results presented. The reason
@@ -26,6 +28,10 @@ if just opened in the browser."""
 REPLACE_STR_FRONT = "<REPLACE>"
 REPLACE_STR_END = "</REPLACE>"
 TIMESTAMP_FORMAT = '%Y%b%d_%Hh%Mm%Ss'
+OPTIMISTIC_MU = .08
+LEV_ETF_LEVERAGE_RATIO = 2.0
+LEV_ETF_NUM_SAMPLES = 10000
+FUNDS_AND_EXPENSE_RATIOS = {"regular":.001, "lev":.01}
 
 def write_essay(skeleton, outfile, cur_working_dir, num_trials, 
                 use_local_image_file_paths, approx_num_simultaneous_processes,
@@ -37,13 +43,40 @@ def write_essay(skeleton, outfile, cur_working_dir, num_trials,
     output_text = skeleton.read()
 
     # Compute the results if they don't already exist.
+    default_investor = Investor.Investor()
+    starting_balance_for_leveraged_ETF_sim = default_investor.initial_annual_income_for_investing/12
     if not data_already_exists:
+        # run leveraged-ETF sim
+        leveraged_etf_returns.sweep_variations(FUNDS_AND_EXPENSE_RATIOS, default_investor.years_until_donate, 
+                                               LEV_ETF_LEVERAGE_RATIO, LEV_ETF_NUM_SAMPLES, 
+                                               starting_balance_for_leveraged_ETF_sim, cur_working_dir)
+        # run margin sim
         margin_leverage.optimal_leverage_for_all_scenarios(num_trials, False, cur_working_dir, 
                                                            approx_num_simultaneous_processes=approx_num_simultaneous_processes)
 
-    """Read and parse the results."""
+    """Read and parse the results for leveraged ETFs."""
+    output_text = output_text.replace(REPLACE_STR_FRONT + "starting_balance_for_leveraged_ETF_sim" + REPLACE_STR_END, 
+                                      str(starting_balance_for_leveraged_ETF_sim))
+    output_text = output_text.replace(REPLACE_STR_FRONT + "LEV_ETF_LEVERAGE_RATIO" + REPLACE_STR_END, 
+                                      str(LEV_ETF_LEVERAGE_RATIO))
+    for (key, val) in FUNDS_AND_EXPENSE_RATIOS.iteritems():
+        output_text = output_text.replace(REPLACE_STR_FRONT + "%s_ETF_expense_ratio" % key + REPLACE_STR_END, str(val))
+    for scenario in leveraged_etf_returns.LEV_ETF_SCENARIOS.keys():
+        abbrev = leveraged_etf_returns.LEV_ETF_SCENARIOS[scenario]
+        folder = os.path.join(cur_working_dir,abbrev)
+        results_table_file = write_results.results_table_file_name(os.path.join(folder,""))
+        with open(results_table_file, "r") as results_table:
+            results_table_contents = results_table.read()
+            output_text = output_text.replace(REPLACE_STR_FRONT + \
+                "{}_results_table".format(abbrev) + REPLACE_STR_END, results_table_contents)
+        if scenario == "Match theory":
+            output_text = leveraged_ETF_compare_against_theory(output_text,results_table_contents,
+                                                               starting_balance_for_leveraged_ETF_sim)
+        output_text = add_figures("exp_util", output_text, os.path.join(folder,"_exp_util.png"), 
+                cur_working_dir, use_local_image_file_paths, abbrev, timestamp)
+
+    """Read and parse the results for margin."""
     # Get prefix for the default results files.
-    default_investor = Investor.Investor()
     default_broker_max_margin_to_assets_ratio = default_investor.broker_max_margin_to_assets_ratio
     file_prefix_for_default_MTA = margin_leverage.file_prefix_for_optimal_leverage_specific_scenario(default_broker_max_margin_to_assets_ratio)
 
@@ -56,11 +89,11 @@ def write_essay(skeleton, outfile, cur_working_dir, num_trials,
         # Navigate to the right folder and paths
         folder_for_this_scenario = margin_leverage.dir_prefix_for_optimal_leverage_specific_scenario(scenario)
         path_to_folder_for_this_scenario = os.path.join(cur_working_dir,folder_for_this_scenario)
-        optimal_leverage_graph = os.path.join(path_to_folder_for_this_scenario,plots.optimal_leverage_graph_prefix() + ".png")
+        optimal_leverage_graph = os.path.join(path_to_folder_for_this_scenario,plots.OPTIMAL_LEVERAGE_GRAPH_PREFIX + ".png")
         prefix_for_default_results_files = os.path.join(path_to_folder_for_this_scenario,file_prefix_for_default_MTA)
 
         # Read results table
-        results_table_file = margin_leverage.results_table_file_name(prefix_for_default_results_files)
+        results_table_file = write_results.results_table_file_name(prefix_for_default_results_files)
         results_table_contents = None
         with open(results_table_file, "r") as results_table:
             results_table_contents = results_table.read()
@@ -71,7 +104,7 @@ def write_essay(skeleton, outfile, cur_working_dir, num_trials,
         output_text = add_figures("optimal_leverage_graph", output_text, optimal_leverage_graph, 
                                   cur_working_dir, use_local_image_file_paths, abbrev, timestamp)
         # Now add other figures, for the default margin-to-assets amount
-        for graph_type in ["hist_margin", "wealthtraj", "avgMTA", "indMTA", "carrcg"]:
+        for graph_type in ["hist_margin", "wealthtraj", "avgMTA", "indMTA", "carrcg", plots.EXPECTED_UTILITY_GRAPH_PREFIX]:
             path_to_current_figure = "{}_{}.png".format(prefix_for_default_results_files, 
                                                         graph_type)
             output_text = add_figures(graph_type, output_text, path_to_current_figure, 
@@ -79,23 +112,37 @@ def write_essay(skeleton, outfile, cur_working_dir, num_trials,
 
         """Now scenario-specific content: Default scenario"""
         if scenario == "Default":
-            (amount_better_mean, percent_better_mean) = how_much_better_is_margin_in_thousands_of_dollars(results_table_contents, "Mean &plusmn; stderr")
-            output_text = output_text.replace(REPLACE_STR_FRONT + "margin_better_than_regular_thousands_of_dollars" + REPLACE_STR_END, 
+            (amount_better_mean, percent_better_mean) = how_much_better_is_margin(results_table_contents, "Mean &plusmn; stderr")
+            output_text = output_text.replace(REPLACE_STR_FRONT + "margin_better_than_regular" + REPLACE_STR_END, 
                                               util.format_as_dollar_string(amount_better_mean))
+            output_text = output_text.replace(REPLACE_STR_FRONT + "margin_better_than_regular_per_year" + REPLACE_STR_END, 
+                                              util.format_as_dollar_string(amount_better_mean/default_investor.years_until_donate))
             output_text = output_text.replace(REPLACE_STR_FRONT + "margin_better_than_regular_percent" + REPLACE_STR_END, 
                                               str(percent_better_mean))
             output_text = output_text.replace(REPLACE_STR_FRONT + "(1+margin_advantage)(1-long_term_cap_gains)" + REPLACE_STR_END, 
                                               str(round(margin_advantage_less_long_term_cap_gains(percent_better_mean),2)))
-            (amount_better_median, percent_better_median) = how_much_better_is_margin_in_thousands_of_dollars(results_table_contents, "Median")
+            (amount_better_median, percent_better_median) = how_much_better_is_margin(results_table_contents, "Median")
             output_text = output_text.replace(REPLACE_STR_FRONT + "margin_better_than_regular_median_percent" + REPLACE_STR_END, str(percent_better_median))
-            (amount_better_EU, percent_better_EU) = how_much_better_is_margin_in_thousands_of_dollars(results_table_contents, 'E[&radic;<span style="text-decoration: overline">wealth</span>] &plusmn; stderr')
+            # calculations for better expected utility
+            (amount_better_EU, percent_better_EU) = how_much_better_is_margin(results_table_contents, 'E[&radic;<span style="text-decoration: overline">wealth</span>] &plusmn; stderr')
+            output_text = output_text.replace(REPLACE_STR_FRONT + "margin_better_than_regular_EU_percent" + REPLACE_STR_END, 
+                                              str(percent_better_EU))
+            equiv_percent_increase_in_savings = round(((1+percent_better_EU/100.0)**2-1)*100.0,2)
+            output_text = output_text.replace(REPLACE_STR_FRONT + "equiv_percent_increase_in_savings" + REPLACE_STR_END, 
+                                              str(equiv_percent_increase_in_savings))
+            equiv_fractional_increase_in_savings_plus_1 = round((1+percent_better_EU/100.0)**2,3)
+            output_text = output_text.replace(REPLACE_STR_FRONT + "equiv_fractional_increase_in_savings_plus_1" + REPLACE_STR_END, 
+                                              str(equiv_fractional_increase_in_savings_plus_1))
+            fractional_increase_in_EU_plus_1 = round((1+percent_better_EU/100.0),3)
+            output_text = output_text.replace(REPLACE_STR_FRONT + "fractional_increase_in_EU_plus_1" + REPLACE_STR_END, 
+                                              str(fractional_increase_in_EU_plus_1))
+            equiv_increase_in_savings = (equiv_percent_increase_in_savings/100.0) * default_investor.initial_annual_income_for_investing
+            output_text = output_text.replace(REPLACE_STR_FRONT + "equiv_increase_in_savings" + REPLACE_STR_END, 
+                                              util.format_as_dollar_string(equiv_increase_in_savings))
+
             output_text = output_text.replace(REPLACE_STR_FRONT + "margin_better_than_regular_EU_percent" + REPLACE_STR_END, str(percent_better_EU))
         elif scenario == "No unemployment or inflation or taxes or black swans, only paid in first month, voluntary max leverage equals broker max leverage":
             output_text = add_theoretical_calculations_for_no_unemployment_etc(output_text, results_table_contents)
-        elif scenario == "No unemployment or inflation or taxes or black swans, only paid in first month, don't rebalance monthly":
-            output_text = output_text.replace(REPLACE_STR_FRONT + "uitbfdontreb_percent_margin_better" + REPLACE_STR_END, parse_percent_times_margin_is_better(results_table_contents))
-        elif scenario == "No unemployment or inflation or taxes or black swans, don't rebalance monthly":
-            output_text = output_text.replace(REPLACE_STR_FRONT + "uitbdontreb_percent_margin_better" + REPLACE_STR_END, parse_percent_times_margin_is_better(results_table_contents))
 
     """Add default params and calculations using those params"""
     output_text = output_text.replace(REPLACE_STR_FRONT + "num_trials" + REPLACE_STR_END, str(num_trials))
@@ -109,6 +156,49 @@ def write_essay(skeleton, outfile, cur_working_dir, num_trials,
 
     # Done :) Write the final HTML
     outfile.write(output_text)
+
+def leveraged_ETF_compare_against_theory(output_text, results_table_contents,starting_balance_for_leveraged_ETF_sim):
+    default_investor = Investor.Investor()
+    default_market = Market.Market()
+
+    # Theoretical vs. actual median regular ETF
+    theoretical_median_regular_ETF = starting_balance_for_leveraged_ETF_sim * \
+        math.exp(-FUNDS_AND_EXPENSE_RATIOS["regular"] * \
+        default_investor.years_until_donate - \
+        default_market.annual_sigma**2 * default_investor.years_until_donate/2)
+    output_text = output_text.replace(REPLACE_STR_FRONT + "theoretical_median_regular_ETF" + REPLACE_STR_END, 
+                                      util.format_as_dollar_string(theoretical_median_regular_ETF))
+    actual_median_regular_ETF = parse_value_from_results_table(results_table_contents, "Regular","Median")
+    output_text = output_text.replace(REPLACE_STR_FRONT + "actual_median_regular_ETF" + REPLACE_STR_END, 
+                                      actual_median_regular_ETF)
+
+    # Theoretical vs. actual mean regular ETF
+    theoretical_mean_regular_ETF = starting_balance_for_leveraged_ETF_sim * \
+        math.exp(-FUNDS_AND_EXPENSE_RATIOS["regular"] * \
+        default_investor.years_until_donate)
+    output_text = output_text.replace(REPLACE_STR_FRONT + "theoretical_mean_regular_ETF" + REPLACE_STR_END, 
+                                      util.format_as_dollar_string(theoretical_mean_regular_ETF))
+    actual_mean_regular_ETF = parse_value_from_results_table(results_table_contents, "Regular","Mean &plusmn; stderr")
+    output_text = output_text.replace(REPLACE_STR_FRONT + "actual_mean_regular_ETF" + REPLACE_STR_END, 
+                                      actual_mean_regular_ETF)
+
+    # Theoretical vs. actual median lev ETF
+    theoretical_median_lev_ETF = starting_balance_for_leveraged_ETF_sim * math.exp( (default_market.annual_mu-default_market.annual_margin_interest_rate) * (LEV_ETF_LEVERAGE_RATIO-1.0) * default_investor.years_until_donate - FUNDS_AND_EXPENSE_RATIOS["lev"] * default_investor.years_until_donate - LEV_ETF_LEVERAGE_RATIO**2 * default_market.annual_sigma**2 * default_investor.years_until_donate/2.0)
+    output_text = output_text.replace(REPLACE_STR_FRONT + "theoretical_median_lev_ETF" + REPLACE_STR_END, 
+                                      util.format_as_dollar_string(theoretical_median_lev_ETF))
+    actual_median_lev_ETF = parse_value_from_results_table(results_table_contents, "Leveraged ETF","Median")
+    output_text = output_text.replace(REPLACE_STR_FRONT + "actual_median_lev_ETF" + REPLACE_STR_END, 
+                                      actual_median_lev_ETF)
+
+    # Theoretical vs. actual mean lev ETF
+    theoretical_mean_lev_ETF = starting_balance_for_leveraged_ETF_sim * math.exp( (default_market.annual_mu-default_market.annual_margin_interest_rate) * (LEV_ETF_LEVERAGE_RATIO-1.0) * default_investor.years_until_donate - FUNDS_AND_EXPENSE_RATIOS["lev"] * default_investor.years_until_donate)
+    output_text = output_text.replace(REPLACE_STR_FRONT + "theoretical_mean_lev_ETF" + REPLACE_STR_END, 
+                                      util.format_as_dollar_string(theoretical_mean_lev_ETF))
+    actual_mean_lev_ETF = parse_value_from_results_table(results_table_contents, "Leveraged ETF","Mean &plusmn; stderr")
+    output_text = output_text.replace(REPLACE_STR_FRONT + "actual_mean_lev_ETF" + REPLACE_STR_END, 
+                                      actual_mean_lev_ETF)
+
+    return output_text
 
 def margin_advantage_less_long_term_cap_gains(percent_better):
     default_tax_rates = TaxRates.TaxRates()
@@ -252,7 +342,9 @@ def add_general_theoretical_calculations(output_text, cur_working_dir, timestamp
 
     # curve of c* vs. alpha
     NUM_POINTS = 1000
-    alpha_values = numpy.linspace(0,.85,NUM_POINTS)
+    MIN_ALPHA = 0
+    MAX_ALPHA = .85
+    alpha_values = numpy.linspace(MIN_ALPHA,MAX_ALPHA,NUM_POINTS)
     c_star_values = map(c_star, alpha_values)
     fig_name = "c_star_vs_alpha_%s.png" % timestamp
     fig_name_including_path = os.path.join(cur_working_dir,fig_name)
@@ -262,6 +354,17 @@ def add_general_theoretical_calculations(output_text, cur_working_dir, timestamp
     output_text = output_text.replace(REPLACE_STR_FRONT + "c_star_vs_alpha_fig" + REPLACE_STR_END, 
                                       get_WordPress_img_url_path(timestamp, fig_name))
 
+
+    # curve of c* vs. alpha for more optimistic mu assumption
+    optimistic_c_star_values = map(lambda alpha: c_star(alpha,OPTIMISTIC_MU), alpha_values)
+    optimistic_fig_name = "optimistic_c_star_vs_alpha_%s.png" % timestamp
+    optimistic_fig_name_including_path = os.path.join(cur_working_dir,optimistic_fig_name)
+    plots.theoretical_optimal_leverage_based_on_risk_tolerance(optimistic_fig_name_including_path,
+                                                               alpha_values,optimistic_c_star_values)
+    output_text = output_text.replace(REPLACE_STR_FRONT + "optimistic_c_star_vs_alpha_fig" + REPLACE_STR_END, 
+                                      get_WordPress_img_url_path(timestamp, optimistic_fig_name))
+    output_text = output_text.replace(REPLACE_STR_FRONT + "optimistic_mu" + REPLACE_STR_END, 
+                                      str(OPTIMISTIC_MU))
     """
     NO LONGER USED
 
@@ -280,10 +383,14 @@ def add_general_theoretical_calculations(output_text, cur_working_dir, timestamp
 
     return output_text
 
-def c_star(alpha):
+def c_star(alpha, custom_mu=None):
     """c* is optimal leverage. alpha is as in utility(wealth) = wealth^alpha"""
-    default_market = Market.Market()
-    return (default_market.annual_mu - default_market.annual_margin_interest_rate) / ( default_market.annual_sigma**2 * (1-alpha) )
+    if custom_mu:
+        market = Market.Market(annual_mu=custom_mu)
+    else:
+        market = Market.Market()
+    return (market.annual_mu - market.annual_margin_interest_rate) / \
+        ( market.annual_sigma**2 * (1-alpha) )
 
 """
 DON'T NEED THIS ANYMORE
@@ -347,6 +454,39 @@ def add_theoretical_calculations_for_no_unemployment_etc(output_text, no_unemplo
     broker_imposed_leverage_limit = util.max_margin_to_assets_ratio_to_N_to_1_leverage(default_investor.broker_max_margin_to_assets_ratio)
     output_text = output_text.replace(REPLACE_STR_FRONT + "broker_imposed_leverage_limit" + REPLACE_STR_END, 
                                       str(round(broker_imposed_leverage_limit,1)))
+
+    # Theoretical vs. actual median for leveraged
+    leveraged_theoretical_median_PV_ignoring_complications = one_month_pay *\
+       math.exp( (default_market.annual_mu-default_market.annual_margin_interest_rate) * \
+       (broker_imposed_leverage_limit-1.0) * default_investor.years_until_donate - \
+       broker_imposed_leverage_limit**2 * default_market.annual_sigma**2 * \
+       default_investor.years_until_donate/2)
+    output_text = output_text.replace(REPLACE_STR_FRONT + "leveraged_theoretical_median_PV_ignoring_complications" + REPLACE_STR_END, 
+                                      util.format_as_dollar_string(leveraged_theoretical_median_PV_ignoring_complications))
+    leveraged_actual_median_string = parse_value_from_results_table(no_unemployment_etc_results_table_contents, "Margin","Median")
+    output_text = output_text.replace(REPLACE_STR_FRONT + "leveraged_actual_median_ignoring_complications" + REPLACE_STR_END, 
+                                      leveraged_actual_median_string)
+
+    # Theoretical vs. actual mean for leveraged
+    leveraged_theoretical_mean_PV_ignoring_complications = one_month_pay * \
+        math.exp( (default_market.annual_mu-default_market.annual_margin_interest_rate) * \
+       (broker_imposed_leverage_limit-1.0) * default_investor.years_until_donate )
+    output_text = output_text.replace(REPLACE_STR_FRONT + "leveraged_theoretical_mean_PV_ignoring_complications" + REPLACE_STR_END, 
+                                      util.format_as_dollar_string(leveraged_theoretical_mean_PV_ignoring_complications))
+    leveraged_actual_mean_string = parse_value_from_results_table(no_unemployment_etc_results_table_contents, "Margin","Mean &plusmn; stderr")
+    leveraged_actual_mean = get_mean_as_int_from_mean_plus_or_minus_stderr(leveraged_actual_mean_string)
+    output_text = output_text.replace(REPLACE_STR_FRONT + "leveraged_actual_mean_ignoring_complications" + REPLACE_STR_END, 
+                                      util.format_as_dollar_string(leveraged_actual_mean))
+
+    # sigma_{ln(wealth)} for leveraged
+    leveraged_theoretical_sigma_ln_wealth = broker_imposed_leverage_limit * \
+        default_market.annual_sigma * math.sqrt(default_investor.years_until_donate)
+    output_text = output_text.replace(REPLACE_STR_FRONT + "leveraged_theoretical_sigma_ln_wealth" + REPLACE_STR_END, 
+                                      str(round(leveraged_theoretical_sigma_ln_wealth,2)))
+    leveraged_actual_sigma_of_log_wealth = parse_value_from_results_table(no_unemployment_etc_results_table_contents, "Margin","&sigma;<sub>ln(wealth)</sub>")
+    output_text = output_text.replace(REPLACE_STR_FRONT + "leveraged_actual_sigma_of_log_wealth" + REPLACE_STR_END, 
+                                      leveraged_actual_sigma_of_log_wealth)
+
 
     # Z-value threshold
     Z_value_threshold = math.sqrt(default_investor.years_until_donate) * \
@@ -415,12 +555,12 @@ def parse_year_and_month_from_timestamp(timestamp):
     month = time.strftime('%m',parsed_time)
     return (year, month)
 
-def how_much_better_is_margin_in_thousands_of_dollars(results_table_contents, column_name):
+def how_much_better_is_margin(results_table_contents, column_name):
     margin_val = get_mean_as_int_from_mean_plus_or_minus_stderr(parse_value_from_results_table(results_table_contents, "Margin", column_name))
     regular_val = get_mean_as_int_from_mean_plus_or_minus_stderr(parse_value_from_results_table(results_table_contents, "Regular", column_name))
-    diff_in_thousands_of_dollars = int(round( (margin_val-regular_val)/1000 ,0))
-    percent_better = int(round( 100.0*(margin_val-regular_val)/regular_val ,0))
-    return (diff_in_thousands_of_dollars, percent_better)
+    diff = margin_val-regular_val
+    percent_better = round( 100.0*diff/regular_val ,1)
+    return (diff, percent_better)
 
 def get_mean_as_int_from_mean_plus_or_minus_stderr(input_string):
     """Convert something like '$37,343 &plusmn; $250' to 37343
@@ -459,13 +599,12 @@ def parse_percent_times_margin_is_better(results_table_contents):
 
 if __name__ == "__main__":
     DATA_ALREADY_EXISTS_AND_HAS_THIS_TIMESTAMP = None
-    #DATA_ALREADY_EXISTS_AND_HAS_THIS_TIMESTAMP = "2015Apr28_23h10m51s"
-    #DATA_ALREADY_EXISTS_AND_HAS_THIS_TIMESTAMP = "2015Apr28_13h27m05s" # sample size of 5 but has all variants as of 28 Apr 2015
+    #DATA_ALREADY_EXISTS_AND_HAS_THIS_TIMESTAMP = "2015Apr29_14h33m08s" # just for computations
     """if the above variable is non-None, it saves lots of computation and just computes the HTML 
     and copies the required figures from saved data"""
     data_already_exists = DATA_ALREADY_EXISTS_AND_HAS_THIS_TIMESTAMP is not None
 
-    LOCAL_FILE_PATHS_IN_HTML = False
+    LOCAL_FILE_PATHS_IN_HTML = True
 
     # Open essay skeleton.
     SKELETON = "essay_skeleton.html"
@@ -500,8 +639,8 @@ _the same as when you ran the results being pointed to_
 or else the params filled in to the output HTMl file will be wrong!
 ============
 """
+            #NUM_TRIALS = 50
             NUM_TRIALS = 50
-            #NUM_TRIALS = 1
             #APPROX_NUM_SIMULTANEOUS_PROCESSES = 1
             APPROX_NUM_SIMULTANEOUS_PROCESSES = 2
             write_essay(skeleton, outfile, cur_folder, NUM_TRIALS, LOCAL_FILE_PATHS_IN_HTML, 

@@ -2,6 +2,12 @@ import numpy
 import util
 import math
 
+def results_table_file_name(outfilepath):
+    return outfilepath + "_table.txt"
+
+def other_results_file_name(outfilepath):
+    return outfilepath + "_other.txt"
+
 def write_means(account_values, years_until_donation_date, outfile):
     regular_mean = util.mean(account_values["regular"])
     margin_mean = util.mean(account_values["margin"])
@@ -33,6 +39,10 @@ def write_winner_for_each_percentile(account_values, outfile):
             outfile.write( "{}% ".format(int(round( (100.0 * sorted_margin_list[index]) / sorted_regular_list[index], 0 ))) )
 
 def write_file_table(account_values, account_types, bankruptcy_fraction, outfile):
+    REGULAR_INDEX = 0
+    LEVERAGE_INDEX = 1
+    assert account_types[REGULAR_INDEX] == "regular", "Regular account has to go in the 0th index"
+    assert account_types[LEVERAGE_INDEX] in ["margin","lev"], "Margin / leveraged-ETF account has to go in the 1st index"
     outfile.write("<table>\n")
     outfile.write("""<tr><td><i>Type</i></td> <td><i>Mean &plusmn; stderr</i></td> <td><i>Median</i></td> <td><i>Min</i></td> <td><i>Max</i></td> <td><i>E[&radic;<span style="text-decoration: overline">wealth</span>] &plusmn; stderr</i></td> <td><i>&sigma;<sub>ln(wealth)</sub></i></td> </tr>\n""");
     for type in account_types:
@@ -50,7 +60,7 @@ def write_file_table(account_values, account_types, bankruptcy_fraction, outfile
     outfile.write("</table>")
     outfile.write("\nMargin is better than regular {}% of the time. Margin resulted in bankruptcy {}% of the time.".format(
         int(round(100 * util.probability_x_better_than_y(
-            account_values["margin"],account_values["regular"]),1)), 
+            account_values[account_types[LEVERAGE_INDEX]],account_values[account_types[REGULAR_INDEX]]),1)), 
         round(100 * bankruptcy_fraction,1)))
 
 def return_pretty_name_for_type(type):
@@ -60,5 +70,7 @@ def return_pretty_name_for_type(type):
         return "Margin"
     elif type == "matched401k":
         return "Regular + 50% match"
+    elif type == "lev":
+        return "Leveraged ETF"
     else:
         raise Exception("Given type not valid")

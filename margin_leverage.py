@@ -14,18 +14,24 @@ from os import path
 from multiprocessing import Process, Queue
 import time
 
-SCENARIOS = {"Default":"default",
-             "No unemployment or inflation or taxes or black swans, only paid in first month, voluntary max leverage equals broker max leverage":"uitbfv",
-             "No unemployment or inflation or taxes or black swans, only paid in first month, don't rebalance monthly":"uitbfdontreb",
-             "No unemployment or inflation or taxes or black swans, don't rebalance monthly":"uitbdontreb",
-             "No unemployment or inflation or taxes or black swans, only paid in first month, don't taper off leverage toward end, voluntary max leverage equals broker max leverage":"closetotheory",
-             "No unemployment or inflation or taxes or black swans, don't taper off leverage toward end, voluntary max leverage equals broker max leverage":"closetotheoryregularsalary",
+SCENARIOS = {"No unemployment or inflation or taxes or black swans, only paid in first month, don't taper off leverage toward end, voluntary max leverage equals broker max leverage":"closetotheory"}
+""",
+             "Default":"default"
+             ,
+             "No unemployment or inflation or taxes or black swans, don't taper off leverage toward end, voluntary max leverage equals broker max leverage":"closetotheoryminus1",
+             "No unemployment or inflation or taxes or black swans, don't taper off leverage toward end":"closetotheoryminus2",
+             "No unemployment or inflation or taxes or black swans":"closetotheoryminus3",
+             "No unemployment or inflation or taxes":"closetotheoryminus4",
+             "No unemployment or inflation":"closetotheoryminus5",
+             "No unemployment":"closetotheoryminus6",
              "Don't rebalance monthly":"dontreb",
              "Favored tax ordering when liquidate":"FO",
              "Use VIX data":"VIX",
              "Pay down principal throughout investment period":"princthru",
              "Annual sigma = .4":"sig4",
              "Annual sigma = 0":"sig0",
+             "Annual mu = .1":"mu10",
+             "Annual mu = .1, don't rebalance monthly":"mu10dontreb",
              "Annual mu = .07":"mu07",
              "Annual mu = .04":"mu04",
              "Annual mu = -.02":"mu02minus",
@@ -34,10 +40,9 @@ SCENARIOS = {"Default":"default",
              "Donate after 30 years":"yrs30",
              "Don't taper off leverage toward end":"donttaper",
              "Don't rebalance monthly and don't taper off leverage toward end":"dontrebtaper"}
+"""
 
 DAYS_PER_YEAR = 365
-SATURDAY = 6
-SUNDAY = 0
 TAX_LOSS_HARVEST_DAY = 360 # day number 360 in late Dec
 TAX_DAY = 60 # day of tax payments/refund assuming you get your refund around March 1; ignoring payments during the year...
 TINY_NUMBER = .000001
@@ -69,8 +74,14 @@ def one_run(investor,market,verbosity):
         historical_margin_wealth[day] = accounts["margin"].assets
         historical_carried_taxes[day] = taxes["margin"].total_gain_or_loss()
 
-        # Stock market changes on weekdays
-        if (day % 7 != SATURDAY) and (day % 7 != SUNDAY):
+        """ Stock market changes on non-holiday weekdays.
+        The functions to check if it's a weekend and a holiday are based on the year
+        2015, when all holidays should have been non-weekends. This means there are
+        9 non-weekend holidays. Thus, the number of trading days in the year is
+        365 * 5/7 - 9 = 252, which is what we wanted. Probably it's not actually important
+        that I'm keeping track of what exact day of the year it is here, but 
+        oh well. :)"""
+        if not util.day_is_weekend(day % DAYS_PER_YEAR) and not util.day_is_holiday(day % DAYS_PER_YEAR):
             random_daily_return = market.random_daily_return(day)
 
             accounts["regular"].update_asset_prices(random_daily_return)
@@ -263,9 +274,9 @@ def run_samples(investor,market,num_samples=1000,outfilepath=None,output_queue=N
 
     avg_margin_to_assets_ratios = running_average_margin_to_assets_ratios / num_samples
 
+    numpy_regular = numpy.array(account_values["regular"])
+    numpy_margin = numpy.array(account_values["margin"])
     if output_queue:
-        numpy_regular = numpy.array(account_values["regular"])
-        numpy_margin = numpy.array(account_values["margin"])
         (ratio_of_means, ratio_of_means_error) = util.ratio_of_means_with_error_bars(numpy_margin,numpy_regular)
         ratio_of_medians = numpy.median(numpy_margin)/numpy.median(numpy_regular)
         (ratio_of_exp_util, ratio_of_exp_util_error) = util.ratio_of_means_with_error_bars(
@@ -276,25 +287,20 @@ def run_samples(investor,market,num_samples=1000,outfilepath=None,output_queue=N
                            ratio_of_medians, ratio_of_exp_util, ratio_of_exp_util_error) )
 
     if outfilepath:
-        with open(results_table_file_name(outfilepath), "w") as outfile:
+        with open(write_results.results_table_file_name(outfilepath), "w") as outfile:
             write_results.write_file_table(account_values, account_types, float(num_margin_bankruptcies)/num_samples, outfile)
-        with open(other_results_file_name(outfilepath), "w") as outfile:
+        with open(write_results.other_results_file_name(outfilepath), "w") as outfile:
             write_results.write_means(account_values, investor.years_until_donate, outfile)
             write_results.write_percentiles(account_values, outfile)
             write_results.write_winner_for_each_percentile(account_values, outfile)
         
         plots.graph_results(account_values, num_samples, outfilepath)
+        plots.graph_expected_utility_vs_alpha(numpy_regular, numpy_margin, outfilepath)
         plots.graph_historical_margin_to_assets_ratios(margin_to_assets_ratio_histories, avg_margin_to_assets_ratios, outfilepath)
         plots.graph_historical_wealth_trajectories(wealth_histories, outfilepath)
         plots.graph_carried_taxes_trajectories(carried_tax_histories, outfilepath)
     
     # TODO: return (mean_%_better, median%better)
-
-def results_table_file_name(outfilepath):
-    return outfilepath + "_table.txt"
-
-def other_results_file_name(outfilepath):
-    return outfilepath + "_other.txt"
 
 def args_for_this_scenario(scenario_name, num_trials, outdir_name):
     """Give scenario name, return args to use for running it."""
@@ -307,41 +313,6 @@ def args_for_this_scenario(scenario_name, num_trials, outdir_name):
 
     if scenario_name == "Default":
         return (default_investor,default_market,num_trials,outpath)
-    elif scenario_name == "No unemployment or inflation or taxes or black swans, only paid in first month, voluntary max leverage equals broker max leverage":
-        tax_rates = TaxRates.TaxRates(short_term_cap_gains_rate=0,
-                                      long_term_cap_gains_rate=0,
-                                      state_income_tax=0)
-        investor = Investor.Investor(monthly_probability_of_layoff=0,
-                                     tax_rates=tax_rates,
-                                     do_tax_loss_harvesting=False,
-                                     only_paid_in_first_month_of_sim=True,
-                                     initial_personal_max_margin_to_assets_relative_to_broker_max=1.0)
-        market = Market.Market(inflation_rate=0,medium_black_swan_prob=0,
-                               large_black_swan_prob=0)
-        return (investor,market,num_trials,outpath)
-    elif scenario_name == "No unemployment or inflation or taxes or black swans, only paid in first month, don't rebalance monthly":
-        tax_rates = TaxRates.TaxRates(short_term_cap_gains_rate=0,
-                                      long_term_cap_gains_rate=0,
-                                      state_income_tax=0)
-        investor = Investor.Investor(monthly_probability_of_layoff=0,
-                                     tax_rates=tax_rates,
-                                     do_tax_loss_harvesting=False,
-                                     only_paid_in_first_month_of_sim=True,
-                                     rebalance_monthly_to_increase_leverage=False)
-        market = Market.Market(inflation_rate=0,medium_black_swan_prob=0,
-                               large_black_swan_prob=0)
-        return (investor,market,num_trials,outpath)
-    elif scenario_name == "No unemployment or inflation or taxes or black swans, don't rebalance monthly":
-        tax_rates = TaxRates.TaxRates(short_term_cap_gains_rate=0,
-                                      long_term_cap_gains_rate=0,
-                                      state_income_tax=0)
-        investor = Investor.Investor(monthly_probability_of_layoff=0,
-                                     tax_rates=tax_rates,
-                                     do_tax_loss_harvesting=False,
-                                     rebalance_monthly_to_increase_leverage=False)
-        market = Market.Market(inflation_rate=0,medium_black_swan_prob=0,
-                               large_black_swan_prob=0)
-        return (investor,market,num_trials,outpath)
     elif scenario_name == "No unemployment or inflation or taxes or black swans, only paid in first month, don't taper off leverage toward end, voluntary max leverage equals broker max leverage":
         tax_rates = TaxRates.TaxRates(short_term_cap_gains_rate=0,
                                       long_term_cap_gains_rate=0,
@@ -367,6 +338,43 @@ def args_for_this_scenario(scenario_name, num_trials, outdir_name):
         market = Market.Market(inflation_rate=0,medium_black_swan_prob=0,
                                large_black_swan_prob=0)
         return (investor,market,num_trials,outpath)
+    elif scenario_name == "No unemployment or inflation or taxes or black swans, don't taper off leverage toward end":
+        tax_rates = TaxRates.TaxRates(short_term_cap_gains_rate=0,
+                                      long_term_cap_gains_rate=0,
+                                      state_income_tax=0)
+        investor = Investor.Investor(monthly_probability_of_layoff=0,
+                                     tax_rates=tax_rates,
+                                     do_tax_loss_harvesting=False,
+                                     taper_off_leverage_toward_end=False)
+        market = Market.Market(inflation_rate=0,medium_black_swan_prob=0,
+                               large_black_swan_prob=0)
+        return (investor,market,num_trials,outpath)
+    elif scenario_name == "No unemployment or inflation or taxes or black swans":
+        tax_rates = TaxRates.TaxRates(short_term_cap_gains_rate=0,
+                                      long_term_cap_gains_rate=0,
+                                      state_income_tax=0)
+        investor = Investor.Investor(monthly_probability_of_layoff=0,
+                                     tax_rates=tax_rates,
+                                     do_tax_loss_harvesting=False)
+        market = Market.Market(inflation_rate=0,medium_black_swan_prob=0,
+                               large_black_swan_prob=0)
+        return (investor,market,num_trials,outpath)
+    elif scenario_name == "No unemployment or inflation or taxes":
+        tax_rates = TaxRates.TaxRates(short_term_cap_gains_rate=0,
+                                      long_term_cap_gains_rate=0,
+                                      state_income_tax=0)
+        investor = Investor.Investor(monthly_probability_of_layoff=0,
+                                     tax_rates=tax_rates,
+                                     do_tax_loss_harvesting=False)
+        market = Market.Market(inflation_rate=0)
+        return (investor,market,num_trials,outpath)
+    elif scenario_name == "No unemployment or inflation":
+        investor = Investor.Investor(monthly_probability_of_layoff=0)
+        market = Market.Market(inflation_rate=0)
+        return (investor,market,num_trials,outpath)
+    elif scenario_name == "No unemployment":
+        investor = Investor.Investor(monthly_probability_of_layoff=0)
+        return (investor,default_market,num_trials,outpath)
     elif scenario_name == "Don't rebalance monthly":
         investor = Investor.Investor(rebalance_monthly_to_increase_leverage=False)
         return (investor,default_market,num_trials,outpath)
@@ -386,6 +394,13 @@ def args_for_this_scenario(scenario_name, num_trials, outdir_name):
         market = Market.Market(annual_sigma=0,medium_black_swan_prob=0,
                                large_black_swan_prob=0)
         investor = Investor.Investor(monthly_probability_of_layoff=0)
+        return (investor,market,num_trials,outpath)
+    elif scenario_name == "Annual mu = .1":
+        market = Market.Market(annual_mu=.1)
+        return (default_investor,market,num_trials,outpath)
+    elif scenario_name == "Annual mu = .1, don't rebalance monthly":
+        investor = Investor.Investor(rebalance_monthly_to_increase_leverage=False)
+        market = Market.Market(annual_mu=.1)
         return (investor,market,num_trials,outpath)
     elif scenario_name == "Annual mu = .07":
         market = Market.Market(annual_mu=.07)
@@ -510,9 +525,8 @@ def optimal_leverage_for_all_scenarios(num_trials, use_timestamped_dirs, cur_wor
     """Get graphs of optimal leverage over all scenarios. This may take days/weeks to 
     finish running!"""
     for scenario_name in SCENARIOS.keys():
-        if scenario_name in ["No unemployment or inflation or taxes or black swans, only paid in first month",
-                             "No unemployment or inflation or taxes or black swans, only paid in first month, don't rebalance monthly",
-                             "No unemployment or inflation or taxes or black swans, don't rebalance monthly"]:
+        #if SCENARIOS[scenario_name] == "closetotheory" or SCENARIOS[scenario_name] in ["closetotheoryminus%i" % i for i in [1,2,2,3,4,5,6]]: # use this to speed up checking stuff
+        if SCENARIOS[scenario_name] in ["closetotheoryminus%i" % i for i in [2,2,3,4,5,6]]:
             """In this case, only get results for the default margin-to-assets setting
             because we don't actually care about sensitivity analysis here."""
             default_investor = Investor.Investor()

@@ -6,7 +6,7 @@ EPSILON = .001
 # from not counting trading fees and stuff; for this reason, EPSILON is 
 # higher than FEE_PER_DOLLAR_TRADED, defined later
 
-MIN_ADDITIONAL_PURCHASE_AMOUNT = 500
+MIN_ADDITIONAL_PURCHASE_AMOUNT = 50
 
 INTERACTIVE_BROKERS_TRADING_FEE_PER_DOLLAR = .000035
 """Trading fees for Interactive Brokers are $.0035 per share

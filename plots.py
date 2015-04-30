@@ -5,6 +5,8 @@ from matplotlib import pyplot
 from os import path
 
 DAYS_PER_YEAR = 365
+OPTIMAL_LEVERAGE_GRAPH_PREFIX = "aaa_opt_lev" # add "aaa_" to put it first alphabetically so it's easier to find
+EXPECTED_UTILITY_GRAPH_PREFIX = "exp_util"
 
 def graph_results(account_values, num_samples, outfilepath):
     alpha_for_pyplot = .5
@@ -21,6 +23,25 @@ def graph_results(account_values, num_samples, outfilepath):
         pyplot.ylabel("Frequency out of " + str(num_samples) + " runs")
         pyplot.savefig(outfilepath + "_hist_" + type)
         pyplot.close()
+
+def graph_expected_utility_vs_alpha(numpy_regular, numpy_margin, outdir_name):
+    """alpha is as in utility(wealth) = wealth^alpha"""
+
+    MIN_ALPHA = 0
+    MAX_ALPHA = 1
+    NUM_POINTS = 1000
+    alpha_values = numpy.linspace(MIN_ALPHA,MAX_ALPHA,NUM_POINTS)
+    ratio_of_expected_utilities = map(lambda alpha: \
+        numpy.mean(map(lambda wealth: util.utility(wealth, alpha), numpy_margin)) / \
+        numpy.mean(map(lambda wealth: util.utility(wealth, alpha), numpy_regular)),
+                                      alpha_values)
+
+    pyplot.plot(alpha_values,ratio_of_expected_utilities)
+    pyplot.title("Ratio of margin/regular expected utility vs. risk tolerance, alpha")
+    pyplot.xlabel("alpha: measure of risk tolerance, as in utility(wealth) = (wealth)^alpha")
+    pyplot.ylabel("expected_utility(margin) / expected_utility(regular)")
+    pyplot.savefig("%s_%s" % (outdir_name, EXPECTED_UTILITY_GRAPH_PREFIX))
+    pyplot.close()
 
 def graph_historical_margin_to_assets_ratios(collection_of_ratios, avg_ratios, outfilepath):
     num_days = len(avg_ratios)
@@ -71,9 +92,6 @@ def graph_carried_taxes_trajectories(carried_tax_histories, outfilepath):
     pyplot.ylabel("Carried short+long-term capital gains/losses ($)")
     pyplot.savefig(outfilepath + "_carrcg")
     pyplot.close()
-
-def optimal_leverage_graph_prefix():
-    return "aaa_opt_lev" # add "aaa_" to put it first alphabetically so it's easier to find
 
 def graph_trends_vs_leverage_amount(output_queue, outdir_name):
     """Graph to show optimal leverage."""
@@ -139,7 +157,7 @@ def graph_trends_vs_leverage_amount(output_queue, outdir_name):
     pyplot.xlabel("Amount of leverage (e.g., 2 means 2X leverage)")
     pyplot.ylabel("Ratios of margin account's value over regular account's value")
     pyplot.legend()
-    pyplot.savefig(path.join(outdir_name,optimal_leverage_graph_prefix()))
+    pyplot.savefig(path.join(outdir_name,OPTIMAL_LEVERAGE_GRAPH_PREFIX))
     pyplot.close()
 
 def theoretical_optimal_leverage_based_on_risk_tolerance(fig_name_including_path,alpha_values,c_star_values):
