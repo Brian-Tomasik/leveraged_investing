@@ -1,4 +1,4 @@
-Simulations of leveraged investing vs. non-leveraged. For further explanation, see http://reducing-suffering.org/why-and-how-to-leverage-investments/
+Simulations of leveraged investing vs. non-leveraged. For further explanation, see http://reducing-suffering.org/should-altruists-leverage-investments/
 
 # Margin simulations
 
@@ -12,4 +12,4 @@ A run of a single variant of the simulation with 1000 random samples of 30-year 
 
 New version: "leveraged_etf_returns.py"
 
-Old version: "_oldversion_leveraged_etf_returns.py"
+Old version: "oldversion_leveraged_etf_returns.py"
