@@ -30,7 +30,7 @@ REPLACE_STR_END = "</REPLACE>"
 TIMESTAMP_FORMAT = '%Y%b%d_%Hh%Mm%Ss'
 OPTIMISTIC_MU = .08
 LEV_ETF_LEVERAGE_RATIO = 2.0
-LEV_ETF_NUM_SAMPLES = 10000
+LEV_ETF_NUM_SAMPLES = 100000
 FUNDS_AND_EXPENSE_RATIOS = {"regular":.001, "lev":.01}
 
 def write_essay(skeleton, outfile, cur_working_dir, num_trials, 
@@ -640,9 +640,9 @@ or else the params filled in to the output HTMl file will be wrong!
 ============
 """
             #NUM_TRIALS = 50
-            NUM_TRIALS = 50
-            #APPROX_NUM_SIMULTANEOUS_PROCESSES = 1
-            APPROX_NUM_SIMULTANEOUS_PROCESSES = 2
+            NUM_TRIALS = 500
+            APPROX_NUM_SIMULTANEOUS_PROCESSES = 1
+            #APPROX_NUM_SIMULTANEOUS_PROCESSES = 2
             write_essay(skeleton, outfile, cur_folder, NUM_TRIALS, LOCAL_FILE_PATHS_IN_HTML, 
                         APPROX_NUM_SIMULTANEOUS_PROCESSES, data_already_exists, timestamp)
 
