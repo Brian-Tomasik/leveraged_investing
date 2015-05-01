@@ -85,7 +85,6 @@ def many_runs(funds_and_expense_ratios, tax_rate, years, leverage_ratio, num_sam
         print "median = %s" % util.format_as_dollar_string(numpy.median(fund_arrays[type]))
         print "25th percentile = %s" % util.format_as_dollar_string(util.percentile(fund_arrays[type],.25))
         print "min = %s" % util.format_as_dollar_string(numpy.min(fund_arrays[type]))
-        print "actual avg sqrt(wealth) = %s" % str(int(round(expected_utility(fund_arrays[type],.5),0)))
         print ""
     """
     NOT NEEDED ANYMORE

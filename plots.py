@@ -104,10 +104,10 @@ def graph_trends_vs_leverage_amount(output_queue, outdir_name):
 
     # Get the axes
     attributes = dict()
-    KEYS = ["Ns", "(Mean wealth margin)/(Mean wealth regular)", 
+    KEYS = ["Ns", "(E[wealth] margin)/(E[wealth] regular)", 
             "Error in means ratio", "(Median wealth margin)/(Median wealth regular)", 
-            "(Expected utility margin)/(Expected utility regular)", 
-            "Error in exp-util ratio"]
+            "(E[sqrt(wealth)] margin)/(E[sqrt(wealth)] regular)", 
+            "Error in exp-sqrt-wealth ratio"]
     for key in KEYS:
         attributes[key] = []
     for tuple in output_tuples:
@@ -119,7 +119,7 @@ def graph_trends_vs_leverage_amount(output_queue, outdir_name):
     x_axis = attributes["Ns"]
     fig,(ax1)=pyplot.subplots(1,1)
 
-    key = "(Mean wealth margin)/(Mean wealth regular)"
+    key = "(E[wealth] margin)/(E[wealth] regular)"
     y_axis = attributes[key]
     yerr = attributes["Error in means ratio"]
     ax1.errorbar(x_axis, y_axis, yerr=yerr, label=key)
@@ -129,17 +129,17 @@ def graph_trends_vs_leverage_amount(output_queue, outdir_name):
     y_axis = attributes[key]
     ax1.plot(x_axis, y_axis, label=key)
     min_y = min(min_y, min(y_axis))
-    max_med_or_EU = max(y_axis)
+    max_med_or_expsqrtwealth = max(y_axis)
 
-    key = "(Expected utility margin)/(Expected utility regular)"
+    key = "(E[sqrt(wealth)] margin)/(E[sqrt(wealth)] regular)"
     y_axis = attributes[key]
-    yerr = attributes["Error in exp-util ratio"]
+    yerr = attributes["Error in exp-sqrt-wealth ratio"]
     ax1.errorbar(x_axis, y_axis, yerr=yerr, label=key)
     min_y = min(min_y, min(y_axis))
-    max_med_or_EU = max(max_med_or_EU, max(y_axis))
+    max_med_or_expsqrtwealth = max(max_med_or_expsqrtwealth, max(y_axis))
 
     # Set axes
-    pyplot.axis([min(x_axis)-.1, max(x_axis)+.1, 0, max_med_or_EU+1])
+    pyplot.axis([min(x_axis)-.1, max(x_axis)+.1, 0, max_med_or_expsqrtwealth+1])
 
     """
     THIS DOESN'T SEEM TO WORK...

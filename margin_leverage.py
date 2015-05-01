@@ -16,7 +16,15 @@ import time
 
 USE_SMALL_SCENARIO_SET_FOR_QUICK_TEST = True
 if USE_SMALL_SCENARIO_SET_FOR_QUICK_TEST:
-    SCENARIOS = {"No unemployment or inflation or taxes or black swans, only paid in first month, don't taper off leverage toward end, voluntary max leverage equals broker max leverage":"closetotheory"}
+    SCENARIOS = {"Default":"default"}
+    #SCENARIOS = {"No unemployment or inflation or taxes or black swans, only paid in first month, don't taper off leverage toward end, voluntary max leverage equals broker max leverage":"closetotheory",
+    #             "Default":"default",
+    #             "No unemployment or inflation or taxes or black swans, don't taper off leverage toward end, voluntary max leverage equals broker max leverage":"closetotheoryminus1",
+    #             "No unemployment or inflation or taxes or black swans, don't taper off leverage toward end":"closetotheoryminus2",
+    #             "No unemployment or inflation or taxes or black swans":"closetotheoryminus3",
+    #             "No unemployment or inflation or taxes":"closetotheoryminus4",
+    #             "No unemployment or inflation":"closetotheoryminus5",
+    #             "No unemployment":"closetotheoryminus6"}
 else:
     SCENARIOS = {"No unemployment or inflation or taxes or black swans, only paid in first month, don't taper off leverage toward end, voluntary max leverage equals broker max leverage":"closetotheory",
                  "Default":"default",
@@ -526,8 +534,8 @@ def optimal_leverage_for_all_scenarios(num_trials, use_timestamped_dirs, cur_wor
     """Get graphs of optimal leverage over all scenarios. This may take days/weeks to 
     finish running!"""
     for scenario_name in SCENARIOS.keys():
-        #if SCENARIOS[scenario_name] == "closetotheory" or SCENARIOS[scenario_name] in ["closetotheoryminus%i" % i for i in [1,2,2,3,4,5,6]]: # use this to speed up checking stuff
-        if SCENARIOS[scenario_name] in ["closetotheoryminus%i" % i for i in [2,2,3,4,5,6]]:
+        if SCENARIOS[scenario_name] == "default" or SCENARIOS[scenario_name] == "closetotheory" or SCENARIOS[scenario_name] in ["closetotheoryminus%i" % i for i in [1,2,3,4,5,6]]: # use this to speed up checking stuff
+        #if SCENARIOS[scenario_name] in ["closetotheoryminus%i" % i for i in [2,3,4,5,6]]:
             """In this case, only get results for the default margin-to-assets setting
             because we don't actually care about sensitivity analysis here."""
             default_investor = Investor.Investor()

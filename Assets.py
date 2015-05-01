@@ -1,5 +1,6 @@
 import operator
 import random
+import util
 import EtfLot
 
 class Assets(object):
@@ -57,6 +58,7 @@ class Assets(object):
                     self.__lots_list.pop(0)
             else: # list is empty; we have no more securities, but we need cash! we go bankrupt
                 go_bankrupt = True
+                print "Going bankrupt with %s still needing to be repaid." % util.format_as_dollar_string(cash_still_need_to_get)
                 assert self.total_assets() == 0, "Total assets aren't 0 despite bankruptcy."
                 break
         
