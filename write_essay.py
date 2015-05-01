@@ -30,7 +30,7 @@ REPLACE_STR_END = "</REPLACE>"
 TIMESTAMP_FORMAT = '%Y%b%d_%Hh%Mm%Ss'
 OPTIMISTIC_MU = .08
 LEV_ETF_LEVERAGE_RATIO = 2.0
-LEV_ETF_NUM_SAMPLES = 100000
+LEV_ETF_NUM_SAMPLES = 100
 FUNDS_AND_EXPENSE_RATIOS = {"regular":.001, "lev":.01}
 
 def write_essay(skeleton, outfile, cur_working_dir, num_trials, 
@@ -141,7 +141,7 @@ def write_essay(skeleton, outfile, cur_working_dir, num_trials,
                                               util.format_as_dollar_string(equiv_increase_in_savings))
 
             output_text = output_text.replace(REPLACE_STR_FRONT + "margin_better_than_regular_EU_percent" + REPLACE_STR_END, str(percent_better_EU))
-        elif scenario == "No unemployment or inflation or taxes or black swans, only paid in first month, voluntary max leverage equals broker max leverage":
+        elif scenario == "No unemployment or inflation or taxes or black swans, only paid in first month, don't taper off leverage toward end, voluntary max leverage equals broker max leverage":
             output_text = add_theoretical_calculations_for_no_unemployment_etc(output_text, results_table_contents)
 
     """Add default params and calculations using those params"""
@@ -599,7 +599,7 @@ def parse_percent_times_margin_is_better(results_table_contents):
 
 if __name__ == "__main__":
     DATA_ALREADY_EXISTS_AND_HAS_THIS_TIMESTAMP = None
-    #DATA_ALREADY_EXISTS_AND_HAS_THIS_TIMESTAMP = "2015Apr29_14h33m08s" # just for computations
+    #DATA_ALREADY_EXISTS_AND_HAS_THIS_TIMESTAMP = "2015Apr29_22h19m49s" # latest big run
     """if the above variable is non-None, it saves lots of computation and just computes the HTML 
     and copies the required figures from saved data"""
     data_already_exists = DATA_ALREADY_EXISTS_AND_HAS_THIS_TIMESTAMP is not None
@@ -639,8 +639,8 @@ _the same as when you ran the results being pointed to_
 or else the params filled in to the output HTMl file will be wrong!
 ============
 """
-            #NUM_TRIALS = 50
-            NUM_TRIALS = 500
+            NUM_TRIALS = 1
+            #NUM_TRIALS = 500
             APPROX_NUM_SIMULTANEOUS_PROCESSES = 1
             #APPROX_NUM_SIMULTANEOUS_PROCESSES = 2
             write_essay(skeleton, outfile, cur_folder, NUM_TRIALS, LOCAL_FILE_PATHS_IN_HTML, 

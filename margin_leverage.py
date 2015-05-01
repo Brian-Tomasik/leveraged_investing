@@ -14,33 +14,34 @@ from os import path
 from multiprocessing import Process, Queue
 import time
 
-SCENARIOS = {"No unemployment or inflation or taxes or black swans, only paid in first month, don't taper off leverage toward end, voluntary max leverage equals broker max leverage":"closetotheory"}
-""",
-             "Default":"default"
-             ,
-             "No unemployment or inflation or taxes or black swans, don't taper off leverage toward end, voluntary max leverage equals broker max leverage":"closetotheoryminus1",
-             "No unemployment or inflation or taxes or black swans, don't taper off leverage toward end":"closetotheoryminus2",
-             "No unemployment or inflation or taxes or black swans":"closetotheoryminus3",
-             "No unemployment or inflation or taxes":"closetotheoryminus4",
-             "No unemployment or inflation":"closetotheoryminus5",
-             "No unemployment":"closetotheoryminus6",
-             "Don't rebalance monthly":"dontreb",
-             "Favored tax ordering when liquidate":"FO",
-             "Use VIX data":"VIX",
-             "Pay down principal throughout investment period":"princthru",
-             "Annual sigma = .4":"sig4",
-             "Annual sigma = 0":"sig0",
-             "Annual mu = .1":"mu10",
-             "Annual mu = .1, don't rebalance monthly":"mu10dontreb",
-             "Annual mu = .07":"mu07",
-             "Annual mu = .04":"mu04",
-             "Annual mu = -.02":"mu02minus",
-             "Annual margin interest rate = .015":"int_r015",
-             "Donate after 5 years":"yrs5",
-             "Donate after 30 years":"yrs30",
-             "Don't taper off leverage toward end":"donttaper",
-             "Don't rebalance monthly and don't taper off leverage toward end":"dontrebtaper"}
-"""
+USE_SMALL_SCENARIO_SET_FOR_QUICK_TEST = True
+if USE_SMALL_SCENARIO_SET_FOR_QUICK_TEST:
+    SCENARIOS = {"No unemployment or inflation or taxes or black swans, only paid in first month, don't taper off leverage toward end, voluntary max leverage equals broker max leverage":"closetotheory"}
+else:
+    SCENARIOS = {"No unemployment or inflation or taxes or black swans, only paid in first month, don't taper off leverage toward end, voluntary max leverage equals broker max leverage":"closetotheory",
+                 "Default":"default",
+                 "No unemployment or inflation or taxes or black swans, don't taper off leverage toward end, voluntary max leverage equals broker max leverage":"closetotheoryminus1",
+                 "No unemployment or inflation or taxes or black swans, don't taper off leverage toward end":"closetotheoryminus2",
+                 "No unemployment or inflation or taxes or black swans":"closetotheoryminus3",
+                 "No unemployment or inflation or taxes":"closetotheoryminus4",
+                 "No unemployment or inflation":"closetotheoryminus5",
+                 "No unemployment":"closetotheoryminus6",
+                 "Don't rebalance monthly":"dontreb",
+                 "Favored tax ordering when liquidate":"FO",
+                 "Use VIX data":"VIX",
+                 "Pay down principal throughout investment period":"princthru",
+                 "Annual sigma = .4":"sig4",
+                 "Annual sigma = 0":"sig0",
+                 "Annual mu = .1":"mu10",
+                 "Annual mu = .1, don't rebalance monthly":"mu10dontreb",
+                 "Annual mu = .07":"mu07",
+                 "Annual mu = .04":"mu04",
+                 "Annual mu = -.02":"mu02minus",
+                 "Annual margin interest rate = .015":"int_r015",
+                 "Donate after 5 years":"yrs5",
+                 "Donate after 30 years":"yrs30",
+                 "Don't taper off leverage toward end":"donttaper",
+                 "Don't rebalance monthly and don't taper off leverage toward end":"dontrebtaper"}
 
 DAYS_PER_YEAR = 365
 TAX_LOSS_HARVEST_DAY = 360 # day number 360 in late Dec

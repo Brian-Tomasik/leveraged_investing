@@ -1,5 +1,5 @@
 by Brian Tomasik
-First written: Apr. 2015; last update: <REPLACE>date_of_last_update</REPLACE>
+First written: Apr. 2015; last update: 30 Apr. 2015
 
 <span style="color:red">Change title to: Should Altruists Leverage Investments? answer: not sure if it's worth it, maybe if you're more risk-neutral</span>
 
@@ -10,7 +10,7 @@ First written: Apr. 2015; last update: <REPLACE>date_of_last_update</REPLACE>
 
 Investing with leverage means borrowing money to buy stocks/ETFs. It should theoretically amplify expected returns, and some argue that over a lifetime, it can even reduce risk through temporal diversification. Possible ways to achieve leverage include buying securities on margin, options, index futures, and leveraged ETFs. Among these choices, I incline toward buying index ETFs on margin because this is a relatively transparent way to achieve roughly 2X leverage. I'd like to learn more about using options and futures, but they at least appear disadvantageous from a tax perspective relative to buy-and-hold margin investments. Conventional wisdom considers leveraged ETFs a bad idea for buy-and-hold investors.
 
-I simulated margin vs. regular investing and found that over <REPLACE>years_until_donate</REPLACE> years, for someone saving <REPLACE>initial_annual_income_for_investing</REPLACE>/year with a <REPLACE>annual_real_income_growth_percent</REPLACE>% real annual growth in savings and various other assumptions, using margin investing results in an expected present value of ~<REPLACE>margin_better_than_regular</REPLACE> more eventual donatable savings than not using it, which is about a <REPLACE>margin_better_than_regular_percent</REPLACE>% improvement.
+I simulated margin vs. regular investing and found that over 15 years, for someone saving $30,000/year with a 2% real annual growth in savings and various other assumptions, using margin investing results in an expected present value of ~<REPLACE>margin_better_than_regular</REPLACE> more eventual donatable savings than not using it, which is about a <REPLACE>margin_better_than_regular_percent</REPLACE>% improvement.
 
 <h3>Note</h3>
 
@@ -20,34 +20,21 @@ I'm not an expert on leveraged investing. This piece represents my own efforts t
 
 [toc]
 
-<h2>Introduction</h2>
+<h2>Why leverage</h2>
 
-Many financial commentators advise against <a href="http://en.wikipedia.org/wiki/Leverage_%28finance%29">leveraging</a> investments due to the higher risk that it involves. An excellent, simple, graphical tutorial on leverage is "<a href="http://papers.ssrn.com/sol3/papers.cfm?abstract_id=2239827" title="by Robert Ferguson, 1993">The Danger of Leverage and volatility</a>". I agree it's generally true that most individuals shouldn't leverage non-retirement assets if they plan to use those assets for personal consumption.
+<i><a href="http://smile.amazon.com/Lifecycle-Investing-Audacious-Performance-Retirement-ebook/dp/B003GYEGK2/">Lifecycle Investing</a></i> by Ian Ayres and Barry Nalebuff makes the case that most young people should <a href="http://en.wikipedia.org/wiki/Leverage_%28finance%29">leverage</a> their investments early in life. Here's a summary of the argument: "<a href="http://content.time.com/time/business/article/0,8599,1982327,00.html">Why Young People Should Buy Stocks on Margin</a>". The logic is almost obvious in hindsight, and if you expect a fairly normal professional career trajectory, it may apply to you.
 
-But what if you plan to donate the invested assets? You should <a href="http://reducing-suffering.org/when-should-altruists-be-financially-risk-averse/" title="&quot;When Should Altruists Be Financially Risk-Averse?&quot;">generally be less risk-averse</a> with funds you plan to donate than with funds you plan to spend on yourself because the marginal altruistic utility of donated dollars usually doesn't decline as sharply as the marginal egoistic utility of dollars for personal consumption. Does this suggest that leverage could be a promising strategy for investments you plan to donate?
-
-This essay explores that question. The short answer is "maybe, depending on (1) your altruistic risk tolerance and (2) expectations of future stock-market returns and borrowing interest rates." In particular, I think margin investing is a promising avenue to consider if you're donating to a cause where the marginal utility of additional dollars is relatively flat, even over large scales (e.g., if the overall charitable cause had 5 times the budget, it would produce almost 5 times the value). It's probably not a good idea if you plan to donate to small, startup charities or to causes where the marginal value of additional money declines to a nontrivial degree.
-
+For altruists, there's an additional reason to consider leverage: Many altruists should be more risk-neutral than most non-altruists. How much this is true <a href="http://reducing-suffering.org/when-should-altruists-be-financially-risk-averse/" title="&quot;When Should Altruists Be Financially Risk-Averse?&quot;">depends on</a> the charities that the altruist wants to support. Leverage offers the promise of higher expected returns in exchange for potentially higher risk. (That said, one of the theses of <i>Lifecycle Investing</i> is that leverage could also decrease lifetime risk if it allows you to reduce the aggressiveness of your investments in later years.)
 <!--
 TAKE THIS OUT BECAUSE IT'S ONLY A NAIVE ANALYSIS AND IS SUPERCEDED BY SIMULATION NUMBERS
 <h2>How much is leverage worth?</h2>
 
 The value of leverage depends on the current interest rate for borrowing and expected stock returns. As an example, in 2015, <a href="http://en.wikipedia.org/wiki/Margin_(finance)">margin</a> interest rates <a href="https://www.interactivebrokers.com/en/index.php?f=interest&p=schedule2" title="&quot;Interest Rates Charged to You on Margin Loan Balances&quot;">at Interactive Brokers</a> are less than 1.5% for large investment amounts. A conservative estimate of future stock returns might be 5%. This implies in expectation about a 3.5% net return per year. Suppose you have $500K to invest. If you use 2:1 leverage and borrow another $500K to invest, and if it returns a net 3.5%/year in expectation, that amounts to an extra $17.5K/year in expectation. Maybe we should reduce the expected returns to 2% to account for risk and the possibility of error. Then leverage is worth $10K/year in expectation. Over many years, this adds up to a nontrivial amount.
 
-If you don't already have a lot to invest, the total gains from leverage will of course be lower. In this piece, I describe a simulation in which a hypothetical wage earner invests over the course of 30 years, contributing <REPLACE>initial_annual_income_for_investing</REPLACE>/year to savings in early years and up to $54K/year in late years. The results are presented <a href="#Results">later</a>.
+If you don't already have a lot to invest, the total gains from leverage will of course be lower. In this piece, I describe a simulation in which a hypothetical wage earner invests over the course of 30 years, contributing $30,000/year to savings in early years and up to $54K/year in late years. The results are presented <a href="#Results">later</a>.
 -->
 
-<h2>Should you invest before donating?</h2>
-
-This piece is mainly targeted toward altruists who want to donate a few years or decades down the road but are saving their money for now, perhaps because they want to wait to pick out a charity or because their desired charities don't yet exist. Some might also feel that the returns on capital-market investments exceed the returns on direct altruism work. But before jumping into details about whether to invest using leverage, you should first ask: Do I want to invest before donating at all?
-
-There's <a href="http://www.effective-altruism.com/ea/4e/giving_now_vs_later_a_summary/" title="'Giving now vs. later: a summary' by Julia Wise">much</a> <a href="http://effective-altruism.com/ea/4e/giving_now_vs_later_a_summary/3bq" title="'Brian_Tomasik comments on Giving now vs. later: a summary - Effective Altruism Forum'">discussion</a> of the question of whether to donate now or later. For my personal situation, I think the optimal strategy is to donate some amount now toward projects that are either very underfunded or that should be done sooner rather than later. For instance, the <a href="http://foundational-research.org/">Foundational Research Institute</a> is more urgent than a regular charity because its conclusions will help me direct the remainder of my donations. For the rest of my donations, I'd rather wait at least a decade, because I'm continuing to learn a lot, and my conclusions may change with new insights.
-
-<!--
-This explains why the altruist in my simulations only invests ~<REPLACE>initial_annual_income_for_investing</REPLACE>/year rather than a larger amount. It's because she's donating much of the remainder, either to charities directly or at least to a DAF to max out her 50%-of-AGI limit.
--->
-
-
+An excellent, simple, graphical tutorial on leverage is "<a href="http://papers.ssrn.com/sol3/papers.cfm?abstract_id=2239827" title="by Robert Ferguson, 1993">The Danger of Leverage and volatility</a>".
 
 <h2>Possible leverage methods</h2>
 
@@ -172,6 +159,11 @@ Given what I know so far, buying index ETFs on margin looks like it has the leas
 
 "<a href="http://www.investmentreview.com/files/2009/12/leveraged_portfolios1.pdf">Leveraged Canadian Stock Portfolios: Long-Run Effects on Wealth and Risk</a>" (Figure 2) found that margin investing at 1.8X leverage was optimal in terms of median long-run performance, based on random monthly returns from 1950 to 2001 and assuming monthly rebalancing. <span style="color:red">(check that I got these details correct; reread study)</span>
 
+<h2>IRA to avoid taxes?</h2>
+
+The tax disadvantages of options and futures can be avoided if you're trading in an IRA. However, note that if you can't get a tax deduction for a traditional IRA, then a <a href="http://reducing-suffering.org/advanced-tips-on-personal-finance/#Could_you_also_use_IRAs_for_this_purpose">traditional IRA is a bad deal</a> because you pay income-tax rates both before adding money and when withdrawing it. You can currently avoid this problem using a <a href="http://www.bogleheads.org/wiki/Backdoor_Roth_IRA">backdoor Roth IRA</a>, but it's <a href="http://www.forbes.com/sites/ashleaebeling/2015/02/02/obama-budget-would-prohibit-backdoor-roth-iras/" title="&quot;Obama Budget Would Prohibit Backdoor Roth IRAs&quot;">not clear</a> that this will continue to work forever, and managing one requires nontrivial effort for only ~$5500 of contributions per year. Assuming you save well over ~$5500 per year, you'd still need another leverage method for your other investments.
+
+Another risk with margin investing in IRAs is that if you get a margin call and deposit more funds into the account, you might exceed the IRS limits for the maximum amount you can add to the account per year. The Interactive Brokers Margin Disclosure <a href="https://www.interactivebrokers.com/en/?f=%2Fen%2Faccounts%2FlegalDocuments%2FsemiAnnualDisclosures.php" title="&quot;Semi-Annual Disclosures&quot;">says</a>: "Deposits to the account in excess of [IRS] limits may cause adverse tax consequences, including but not limited to, forfeiture of the tax-advantaged status of the IRA account and/or penalties." That said, this may not be a problem if you always pay margin calls by selling equity rather than depositing more funds.
 
 <h2>Warnings</h2>
 
@@ -183,7 +175,7 @@ If you don't have the time to learn the details of margin investing, it's probab
 
 <h3>About Interactive Brokers</h3>
 
-The Interactive Brokers (IB) Customer Agreement warns that IB may liquidate positions if margin exceeds limits without issuing a margin call, i.e., without giving you a chance to add more money. IB reserves the right to liquidate whichever securities they want without telling you. This seems bad in part because IB might(??) liquidate short-term rather than long-term assets, thereby increasing the capital-gains taxes you'll pay. To avoid this, I would probably manually maintain a margin amount less than the limit so that I'm the one who manually does rebalancing when necessary. For instance, if IB allows at most a <REPLACE>broker_max_margin_to_assets_ratio_as_percent</REPLACE>% margin-to-assets ratio, I might manually impose a cap of <REPLACE>volunary_max_margin_to_assets_as_percent</REPLACE>% on my own.
+The Interactive Brokers (IB) Customer Agreement warns that IB may liquidate positions if margin exceeds limits without issuing a margin call, i.e., without giving you a chance to add more money. IB reserves the right to liquidate whichever securities they want without telling you. This seems bad in part because IB might(??) liquidate short-term rather than long-term assets, thereby increasing the capital-gains taxes you'll pay. To avoid this, I would probably manually maintain a margin amount less than the limit so that I'm the one who manually does rebalancing when necessary. For instance, if IB allows at most a 50% margin-to-assets ratio, I might manually impose a cap of 45% on my own.
 
 IB's Customer Agreement also says: "Customer acknowledges Customer's responsibility for knowing the terms of any securities, options, warrants or other products in Customer's account, including upcoming corporate actions (e.g., tender offers, reorganizations, stock splits, etc.). IB has no obligation to notify Customer of deadlines or required actions or dates of meetings, nor is IB obligated to take any action without specific written instructions sent by Customer to IB electronically through the IB website." Presumably this is less of a problem if you're investing in index ETFs, but if you invest in individual stocks, watch out! I own individual stocks in my regular brokerage account, and I would guess that ~1-3% of them per year have issued <a href="http://reducing-suffering.org/advanced-tips-on-personal-finance/#Tender_offers">tender offers</a> requiring shareholders to either accept the offer or sell the security before it becomes worthless. If you miss the deadline, you just lost the value of the security.
 
@@ -204,280 +196,7 @@ Using leverage to increase the amount you can donate to charity is very likely a
 
 Margin investing also slightly increases demand for loans, pushing interest rates slightly higher. I would also guess that when more money is invested in stocks, the willingness of companies to IPO increases slightly, since companies can expect higher prices for their initial shares, but I haven't read this anywhere, so it could be completely wrong. These seem like small effects, and it's not obvious if they're good or bad anyway.
 
-<h2>Leverage for retirement?</h2>
-
-PUT THIS IN SECTION ON RETIREMENT: THEN ADD IRA AFTER THAT.
-
-<i><a href="http://smile.amazon.com/Lifecycle-Investing-Audacious-Performance-Retirement-ebook/dp/B003GYEGK2/">Lifecycle Investing</a></i> by Ian Ayres and Barry Nalebuff makes the case that most young people should leverage their investments early in life. Here's a summary of the argument: "<a href="http://content.time.com/time/business/article/0,8599,1982327,00.html">Why Young People Should Buy Stocks on Margin</a>". The logic is almost obvious in hindsight, and if you expect a fairly normal professional career trajectory, it may apply to you.
-
-For altruists, there's an additional reason to consider leverage: Many altruists should be more risk-neutral than most non-altruists. How much this is true depends on</a> the charities that the altruist wants to support. Leverage offers the promise of higher expected returns in exchange for potentially higher risk. (That said, one of the theses of <i>Lifecycle Investing</i> is that leverage could also decrease lifetime risk if it allows you to reduce the aggressiveness of your investments in later years.)
-
-
-<h3>IRA to avoid taxes?</h3>
-
-The tax disadvantages of options and futures can be avoided if you're trading in an IRA. However, note that if you can't get a tax deduction for a traditional IRA, then a <a href="http://reducing-suffering.org/advanced-tips-on-personal-finance/#Could_you_also_use_IRAs_for_this_purpose">traditional IRA is a bad deal</a> because you pay income-tax rates both before adding money and when withdrawing it. You can currently avoid this problem using a <a href="http://www.bogleheads.org/wiki/Backdoor_Roth_IRA">backdoor Roth IRA</a>, but it's <a href="http://www.forbes.com/sites/ashleaebeling/2015/02/02/obama-budget-would-prohibit-backdoor-roth-iras/" title="&quot;Obama Budget Would Prohibit Backdoor Roth IRAs&quot;">not clear</a> that this will continue to work forever, and managing one requires nontrivial effort for only ~$5500 of contributions per year. Assuming you save well over ~$5500 per year, you'd still need another leverage method for your other investments.
-
-Another risk with margin investing in IRAs is that if you get a margin call and deposit more funds into the account, you might exceed the IRS limits for the maximum amount you can add to the account per year. The Interactive Brokers Margin Disclosure <a href="https://www.interactivebrokers.com/en/?f=%2Fen%2Faccounts%2FlegalDocuments%2FsemiAnnualDisclosures.php" title="&quot;Semi-Annual Disclosures&quot;">says</a>: "Deposits to the account in excess of [IRS] limits may cause adverse tax consequences, including but not limited to, forfeiture of the tax-advantaged status of the IRA account and/or penalties." That said, this may not be a problem if you always pay margin calls by selling equity rather than depositing more funds.
-
-
-<h2>Theoretical leverage performance</h2>
-
-You might think that because leverage involves holding twice as much equity as regular investing that (ignoring loan interest), the performance of a 2X leveraged position would just be 2 times the performance of regular equity investing, with double the possible gains and double the possible losses, but with the distribution having the same general shape.
-
-This is not how leverage actually performs. Volatility distorts the distribution of outcomes. As a result, 2X leverage usually does worse than twice the underlying asset, and often it does worse than the underlying asset itself. For example, the US SEC issued <a href="http://www.sec.gov/investor/pubs/leveragedetfs-alert.htm" title="'Leveraged and Inverse ETFs: Specialized Products with Extra Risks for Buy-and-Hold Investors'">an alert</a> containing the following anecdote: "Between December 1, 2008, and April 30, 2009, a particular index gained 2 percent. However, a leveraged ETF seeking to deliver twice that index's daily return fell by 6 percent [...]."
-
-So why would anyone use leverage? Because it offers small probabilities of huge gains. Higher and higher leverage amounts become like lottery tickets in a lottery where the expected value is actually better than fair, as will be discussed below.
-
-<h3>Simple example</h3>
-
-Let's start with a simple case. Something like this is commonly used when discussing leveraged ETFs.
-
-<h4>Regular investing</h4>
-
-Suppose you have $100 in an index ETF. There are only two possible returns for the ETF in a given period: up 10% or down 10%. Each has equal probability. Let R<sub>i</sub> be a random variable for the return of the ETF in period i. R<sub>i</sub> is either .1 or -.1.
-
-There are four possible outcomes, each equally likely:
-<ul>
-<li>$100(1+.1)(1+.1) = $121</li>
-<li>$100(1-.1)(1+.1) = $99</li>
-<li>$100(1+.1)(1-.1) = $99</li>
-<li>$100(1-.1)(1-.1) = $81</li>
-</ul>
-Your expected ending wealth is ($121 + $99 + $99 + $81)/4 = $100, just like you'd expect naively. But your <i>median</i> ending wealth is $99. In other words, even regular stock-market investing contains a bias toward losing some money in terms of the <i>median</i> (not mean) outcome. The reason we don't usually notice this is that the stock-market has a general upward trend, which hides this small drag from volatility.
-
-We can approximate the effect of drag as follows. Note that E[R<sub>i</sub>] = 0 and Var[R<sub>i</sub>] = E[R<sub>i</sub><sup>2</sup>] - E[R<sub>i</sub>]<sup>2</sup> = E[R<sub>i</sub><sup>2</sup>] - 0 = E[.01] = .01. The median outcome was $1 lower than the mean, i.e., was $100 * Var[R<sub>i</sub>] lower.
-
-<h4>Leveraged investing</h4>
-
-The reason the SEC and others warn about leverage is just that it amplifies this volatility drag. To see this, note that a leveraged version of the above ETF would have possible returns of +20% and -20%, giving these four possible outcomes:
-<ul>
-<li>$100(1+.2)(1+.2) = $144</li>
-<li>$100(1-.2)(1+.2) = $96</li>
-<li>$100(1+.2)(1-.2) = $96</li>
-<li>$100(1-.2)(1-.2) = $64</li>
-</ul>
-Your expected ending wealth is ($144 + $96 + $96 + $64)/4 = $100, just like before. But the median ending wealth is now $96, and the worst case is much worse. This is typical of leverage: it makes many of the outcomes worse but some of the outcomes vastly better.
-
-Now Var[R<sub>i</sub>] = E[R<sub>i</sub><sup>2</sup>] - E[R<sub>i</sub>]<sup>2</sup> = E[R<sub>i</sub><sup>2</sup>] - 0 = E[.04] = .04. The median outcome was $4 lower than the mean, i.e., was $100 * Var[R<sub>i</sub>] lower. 2X leverage means 4X variance, so the drag is actually quadratic in the leverage amount.
-
-<h3>Geometric Brownian motion model</h3>
-
-<h4>Regular investing</h4>
-
-The most common model of stock-market evolution is geometric Brownian motion. Let S<sub>t</sub> be the price of a stock or ETF at year t. The <a href="https://en.wikipedia.org/wiki/Geometric_Brownian_motion#Technical_definition:_the_SDE">geometric Brownian motion stochastic differential equation</a> (SDE) is
-<blockquote>
-dS<sub>t</sub>/S<sub>t</sub> = &mu; dt + &sigma; dW<sub>t</sub>,
-</blockquote>
-where &mu; is the expected annual return, &sigma; is the annual volatility, and W<sub>t</sub> is a Weiner process with mean 0 and variance t. That is, if Z is a standard-normal random variable, then dW<sub>t</sub> = Z&radic;<span style="text-decoration: overline">dt</span>.
-
-Solving this SDE <a href="https://en.wikipedia.org/wiki/Geometric_Brownian_motion#Solving_the_SDE">tells us</a> that
-<blockquote>
-S<sub>t</sub> = S<sub>0</sub> exp(&mu;t - &sigma;<sup>2</sup>t/2 + &sigma;W<sub>t</sub>). &nbsp;&nbsp;&nbsp;  (call this the "<span id="regular_S_t" style="color:green">regular S<sub>t</sub> equation</span>")
-</blockquote>
-S<sub>t</sub>/S<sub>0</sub> has a <a href="https://en.wikipedia.org/wiki/Log-normal_distribution">lognormal distribution</a> with location parameter &mu;t - &sigma;<sup>2</sup>t/2 and scale parameter &sigma;&radic;<span style="text-decoration: overline">t</span>.
-
-The <a href="https://en.wikipedia.org/wiki/Log-normal_distribution#Mode_and_median">median</a> of a lognormal distribution is exp(location_parameter). Thus
-<blockquote>
-median(S<sub>t</sub>/S<sub>0</sub>) = exp(&mu;t - &sigma;<sup>2</sup>t/2), &nbsp;&nbsp;&nbsp;which implies<br />
-median(S<sub>t</sub>) = S<sub>0</sub> exp(&mu;t - &sigma;<sup>2</sup>t/2) &nbsp;&nbsp;&nbsp;  (call this the "<span id="regular_median" style="color:green">regular median equation</span>")
-</blockquote>
-because S<sub>0</sub> is constant and so doesn't affect the sorted ranking of S<sub>t</sub> values. Here we can see the same volatility drag discussed before, in the &#8209;&sigma;<sup>2</sup>t/2.
-
-The mean of a lognormal distribution is exp(location_parameter + scale_parameter<sup>2</sup>/2). Hence
-<blockquote>
-mean(S<sub>t</sub>/S<sub>0</sub>) = exp(&mu;t - &sigma;<sup>2</sup>t/2 + [&sigma;&radic;<span style="text-decoration: overline">t</span>]<sup>2</sup>/2) = exp(&mu;t), &nbsp;&nbsp;&nbsp;which implies that<br />
-mean(S<sub>t</sub>) = S<sub>0</sub> exp(&mu;t), &nbsp;&nbsp;&nbsp; (call this the "<span id="regular_mean" style="color:green">regular mean equation</span>")
-</blockquote>
-since the constant S<sub>0</sub> can come out of the mean() operator. This equation is confirmed <a href="https://en.wikipedia.org/wiki/Geometric_Brownian_motion#Properties">by Wikipedia</a>. We see that volatility doesn't drag down the mean; it just skews the distribution such that most of the outcomes (including the median) are lower.
-
-<h4>Leveraged investing</h4>
-
-Let V<sub>t</sub> denote the net wealth of a leveraged portfolio at year t. (V<sub>t</sub> is just like S<sub>t</sub> but for leveraged investing.) <a href="http://www.fsa.ulaval.ca/nfa2003/papiers/Craig%20Wilson.pdf" title="'Leveraged Stock Portfolios over Long Holding Periods: A Continuous Time Model' (2003)">Domian et al. (2003)</a> show (p. 5, eqn. 13) that for a c-times leveraged portfolio (e.g., c = 2 means 2X leverage) and borrowing interest rate r, the applicable SDE is
-<blockquote>
-dV<sub>t</sub>/V<sub>t</sub> = (r + (&mu;-r)c) dt + c &sigma; dW<sub>t</sub>.
-</blockquote>
-This makes sense because the infinitesimal expected return should be c&mu; dt, the infinitesimal standard deviation should be c&sigma;, and the infinitesimal borrowing cost should be (c-1)r dt (since only c-1 of the purchased units are borrowed).
-
-<a href="http://www.fsa.ulaval.ca/nfa2003/papiers/Craig%20Wilson.pdf" title="'Leveraged Stock Portfolios over Long Holding Periods: A Continuous Time Model' (2003)">Domian et al. (2003)</a> solve this equation (p. 5, eqn. 14) in the same way we solved the <a href="#regular_S_t">regular S<sub>t</sub> equation</a>. The result is
-<blockquote>
-V<sub>t</sub> = V<sub>0</sub> exp{ (r + (&mu;-r)c) t - c<sup>2</sup>&sigma;<sup>2</sup>t/2 + c&sigma;W<sub>t</sub> }. &nbsp;&nbsp;&nbsp;  (call this the "<span id="leveraged_V_t" style="color:green">leveraged V<sub>t</sub> equation</span>")
-</blockquote>
-V<sub>t</sub>/V<sub>0</sub> is lognormal with location parameter (r + (&mu;-r)c) t - c<sup>2</sup>&sigma;<sup>2</sup>t/2 and scale parameter c&sigma;&radic;<span style="text-decoration: overline">t</span>.
-
-In analogy with before, we have
-<blockquote>
-median(V<sub>t</sub>) = V<sub>0</sub> exp{location_parameter} = V<sub>0</sub> exp{(r + (&mu;-r)c) t - c<sup>2</sup>&sigma;<sup>2</sup>t/2} &nbsp;&nbsp;&nbsp;  (call this the "<span id="leveraged_median" style="color:green">leveraged median equation</span>")
-</blockquote>
-We can see that the volatility drag is quadratic in the leverage amount (c<sup>2</sup>).
-
-Likewise:
-<blockquote>
-mean(V<sub>t</sub>) = V<sub>0</sub> exp(location_parameter + scale_parameter<sup>2</sup>/2) = V<sub>0</sub> exp{(r + (&mu;-r)c) t - c<sup>2</sup>&sigma;<sup>2</sup>t/2 + c<sup>2</sup>&sigma;<sup>2</sup>t/2} = V<sub>0</sub> exp{(r + (&mu;-r)c) t} &nbsp;&nbsp;&nbsp;  (call this the "<span id="leveraged_mean" style="color:green">leveraged mean equation</span>")
-</blockquote>
-This result can also be written as V<sub>0</sub> exp{[&mu;c-r(c-1)] t}. This is exactly what we would have thought naively: The performance of leveraged investing is c times the underlying asset performance, minus (c-1) times loan interest (since we only take out a loan for c-1 of the total investment amount).
-
-<h4>Discussion</h4>
-
-Consider equal starting investments of $K between a regular (c = 1) and leveraged (c > 1) portfolio: S<sub>0</sub> = V<sub>0</sub> = K. Suppose &mu; > r, as is usually the case. Using the mean equations just derived,
-<blockquote>
-mean(V<sub>t</sub>) / mean(S<sub>t</sub>) = [K exp{(r + (&mu;-r)c) t}] / [K exp(&mu;t)] = exp{(r + (&mu;-r)c) t - &mu;t)} = exp{rt + &mu;ct - rct - &mu;t)} = exp{(&mu;-r)(c-1)t}.
-</blockquote>
-Since &mu;-r > 0 and c-1 > 0, this ratio is greater than 1 and increases with t. So (at least in this simplified theoretical model), leverage does indeed offer higher expected ending wealth than non-leveraged investing. The catch, of course, is that most investors -- even most altruists -- shouldn't be risk-neutral with respect to wealth. The next section discusses what levels of risk aversion might be reasonable when it comes to wealth that will be donated.
-
-<h2>What's your altruistic risk tolerance?</h2>
-
-Suppose you're donating to support some overall cause, such as safety of artificial general intelligence. Typically a cause has diminishing marginal value with additional dollars. This is for <a href="http://reducing-suffering.org/when-should-altruists-be-financially-risk-averse/" title="&quot;When Should Altruists Be Financially Risk-Averse?&quot;">various reasons</a>, such as that the best people are employed first and for the lowest wages, and that lowest-hanging fruit for solving the problem tend to be plucked first.
-
-Within a given cause, some projects may have more value for you than others. For instance, maybe you like one charity a lot more than other charities for the same cause. In that case, maybe looking at just that charity's funding is the right unit of abstraction. But that individual charity will also usually show diminishing marginal value with funding.
-
-Say we've picked some level of abstraction (a cause, a charity, etc.) that we want to fund. It seems plausible that the good g that's accomplished by a given number of dollars d given to that cause/charity is d<sup>&alpha;</sup> for some &alpha; in the interval (0,1]. &alpha; = 1 corresponds to no diminishing marginal good, but this seems rare. More plausible values of &alpha; might be 0.9 or 0.75 or 0.5.
-
-You are one individual planning to donate to the cause/charity. Let your donation amount be m (short for "myself"). Let the donation amount of all the other donors be o (short for "others"). Then the total good done is g(m+o) = (m+o)<sup>&alpha;</sup>.
-
-<h3>Case 1: You are the charity's main donor</h3>
-
-If m >> o, then g(m+o) is roughly m<sup>&alpha;</sup>. In such a case, the good you accomplish is roughly your wealth raised to the &alpha;, so for investment decisions, you should maximize expected utility, with utility(wealth) = (wealth)<sup>&alpha;</sup>.
-
-<h3>Case 2: Many uncorrelated donors</h3>
-
-Suppose that m << o, and the returns you earn on your investments aren't appreciably correlated with how much others donate. In this case, the marginal contribution of your donation, m, is
-<blockquote>
-utility(wealth) = g(m+o) - g(o) = (m+o)<sup>&alpha;</sup> - o<sup>&alpha;</sup>.
-</blockquote>
-As an example, suppose o = 10<sup>7</sup> and m ranges between 0 and 10<sup>6</sup>. Basically regardless of &alpha;, utility(wealth) is almost linear in wealth. For instance, <a href="https://www.wolframalpha.com/input/?i=plot%5B+%28m+%2B+10%5E7%29%5E.5+-+%2810%5E7%29%5E.5%2C+m%2C+0%2C+1000000%5D">here</a>'s the curve for &alpha;=0.5. This makes leverage look promising because for a linear utility function, maximizing expected utility means maximizing expected wealth.
-
-<h3>Case 3: Many correlated donors</h3>
-
-THANKS TO PAUL FOR INSPIRATION...
-add startup thing
-
-Let S<sub>t</sub> be the normalized value of some underlying market index, like a global equity index fund. By "normalized" I mean that, for instance, it's relative to S<sub>0</sub> = $1. You pursue some investment strategy, possibly including leverage, based on S<sub>t</sub>, so your final wealth is a function m(S<sub>t</sub>) of S<sub>t</sub>. Likewise, at least some other donors have exposure to S<sub>t</sub>, so their donations are also a function o(S<sub>t</sub>) of S<sub>t</sub>. For example, suppose that half of other donors have non-equity investments, and the other half have everything they plan to donate in the equity index fund. Then o(S<sub>t</sub>) = N * (1/2 + S<sub>t</sub>/2), where N is some scaling factor, 1/2 is from the non-equity assets, and S<sub>t</sub>/2 is from the equity assets whose donated value is proportional to the index performance.
-
-The value that you contribute by your donation is the difference in good done by the cause/charity with your donations vs. without them:
-<blockquote>
-utility(your wealth) = utility(m(S<sub>t</sub>)) = g(m(S<sub>t</sub>) + o(S<sub>t</sub>)) - g(o(S<sub>t</sub>)) = (m(S<sub>t</sub>) + o(S<sub>t</sub>))<sup>&alpha;</sup> - o(S<sub>t</sub>)<sup>&alpha;</sup>.
-</blockquote>
-
-Suppose o(S<sub>t</sub>) = N S<sub>t</sub><sup>&eta;</sup> for some constant N and some &eta; in the interval [0,&infin;). In practice I'd guess that &eta; is like 0.5 or 1, but it could be higher or lower. Then 
-<blockquote>
-utility(m(S<sub>t</sub>)) = (m(S<sub>t</sub>) + N S<sub>t</sub><sup>&eta;</sup>)<sup>&alpha;</sup> - (N S<sub>t</sub><sup>&eta;</sup>)<sup>&alpha;</sup>. &nbsp;&nbsp;&nbsp;  (call this "<span id="utility_equation1" style="color:green">utility equation 1</span>")
-</blockquote>
-
-Say you're following a c-times leveraged strategy, so that m(S<sub>t</sub>) = M V<sub>t</sub>, where M is some constant, and V<sub>t</sub> is the performance of the leveraged investment, normalized to the same scale as S<sub>t</sub>, e.g., normalized such that V<sub>0</sub> = $1. Combining the <a href="#regular_S_t">regular S<sub>t</sub> equation</a> and the <a href="#leveraged_V_t">leveraged V<sub>t</sub> equation</a> and assuming that V<sub>0</sub> = S<sub>0</sub> = 1:
-<blockquote>
-V<sub>t</sub> / S<sub>t</sub><sup>c</sup> = [exp{ (r + (&mu;-r)c) t - c<sup>2</sup>&sigma;<sup>2</sup>t/2 + c&sigma;W<sub>t</sub> }] / [exp(&mu;tc - &sigma;<sup>2</sup>tc/2 + &sigma;cW<sub>t</sub>)]<br />
-= exp{ rt + &mu;ct - rct - c<sup>2</sup>&sigma;<sup>2</sup>t/2 + c&sigma;W<sub>t</sub> - &mu;tc + &sigma;<sup>2</sup>tc/2 - &sigma;cW<sub>t</sub> }<br />
-= exp{ rt - rct - c<sup>2</sup>&sigma;<sup>2</sup>t/2 + &sigma;<sup>2</sup>tc/2 }<br />
-= exp{ (1-c)rt + (c-c<sup>2</sup>)&sigma;<sup>2</sup>t/2 }, which is a constant (independent of S<sub>t</sub>).((This equation can also be found in eqn. 10 on p. 9 of "<a href="http://www.math.nyu.edu/faculty/avellane/LeveragedETF20090515.pdf">Path-dependence of Leveraged ETF returns</a>" with f = 0, &beta; = c, &lambda; = 0, and &sigma;<sub>s</sub> having a constant value &sigma; for all s.)) Denote it by q.
-</blockquote>
-So
-<blockquote>
-m(S<sub>t</sub>) = M V<sub>t</sub> = M q S<sub>t</sub><sup>c</sup>.
-</blockquote>
-Inversely:
-<blockquote>
-[m(S<sub>t</sub>)/(Mq)]<sup>1/c</sup> = S<sub>t</sub>.
-</blockquote>
-Substituting back into <a href="#utility_equation1">utility equation 1</a>:
-<blockquote>
-utility(m(S<sub>t</sub>)) = (m(S<sub>t</sub>) + N [m(S<sub>t</sub>)/(Mq)]<sup>&eta;/c</sup>)<sup>&alpha;</sup> - {N [m(S<sub>t</sub>)/(Mq)]<sup>&eta;/c</sup>}<sup>&alpha;</sup>. &nbsp;&nbsp;&nbsp;  (call this "<span id="utility_equation2" style="color:green">utility equation 2</span>")
-</blockquote>
-Finally we have utility purely as a function of your own donation amount that factors in its correlation with others' donations. Now let's see what shape the function has given some plausible parameter values.
-
-Take M = 10<sup>5</sup>, meaning the absolute amount you donate is $100,000 times V<sub>t</sub>/V<sub>0</sub>. Suppose N = 10<sup>7</sup>, which means the scale of others' donations is about 100 times yours. Assume &eta;=1 for simplicity.
-
-<h4>Simple scenario: c=1</h4>
-
-Suppose you don't leverage investments (c=1). Then q=1. <a href="#utility_equation2">Utility equation 2</a> becomes
-<blockquote>
-utility(m(S<sub>t</sub>)) = (m(S<sub>t</sub>) + N m(S<sub>t</sub>)/M)<sup>&alpha;</sup> - (N m(S<sub>t</sub>)/M)<sup>&alpha;</sup>.
-</blockquote>
-Say N/M = 100, i.e., total funding for the cause/charity is roughly 100 times your donations. Then we have
-<blockquote>
-utility(m(S<sub>t</sub>)) = (m(S<sub>t</sub>) + 100 m(S<sub>t</sub>))<sup>&alpha;</sup> - (100 m(S<sub>t</sub>))<sup>&alpha;</sup><br />
-= (101 m(S<sub>t</sub>))<sup>&alpha;</sup> - (100 m(S<sub>t</sub>))<sup>&alpha;</sup><br />
-= 101<sup>&alpha;</sup> m(S<sub>t</sub>)<sup>&alpha;</sup> - 100<sup>&alpha;</sup> m(S<sub>t</sub>)<sup>&alpha;</sup><br />
-= (101<sup>&alpha;</sup> - 100<sup>&alpha;</sup>) m(S<sub>t</sub>)<sup>&alpha;</sup>.
-</blockquote>
-For a given &alpha;, the first factor is constant. Hence, the value of your donation scales as utility(wealth) = (wealth)<sup>&alpha;</sup> -- just like it did when we assumed you were the only major donor! This is because, when all donors are perfectly correlated according to market performance, it's <a href="http://effective-altruism.com/ea/h8/best_way_to_invest_with_leverage/36m" title="Paul Christiano says: 'as if there were one giant philanthropist'">as though there's only one big donor</a> (who donates 101 m(S<sub>t</sub>)), and his/her donations have value (wealth)<sup>&alpha;</sup>.
-
-<h4>Scenario: c=2</h4>
-
-Let's calculate q with the following parameter choices:
-<blockquote>
-q = exp{ (1-c)rt + (c-c<sup>2</sup>)&sigma;<sup>2</sup>t/2 }<br />
-= exp{ (1-2) * <REPLACE>annual_margin_interest_rate</REPLACE> * <REPLACE>years_until_donate</REPLACE> + (2-2<sup>2</sup>) * <REPLACE>annual_sigma</REPLACE><sup>2</sup> * <REPLACE>years_until_donate</REPLACE>/2 }<br />
-= 0.3 <span style="color:red">ADD ACTUAL PYTHON CALC OF THIS LATER</span>
-</blockquote>
-
-Then <a href="#utility_equation2">utility equation 2</a> becomes
-<blockquote>
-utility(m(S<sub>t</sub>)) = (m(S<sub>t</sub>) + N [m(S<sub>t</sub>)/(M * .3)]<sup>1/2</sup>)<sup>&alpha;</sup> - {N [m(S<sub>t</sub>)/(M * .3)]<sup>1/2</sup>}<sup>&alpha;</sup><br />
-= (m(S<sub>t</sub>) + 10<sup>7</sup> [m(S<sub>t</sub>)/(30000)]<sup>1/2</sup>)<sup>&alpha;</sup> - {10<sup>7</sup> [m(S<sub>t</sub>)/(30000)]<sup>1/2</sup>}<sup>&alpha;</sup><br />
-= (m(S<sub>t</sub>) + 10<sup>7</sup> &radic;<span style="text-decoration: overline">m(S<sub>t</sub>)</span>/173.2)<sup>&alpha;</sup> - (10<sup>7</sup> &radic;<span style="text-decoration: overline">m(S<sub>t</sub>)</span>/173.2)<sup>&alpha;</sup><br />
-= (m(S<sub>t</sub>) + 57737 &radic;<span style="text-decoration: overline">m(S<sub>t</sub>)</span>)<sup>&alpha;</sup> - (57737 &radic;<span style="text-decoration: overline">m(S<sub>t</sub>)</span>)<sup>&alpha;</sup>.
-</blockquote>
-Even for &alpha; = 0.5, say, <a href="https://www.wolframalpha.com/input/?i=plot%5B+%28m+%2B+57737+sqrt%28m%29%29%5E.5+-+%2857737+sqrt%28m%29%29%5E.5%2C+m%2C+0%2C+1000000%5D">this curve</a> is relatively linear in m(S<sub>t</sub>), and for &alpha; closer to 1, it's almost perfectly straight.
-
-<h4>Scenario: c=3</h4>
-
-<blockquote>
-q = exp{ (1-c)rt + (c-c<sup>2</sup>)&sigma;<sup>2</sup>t/2 }<br />
-= exp{ (1-3) * <REPLACE>annual_margin_interest_rate</REPLACE> * <REPLACE>years_until_donate</REPLACE> + (3-3<sup>2</sup>) * <REPLACE>annual_sigma</REPLACE><sup>2</sup> * <REPLACE>years_until_donate</REPLACE>/2 }<br />
-= 0.046 <span style="color:red">ADD ACTUAL PYTHON CALC OF THIS LATER</span>
-</blockquote>
-
-Then <a href="#utility_equation2">utility equation 2</a> becomes
-<blockquote>
-utility(m(S<sub>t</sub>)) = (m(S<sub>t</sub>) + N [m(S<sub>t</sub>)/(M * 0.046)]<sup>1/3</sup>)<sup>&alpha;</sup> - {N [m(S<sub>t</sub>)/(M * 0.046)]<sup>1/3</sup>}<sup>&alpha;</sup><br />
-= (m(S<sub>t</sub>) + 10<sup>7</sup> [m(S<sub>t</sub>)/(4600)]<sup>1/3</sup>)<sup>&alpha;</sup> - {10<sup>7</sup> [m(S<sub>t</sub>)/(4600)]<sup>1/3</sup>}<sup>&alpha;</sup><br />
-= (m(S<sub>t</sub>) + 10<sup>7</sup> m(S<sub>t</sub>)<sup>1/3</sup>/16.6)<sup>&alpha;</sup> - (10<sup>7</sup> m(S<sub>t</sub>)<sup>1/3</sup>/16.6)<sup>&alpha;</sup><br />
-= (m(S<sub>t</sub>) + 602400 m(S<sub>t</sub>)<sup>1/3</sup>)<sup>&alpha;</sup> - (602400 m(S<sub>t</sub>)<sup>1/3</sup>)<sup>&alpha;</sup>.
-</blockquote>
-Even for &alpha; = 0.5, say, <a href="https://www.wolframalpha.com/input/?i=plot%5B+%28m+%2B+602400m%5E%281%2F3%29%29%5E.5+-+%28602400+m%5E%281%2F3%29%29%5E.5%2C+m%2C+0%2C+1000000%5D">this curve</a> is relatively linear in m(S<sub>t</sub>), and for &alpha; closer to 1, it's almost perfectly straight.
-
-<h4>Take-home lessons</h4>
-
-For non-leveraged investing, even if you're a relatively small donor, as long as your donations are highly correlated with everyone else's donations based on market performance, then it seems as though the shape of your utility function will be utility(wealth) = (wealth)<sup>&alpha;</sup>, where &alpha; reflects the charity's degree of diminishing returns to total financial resources.
-
-However, when you use leverage, your returns are proportional to a power of ordinary returns, so the utility added by a certain amount of investment return becomes closer to linear in wealth.
-
-In the remainder of this piece, I assume that utility(wealth) = (wealth)<sup>&alpha;</sup> for some fixed value &alpha; regardless of leverage, but it's important to note that this assumption is actually not true when there are other donors whose returns are correlated with yours. In this situation, the correct &alpha; to use is higher than (and implies a utility function more linear than) what you'd expect, so assuming a constant &alpha; actually understates the case for leverage. If the cause or charity is tiny and your donations account for most of the funding, then a constant &alpha; value is indeed appropriate.
-
-Finally, if the donations of others aren't significantly correlated with your investment performance, then if the charity is big, you should be roughly risk-neutral with your investments, which implies a strong prima facie case for leverage.
-
-
-<!--
-<h4>Scenario: huge c</h4>
-
-What happens when we have lots of leverage? Note that
-<blockquote>
-(1/q)<sup>1/c</sup> = exp{ [ -(1-c)rt - (c-c<sup>2</sup>)&sigma;<sup>2</sup>t/2 ]/c }<br />
-= exp{ -(1/c-1)rt - (1-c)&sigma;<sup>2</sup>t/2 }<br />
-= exp{ (1-1/c)rt + (c-1)&sigma;<sup>2</sup>t/2 }.
-</blockquote>
-Since &sigma;<sup>2</sup> is typically about the same size as r, when c becomes big, this is dominated by exp{ (c-1)&sigma;<sup>2</sup>t/2 }.
-
-Now <a href="#utility_equation2">utility equation 2</a> becomes
-<blockquote>
-utility(m(S<sub>t</sub>)) = (m(S<sub>t</sub>) + N [m(S<sub>t</sub>)/M)]<sup>1/c</sup> exp{ (c-1)&sigma;<sup>2</sup>t/2 } )<sup>&alpha;</sup> - {N [m(S<sub>t</sub>)/(M)]<sup>1/c</sup> exp{ (c-1)&sigma;<sup>2</sup>t/2 } }<sup>&alpha;</sup>
-</blockquote>
-
-
-BELOW NOT USED...
-
-As we saw with the <a href="#regular_S_t">regular S<sub>t</sub> equation</a>, S<sub>t</sub>/S<sub>0</sub> has a lognormal distribution with location parameter &mu;t - &sigma;<sup>2</sup>t/2 and scale parameter &sigma;&radic;<span style="text-decoration: overline">t</span>. As shorthand, let's denote this by
-<blockquote>
-S<sub>t</sub>/S<sub>0</sub> ~ LN[&mu;t - &sigma;<sup>2</sup>t/2, &sigma;<sup>2</sup>t].
-</blockquote>
-This implies
-<blockquote>
-S<sub>t</sub> ~ LN[ln(S<sub>0</sub>) + &mu;t - &sigma;<sup>2</sup>t/2, &sigma;<sup>2</sup>t].<br />
-S<sub>t</sub><sup>&eta;</sup> ~ LN[ln(S<sub>0</sub>)&eta; + &mu;t&eta; - &sigma;<sup>2</sup>t&eta;/2, &sigma;<sup>2</sup>&eta;<sup>2</sup>t/4].<br />
-o(S<sub>t</sub>) = N * S<sub>t</sub><sup>&eta;</sup> ~ LN[ln(S<sub>0</sub>)&eta; - ln(N) + &mu;t&eta; - &sigma;<sup>2</sup>t&eta;/2, &sigma;<sup>2</sup>&eta;<sup>2</sup>t/4].<br />
-o(S<sub>t</sub>)<sup>&alpha;</sup> = (N * S<sub>t</sub><sup>&eta;</sup>)<sup>&alpha;</sup> ~ LN[ln(S<sub>0</sub>)&eta;&alpha; - ln(N)&alpha; + &mu;t&eta;&alpha; - &sigma;<sup>2</sup>t&eta;&alpha;/2, &sigma;<sup>2</sup>&eta;<sup>2</sup>&alpha;<sup>2</sup>t/4].<br />
-</blockquote>
--->
+<h2>How risk-averse should you be?</h2>
 
 In the rest of this piece, I assume that utility(wealth) = (wealth)<sup>&alpha;</sup> for some alpha in the interval (0,1]. By default I take &alpha;=0.5 so that utility(wealth) = utility(wealth) = &radic;<span style="text-decoration: overline">wealth</span>wealth</span>.
 
@@ -485,9 +204,6 @@ fri very much b/c need stability and strong diminish returns
 hsa is closer to 1 b/c even if I got a lot of $, might have good room, and not strongly dependent on market performance, but not sure if it's above .8. 5^.8 = ...
 
 if splitting donations, could split savings, some to safe, some to risky. Probably some way to hack that in the sense of doing a blended strategy?
-
-
-
 
 
 
@@ -505,11 +221,11 @@ The Mean, Median, Min, and Max columns of the following table are distributional
 
 Since these results scale linearly with the amount of money being invested, the most relevant number is just the percent by which margin investing beats regular: The mean for margin is <REPLACE>margin_better_than_regular_percent</REPLACE>% higher, and the median is <REPLACE>margin_better_than_regular_median_percent</REPLACE>% higher.
 
-If your altruistic utility(wealth) = &radic;<span style="text-decoration: overline">wealth</span>, then margin gives <REPLACE>margin_better_than_regular_EU_percent</REPLACE>% higher expected utility. To get a sense of how this expected-utility increase translates to real dollars, note that when utility(wealth) = &radic;<span style="text-decoration: overline">wealth</span>, a <REPLACE>margin_better_than_regular_EU_percent</REPLACE>% increase in expected utility is like a guaranteed <REPLACE>equiv_percent_increase_in_savings</REPLACE>% increase in invested savings because &radic;<span style="text-decoration: overline"><REPLACE>equiv_fractional_increase_in_savings_plus_1</REPLACE></span> = <REPLACE>fractional_increase_in_EU_plus_1</REPLACE>. The investor in this scenario starts out saving <REPLACE>initial_annual_income_for_investing</REPLACE>/year, so a <REPLACE>equiv_percent_increase_in_savings</REPLACE>% increase is as if you saved an extra <REPLACE>equiv_increase_in_savings</REPLACE>/year.
+If your altruistic utility(wealth) = &radic;<span style="text-decoration: overline">wealth</span>, then margin gives <REPLACE>margin_better_than_regular_EU_percent</REPLACE>% higher expected utility. To get a sense of how this expected-utility increase translates to real dollars, note that when utility(wealth) = &radic;<span style="text-decoration: overline">wealth</span>, a <REPLACE>margin_better_than_regular_EU_percent</REPLACE>% increase in expected utility is like a guaranteed <REPLACE>equiv_percent_increase_in_savings</REPLACE>% increase in invested savings because &radic;<span style="text-decoration: overline"><REPLACE>equiv_fractional_increase_in_savings_plus_1</REPLACE></span> = <REPLACE>fractional_increase_in_EU_plus_1</REPLACE>. The investor in this scenario starts out saving $30,000/year, so a <REPLACE>equiv_percent_increase_in_savings</REPLACE>% increase is as if you saved an extra <REPLACE>equiv_increase_in_savings</REPLACE>/year.
 
 It's not clear that the extra hassle of margin investing is worth this increase in the expected utility of your donations. Margin investing requires rebalancing your account each month. Say this takes 20 hours/year, with your time valued at $50/hour. That's a cost of $1000/year for maintainence. There's also a one-time learning curve to understand margin investing in the first place and set up an Interactive Brokers account. Finally, the additional uncertainty of margin-invested returns may make planning more difficult for the charities to which you intend to donate, assuming they're counting on your future donations to some extent ahead of time.
 
-Note that this analysis would be more favorable to margin investing if your utility was linear in wealth, such that you took the mean wealth numbers at face value. In this case, over the <REPLACE>years_until_donate</REPLACE> years of investing, using margin gave you <REPLACE>margin_better_than_regular</REPLACE> more expected donated wealth, or <REPLACE>margin_better_than_regular</REPLACE>/<REPLACE>years_until_donate</REPLACE> = <REPLACE>margin_better_than_regular_per_year</REPLACE> more per year. This seems more likely to be worth the cost of margin investing.
+Note that this analysis would be more favorable to margin investing if your utility was linear in wealth, such that you took the mean wealth numbers at face value. In this case, over the 15 years of investing, using margin gave you <REPLACE>margin_better_than_regular</REPLACE> more expected donated wealth, or <REPLACE>margin_better_than_regular</REPLACE>/15 = <REPLACE>margin_better_than_regular_per_year</REPLACE> more per year. This seems more likely to be worth the cost of margin investing.
 
 So the basic conclusion is that margin investing is probably worthwhile only if the utility of additional donated dollars doesn't decline that much in possible worlds where you (and hence probably the market as a whole) make large returns compared with possible worlds where you (and hence probably the market as a whole) make smaller returns.
 
@@ -527,7 +243,7 @@ The next chart shows (real present value) wealth trajectories for the first 20 i
 
 <span class="fullwidthimage"><img src="<REPLACE>default_wealthtraj</REPLACE>" title="I release this image into the public domain worldwide." /></span>
 
-An investor's margin-to-assets ratio is debt/(total securities value). For example, if you start with $5 and borrow another $5 to buy $10 of an ETF, your margin is $5 and assets are $10, giving a margin-to-assets ratio of .5. The following graph shows the average progression of the simulated investors' margin-to-assets ratios over time. .<REPLACE>volunary_max_margin_to_assets_as_percent</REPLACE> is the target leverage when buying new securities. The decrease over time occurs because the securities tend to increase in value, which creates more assets for the same amount of debt.
+An investor's margin-to-assets ratio is debt/(total securities value). For example, if you start with $5 and borrow another $5 to buy $10 of an ETF, your margin is $5 and assets are $10, giving a margin-to-assets ratio of .5. The following graph shows the average progression of the simulated investors' margin-to-assets ratios over time. .45 is the target leverage when buying new securities. The decrease over time occurs because the securities tend to increase in value, which creates more assets for the same amount of debt.
 
 <span class="fullwidthimage"><img src="<REPLACE>default_avgMTA</REPLACE>" title="I release this image into the public domain worldwide." /></span>
 
@@ -543,33 +259,33 @@ Since the investor sells the biggest capital losses, both for tax-loss harvestin
 
 The following parameters are what I refer to as the "default" setting in the rest of this essay:
 <ul>
-<li>invest for <REPLACE>years_until_donate</REPLACE> years before donating</li>
-<li>savings are <REPLACE>initial_annual_income_for_investing</REPLACE>/year in the first year, with <REPLACE>annual_real_income_growth_percent</REPLACE>% real annual growth (i.e., after <REPLACE>years_until_donate</REPLACE> years, inflation-adjusted savings are about <REPLACE>yearly_income_at_end_of_investing_period</REPLACE>/year), with a slight penalty the more times the person is laid off</li>
-<li>short-term capital-gains tax rate = <REPLACE>short_term_cap_gains_rate</REPLACE></li>
-<li>long-term capital-gains tax rate = <REPLACE>long_term_cap_gains_rate</REPLACE></li>
-<li>state income-tax rate (whether short-term or long-term gains) = <REPLACE>state_income_tax</REPLACE></li>
-<li>monthly probability of being laid off = <REPLACE>monthly_probability_of_layoff</REPLACE></li>
-<li>monthly probability of finding work after being laid off = <REPLACE>monthly_probability_find_work_after_laid_off</REPLACE></li>
-<li>average annual returns (continuously compounded) of index ETF = <REPLACE>annual_mu_as_percent</REPLACE> (This assumes a return of <a href="http://www.marketwatch.com/story/stocks-future-return-just-56-annualized-2012-09-21" title="&quot;Stocks’ future return: Just 5.6% annualized&quot;">5.6%</a> not continuously compounded, since ln(1 + 0.056) = 0.054. This estimate is conservative, since historical returns have been more like ~10% in the USA. The reason to use continuous interest is that stock prices are compounded daily <REPLACE>trading_days_per_year</REPLACE> times per year, so the return is approximately continuously compounded anyway. To see this, note that (1+ln(1.056)/<REPLACE>trading_days_per_year</REPLACE>)<sup><REPLACE>trading_days_per_year</REPLACE></sup> &asymp; 1.056.)<!--I THINK MY LN(1.056) = .054 THING MIGHT BE MISGUIDED. I don't use continuously compounded returns after fixing the bug?? Oh no, I do. :) because a daily mu of .054 is like a yearly mu of .056 :)--></li>
-<li>annual volatility of index ETF = <REPLACE>annual_sigma_as_percent</REPLACE> (see "<a href="http://reducing-suffering.org/do-leveraged-etfs-have-higher-long-run-returns/">Do Leveraged ETFs Have Higher Long-Run Returns?</a>" for how I calculated this; you could also <a href="http://www.indexologyblog.com/2014/02/04/whats-a-normal-vix-level/" title="&quot;What’s a Normal VIX Level?&quot;">look</a> at the <a href="https://en.wikipedia.org/wiki/VIX">VIX index</a>)</li>
-<li>"medium black swan" probability = <REPLACE>medium_black_swan_prob</REPLACE></li>
-<li>annual volatility for "medium black swan" event = <REPLACE>annual_sigma_for_medium_black_swan</REPLACE></li>
-<li>"large black swan" probability = <REPLACE>large_black_swan_prob</REPLACE></li>
-<li>annual volatility for "large black swan" event = <REPLACE>annual_sigma_for_large_black_swan</REPLACE></li>
-<li>trading days per year = <REPLACE>trading_days_per_year</REPLACE></li>
-<li>margin interest rate = <REPLACE>annual_margin_interest_rate_as_percent</REPLACE> (The actual current margin rate on Interactive Brokers <a href="https://www.interactivebrokers.com/en/index.php?f=interest&p=schedule2" title="&quot;Interest Rates Charged to You on Margin Loan Balances&quot;">is</a> 1.12% for account balances of at least $100K and less than $1M. I chose a higher value of <REPLACE>annual_margin_interest_rate_as_percent</REPLACE> to make the calculations more conservative and because current interest rates are extremely low by <a href="http://www.macrotrends.net/1433/historical-libor-rates-chart" title="&quot;Historical LIBOR Rates Chart&quot;">historical standards</a>, which is a trend that may not last for <REPLACE>years_until_donate</REPLACE> more years.)</li>
-<li>inflation rate = <REPLACE>inflation_rate_as_percent</REPLACE> (see p. 5 of <a href="http://reducing-suffering.org/wp-content/uploads/2014/09/donatable-money.pdf" title="&quot;How Much Money Could a Person Donate by Having a Conventional Job?&quot;">this piece</a>)</li>
-<li>broker-imposed max margin-to-assets ratio in your margin account = <REPLACE>broker_max_margin_to_assets_ratio_as_percent</REPLACE>% (For simplicity, I'm not distinguishing initial margin vs. maintenance margin.)</li>
-<li>voluntarily self-imposed max margin-to-assets ratio in the account = <REPLACE>volunary_max_margin_to_assets_as_percent</REPLACE>% (monthly rebalancing to keep margin below this ratio)</li>
-<li>trading fee per dollar of securities bought or sold = $<REPLACE>fee_per_dollar_traded</REPLACE> (this counts both Interactive Brokers trading fees and bid-ask spreads)</li>
-<li>number of random iterations = <REPLACE>num_trials</REPLACE></li><span style="color:orange">This often gets messed up</span>
+<li>invest for 15 years before donating</li>
+<li>savings are $30,000/year in the first year, with 2% real annual growth (i.e., after 15 years, inflation-adjusted savings are about $40,376/year), with a slight penalty the more times the person is laid off</li>
+<li>short-term capital-gains tax rate = 0.28</li>
+<li>long-term capital-gains tax rate = 0.15</li>
+<li>state income-tax rate (whether short-term or long-term gains) = 0.05</li>
+<li>monthly probability of being laid off = 0.01</li>
+<li>monthly probability of finding work after being laid off = 0.2</li>
+<li>average annual returns (continuously compounded) of index ETF = 5.4% (This assumes a return of <a href="http://www.marketwatch.com/story/stocks-future-return-just-56-annualized-2012-09-21" title="&quot;Stocks’ future return: Just 5.6% annualized&quot;">5.6%</a> not continuously compounded, since ln(1 + 0.056) = 0.054. This estimate is conservative, since historical returns have been more like ~10% in the USA. The reason to use continuous interest is that stock prices are compounded daily 252 times per year, so the return is approximately continuously compounded anyway. To see this, note that (1+ln(1.056)/252)<sup>252</sup> &asymp; 1.056.)<!--I THINK MY LN(1.056) = .054 THING MIGHT BE MISGUIDED. I don't use continuously compounded returns after fixing the bug?? Oh no, I do. :) because a daily mu of .054 is like a yearly mu of .056 :)--></li>
+<li>annual volatility of index ETF = 22% (see "<a href="http://reducing-suffering.org/do-leveraged-etfs-have-higher-long-run-returns/">Do Leveraged ETFs Have Higher Long-Run Returns?</a>" for how I calculated this; you could also <a href="http://www.indexologyblog.com/2014/02/04/whats-a-normal-vix-level/" title="&quot;What’s a Normal VIX Level?&quot;">look</a> at the <a href="https://en.wikipedia.org/wiki/VIX">VIX index</a>)</li>
+<li>"medium black swan" probability = 0.004</li>
+<li>annual volatility for "medium black swan" event = 1.1</li>
+<li>"large black swan" probability = 0.0001</li>
+<li>annual volatility for "large black swan" event = 4.1</li>
+<li>trading days per year = 252</li>
+<li>margin interest rate = 3.0% (The actual current margin rate on Interactive Brokers <a href="https://www.interactivebrokers.com/en/index.php?f=interest&p=schedule2" title="&quot;Interest Rates Charged to You on Margin Loan Balances&quot;">is</a> 1.12% for account balances of at least $100K and less than $1M. I chose a higher value of 3.0% to make the calculations more conservative and because current interest rates are extremely low by <a href="http://www.macrotrends.net/1433/historical-libor-rates-chart" title="&quot;Historical LIBOR Rates Chart&quot;">historical standards</a>, which is a trend that may not last for 15 more years.)</li>
+<li>inflation rate = 3.0% (see p. 5 of <a href="http://reducing-suffering.org/wp-content/uploads/2014/09/donatable-money.pdf" title="&quot;How Much Money Could a Person Donate by Having a Conventional Job?&quot;">this piece</a>)</li>
+<li>broker-imposed max margin-to-assets ratio in your margin account = 50% (For simplicity, I'm not distinguishing initial margin vs. maintenance margin.)</li>
+<li>voluntarily self-imposed max margin-to-assets ratio in the account = 45% (monthly rebalancing to keep margin below this ratio)</li>
+<li>trading fee per dollar of securities bought or sold = $0.000285 (this counts both Interactive Brokers trading fees and bid-ask spreads)</li>
+<li>number of random iterations = 1</li><span style="color:orange">This often gets messed up</span>
 </ul>
 
 <h4>Explanation of "black swan" probabilities</h4>
 
 Simple stock-market models typically use geometric Brownian motion. This is fine for some purposes, but when considering long-term leverage investing, the <a href="https://en.wikipedia.org/wiki/Fat-tailed_distribution">fat tails</a> of actual financial distributions become important. "<a href="http://www.investmentreview.com/files/2009/12/leveraged_portfolios1.pdf">Leveraged Canadian Stock Portfolios: Long-Run Effects on Wealth and Risk</a>" notes that a 4X leverage strategy would have done badly between 1950 and 2001. One reason was <a href="https://en.wikipedia.org/wiki/Black_Monday_(1987)">1987's Black Monday</a>, which would have almost wiped out the whole margin account balance due to a <i>one-day</i> loss of ~23%. (Even end-of-day rebalancing wouldn't have been able to prevent losing almost all account value.) Clearly, "<a href="https://en.wikipedia.org/wiki/Black_swan_theory">black swan</a>" events like these can make a big difference to the final analysis.
 
-The parameters of my normal distribution are &mu; = <REPLACE>annual_mu</REPLACE> and &sigma; = <REPLACE>annual_sigma</REPLACE>. Consider a one-day market movement. Assuming <REPLACE>trading_days_per_year</REPLACE> trading days per year, the expected daily movement is <REPLACE>annual_mu</REPLACE>/<REPLACE>trading_days_per_year</REPLACE> = <REPLACE>annual_mu/trading_days_per_year</REPLACE>, and the standard deviation is <REPLACE>annual_sigma</REPLACE> / &radic;<span style="text-decoration: overline"><REPLACE>trading_days_per_year</REPLACE></span> = <REPLACE>annual_sigma/sqrt(trading_days_per_year)</REPLACE>. Since the standard deviation is so much bigger than the mean, let's just focus on the standard deviation and assume a mean of 0.
+The parameters of my normal distribution are &mu; = 0.054 and &sigma; = 0.22. Consider a one-day market movement. Assuming 252 trading days per year, the expected daily movement is 0.054/252 = 0.00021, and the standard deviation is 0.22 / &radic;<span style="text-decoration: overline">252</span> = 0.014. Since the standard deviation is so much bigger than the mean, let's just focus on the standard deviation and assume a mean of 0.
 
 A loss of 23% in a single day (Black Monday) means multiplying previous prices by (1-0.23). Since geometric Brownian motion implies continuous compounding, we should convert this to a continuous rate. We want a change C such that exp(C) = 1-0.23, which means C = ln(1-0.23) = -0.26. This is a daily return that should be able to be sampled from our distribution of daily returns -- the distribution with a mean of (roughly) 0 and a standard deviation of 0.014. But the <a href="https://en.wikipedia.org/wiki/Standard_score">z-value</a> for a -0.26 return is -0.26/.014 = -19, which has a probability so small that online normal-distribution calculators can't handle it. Basically, this event should have never happened. But it did once over the 51-year period from 1950 to 2001. This needs to be addressed in the simulations or else they risk ignoring huge risk from black swans.
 
@@ -577,11 +293,11 @@ There are many proposals for modeling fat-tailed distributions in finance. To ke
 
 Also note that there's a bit of double counting in that for non-black-swan days, I'm using a volatility estimate based on long-run daily-return data, which include some highly volatile periods. Ideally I would exclude the black swans from the data when calculating the non-black-swan mean and variance, but I assume the difference this would make is small, and neglecting to do it just makes the calculations more cautious.
 
-I looked at Wikipedia's "List of largest daily changes in the Dow Jones Industrial Average", focusing on the <a href="https://en.wikipedia.org/wiki/List_of_largest_daily_changes_in_the_Dow_Jones_Industrial_Average#Largest_percentage_changes">largest percentage changes</a>. The dates go back to 1898. The range from 1898 to 2014 is 116 years. Multiplying by <REPLACE>trading_days_per_year</REPLACE> trading days per year, that's roughly 30,000 days. I copied the changes into <a href="https://docs.google.com/spreadsheets/d/1-jeD5_jiHmhGhP-uMoDwI153ZibLBBfGr3Kgn7PgvPo/edit#gid=0" title="&quot;Quick-and-dirty black-swans calculation&quot;">a spreadsheet</a> and computed the equivalent continuous-compounding daily returns.
+I looked at Wikipedia's "List of largest daily changes in the Dow Jones Industrial Average", focusing on the <a href="https://en.wikipedia.org/wiki/List_of_largest_daily_changes_in_the_Dow_Jones_Industrial_Average#Largest_percentage_changes">largest percentage changes</a>. The dates go back to 1898. The range from 1898 to 2014 is 116 years. Multiplying by 252 trading days per year, that's roughly 30,000 days. I copied the changes into <a href="https://docs.google.com/spreadsheets/d/1-jeD5_jiHmhGhP-uMoDwI153ZibLBBfGr3Kgn7PgvPo/edit#gid=0" title="&quot;Quick-and-dirty black-swans calculation&quot;">a spreadsheet</a> and computed the equivalent continuous-compounding daily returns.
 
-Except for Black Monday, the returns are relatively uniform, but a normal approximation will do. The standard deviation of the 39 returns excluding Black Monday is about 0.09, but this estimate is inflated because my data set includes numbers like -0.07 and +0.07 but no numbers like -0.02, 0, or +0.02 (i.e., the middle of the distribution is empty). Instead, I estimated the standard deviation by eye. The numbers with the smallest magnitudes in the data set are about -0.07 and +0.07. Say that's one standard deviation from an assumed mean of 0. Then -0.14 and +0.14 would be two standard deviations from 0. Observations that extreme or more should occur 5% of the time, and indeed, we see two data points out of the 39 that are roughly 0.14 in magnitude. Now, the 39 numbers are missing data within one standard deviation of 0. About 68% of observations fall within one standard deviation of the mean. So we can assume that the 39 data points correspond to 100%-68% = 32% of all instances of returns drawn from this distribution. In other words, we can imagine there were 39/.32 = 122 events drawn from this distribution in total, out of 30,000 total days. So the probability that a given daily return will be drawn from this distribution out of the mixture of normals is 122/30,000 = 0.004. Finally, note that the standard deviation of 0.07 is for one day, which means the annualized volatility would be 0.07 * &radic;<span style="text-decoration: overline"><REPLACE>trading_days_per_year</REPLACE></span> = 1.1. These are the parameters I used for medium-scale black swans.
+Except for Black Monday, the returns are relatively uniform, but a normal approximation will do. The standard deviation of the 39 returns excluding Black Monday is about 0.09, but this estimate is inflated because my data set includes numbers like -0.07 and +0.07 but no numbers like -0.02, 0, or +0.02 (i.e., the middle of the distribution is empty). Instead, I estimated the standard deviation by eye. The numbers with the smallest magnitudes in the data set are about -0.07 and +0.07. Say that's one standard deviation from an assumed mean of 0. Then -0.14 and +0.14 would be two standard deviations from 0. Observations that extreme or more should occur 5% of the time, and indeed, we see two data points out of the 39 that are roughly 0.14 in magnitude. Now, the 39 numbers are missing data within one standard deviation of 0. About 68% of observations fall within one standard deviation of the mean. So we can assume that the 39 data points correspond to 100%-68% = 32% of all instances of returns drawn from this distribution. In other words, we can imagine there were 39/.32 = 122 events drawn from this distribution in total, out of 30,000 total days. So the probability that a given daily return will be drawn from this distribution out of the mixture of normals is 122/30,000 = 0.004. Finally, note that the standard deviation of 0.07 is for one day, which means the annualized volatility would be 0.07 * &radic;<span style="text-decoration: overline">252</span> = 1.1. These are the parameters I used for medium-scale black swans.
 
-Now to handle Black Monday. Suppose that it was 1 standard deviation from the mean of a large-scale black swan distribution. That implies the daily volatility for this distribution is 0.26, which annualizes to 0.26 * &radic;<span style="text-decoration: overline"><REPLACE>trading_days_per_year</REPLACE></span> = 4.1. It happened once in 30,000 days, so the probability of drawing from this distribution is 0.00003. To make the calculations more conservative and help account for black-swan changes more extreme than anything we've seen before, increase the probability threefold to 0.0001. In other words, the probability that a <REPLACE>years_until_donate</REPLACE>-year investing period hits at least one such event is 1-Prob(hit zero of them) = 1-0.9999<sup>(<REPLACE>years_until_donate</REPLACE> * <REPLACE>trading_days_per_year</REPLACE>)</sup> = <REPLACE>prob_at_least_1_big_black_swan</REPLACE>.
+Now to handle Black Monday. Suppose that it was 1 standard deviation from the mean of a large-scale black swan distribution. That implies the daily volatility for this distribution is 0.26, which annualizes to 0.26 * &radic;<span style="text-decoration: overline">252</span> = 4.1. It happened once in 30,000 days, so the probability of drawing from this distribution is 0.00003. To make the calculations more conservative and help account for black-swan changes more extreme than anything we've seen before, increase the probability threefold to 0.0001. In other words, the probability that a 15-year investing period hits at least one such event is 1-Prob(hit zero of them) = 1-0.9999<sup>(15 * 252)</sup> = 0.31.
 
 I implemented the mixture of normal distributions by picking a random floating-point number between 0 and 1. If it was <.0001, I used the extreme black-swan distribution. If it was between 0.0001 and 0.0041, I used the medium black-swan distribution. Otherwise I used the default normal distribution.
 
@@ -596,25 +312,25 @@ If you use a regular brokerage account, then every month when you're not laid of
 If you use a margin account, your actions are a bit more complex. With the money that you earn when you're not laid off:
 <ol>
 <li>First you pay whatever interest is due on your margin borrowing from prior months, using the new savings that you're depositing. (If you don't have enough income this month to cover interest, you sell some of your investments to pay the interest. In the simulations I've run, this only happens when you get laid off.)</li>
-<li>You check the margin-to-assets ratio in your margin account. If it's below <REPLACE>volunary_max_margin_to_assets_as_percent</REPLACE>% (i.e., <REPLACE>initial_personal_max_margin_to_assets_relative_to_broker_max_as_percent</REPLACE>% of the broker-required <REPLACE>broker_max_margin_to_assets_ratio_as_percent</REPLACE>% ratio), you leave the account alone. If the margin-to-assets ratio is above <REPLACE>volunary_max_margin_to_assets_as_percent</REPLACE>%, you first pay for it with that month's paycheck, and if that's not enough, you sell some investments to bring the ratio back down to <REPLACE>volunary_max_margin_to_assets_as_percent</REPLACE>%. It may be best not to do this too much because selling investments can incur capital-gains tax.((Another possible reason why frequent rebalancing might be bad is if it produces similar behavior as happens with leveraged ETFs, though I haven't figured out the math of whether this is actually true.)) That said, one of two cases where your margin-to-assets ratio gets above <REPLACE>volunary_max_margin_to_assets_as_percent</REPLACE>% is when the market underperforms the interest rate, which means you tend to have capital losses and so get some tax benefit from selling. The program chooses the most tax-advantaged lots of your portfolio to sell, based on which, if sold, would trigger the least capital-gains tax (which includes the biggest negative capital-gains tax if you have losses). The other case where your margin-to-assets ratio might get too big is if you're laid off for more than a brief period, so that interest payments pile up.</li>
-<li>If you have any monthly income left over after the previous steps, use it to buy new shares of the index ETF at a margin-to-assets ratio of <REPLACE>volunary_max_margin_to_assets_as_percent</REPLACE>%, i.e., for every $100 of shares you buy directly, you also loan $<REPLACE>example_loan_to_take_for_100_of_shares_equity</REPLACE> to buy more shares on margin. This is because <REPLACE>example_loan_to_take_for_100_of_shares_equity</REPLACE> / (<REPLACE>example_loan_to_take_for_100_of_shares_equity</REPLACE> + 100) = .<REPLACE>volunary_max_margin_to_assets_as_percent</REPLACE>.</li>
-<li>If your margin-to-assets ratio is below our target (<REPLACE>volunary_max_margin_to_assets_as_percent</REPLACE>%), then buy new securities to reach your target. In order to avoid incurring transactions costs on trivially small equity purchases, you only buy new ETF shares for rebalancing if you can buy at least $<REPLACE>min_additional_purchase_amount</REPLACE> of such shares at once.</li>
+<li>You check the margin-to-assets ratio in your margin account. If it's below 45% (i.e., 90% of the broker-required 50% ratio), you leave the account alone. If the margin-to-assets ratio is above 45%, you first pay for it with that month's paycheck, and if that's not enough, you sell some investments to bring the ratio back down to 45%. It may be best not to do this too much because selling investments can incur capital-gains tax.((Another possible reason why frequent rebalancing might be bad is if it produces similar behavior as happens with leveraged ETFs, though I haven't figured out the math of whether this is actually true.)) That said, one of two cases where your margin-to-assets ratio gets above 45% is when the market underperforms the interest rate, which means you tend to have capital losses and so get some tax benefit from selling. The program chooses the most tax-advantaged lots of your portfolio to sell, based on which, if sold, would trigger the least capital-gains tax (which includes the biggest negative capital-gains tax if you have losses). The other case where your margin-to-assets ratio might get too big is if you're laid off for more than a brief period, so that interest payments pile up.</li>
+<li>If you have any monthly income left over after the previous steps, use it to buy new shares of the index ETF at a margin-to-assets ratio of 45%, i.e., for every $100 of shares you buy directly, you also loan $81.82 to buy more shares on margin. This is because 81.82 / (81.82 + 100) = .45.</li>
+<li>If your margin-to-assets ratio is below our target (45%), then buy new securities to reach your target. In order to avoid incurring transactions costs on trivially small equity purchases, you only buy new ETF shares for rebalancing if you can buy at least $50 of such shares at once.</li>
 </ol>
 As you move toward your target date for donating the securities, you ramp down leverage to make sure you'll have enough equity to pay off your debts. This ramp-down basically doesn't affect the default scenario of 2X leverage, but for higher leverage amounts, it forces you to drop down to being within 3X leverage when there are at most 10 years left and within 2X leverage when there are at most 5 years left.
 
-You maintain a self-imposed maximum margin-to-assets ratio of <REPLACE>volunary_max_margin_to_assets_as_percent</REPLACE>% to give some breathing room relative to the broker-imposed maximum margin-to-assets ratio of <REPLACE>broker_max_margin_to_assets_ratio_as_percent</REPLACE>%. In the simulation, the broker checks the margin-to-assets ratio every weekday and, if it's above <REPLACE>broker_max_margin_to_assets_ratio_as_percent</REPLACE>%, sells securities randomly to keep the ratio within bounds. But this is bad for you, since it leads to unpredictable selling behavior. For instance, maybe the broker sells securities with high, short-term capital gains rather than those with capital losses. It's better if you can personally keep margin-to-assets ratios in check by selling securities manually as needed. But you don't want to manage the account daily, so you monthly keep the margin-to-assets ratio less than <REPLACE>volunary_max_margin_to_assets_as_percent</REPLACE>%, on the assumption that the ratio won't move above <REPLACE>broker_max_margin_to_assets_ratio_as_percent</REPLACE>% within the next month. Adopting this policy reduces manual maintenance work. It's much easier to check a margin account 12 times a year than <REPLACE>trading_days_per_year</REPLACE> times a year, and the lost leverage by maintaining a maximum <REPLACE>volunary_max_margin_to_assets_as_percent</REPLACE>% ratio instead of <REPLACE>broker_max_margin_to_assets_ratio_as_percent</REPLACE>% isn't that big.
+You maintain a self-imposed maximum margin-to-assets ratio of 45% to give some breathing room relative to the broker-imposed maximum margin-to-assets ratio of 50%. In the simulation, the broker checks the margin-to-assets ratio every weekday and, if it's above 50%, sells securities randomly to keep the ratio within bounds. But this is bad for you, since it leads to unpredictable selling behavior. For instance, maybe the broker sells securities with high, short-term capital gains rather than those with capital losses. It's better if you can personally keep margin-to-assets ratios in check by selling securities manually as needed. But you don't want to manage the account daily, so you monthly keep the margin-to-assets ratio less than 45%, on the assumption that the ratio won't move above 50% within the next month. Adopting this policy reduces manual maintenance work. It's much easier to check a margin account 12 times a year than 252 times a year, and the lost leverage by maintaining a maximum 45% ratio instead of 50% isn't that big.
 
 Different variations of a margin strategy sell securities at different rates. The more leveraged you are, the more likely you are to sell securities at a loss to meet margin requirements. This means some strategies get more tax benefit from capital losses than others. To help put the strategies on somewhat more even footing, I added tax-loss harvesting, which is done by both margin and regular investors every December: You sell all securities with losses and use the money to buy the sold ETF back. (In real life, you'd have to wait a month before buying back to avoid a <a href="https://en.wikipedia.org/wiki/Wash_sale">wash sale</a>, but in the simulation you buy it back immediately for simplicity.)
 
-Your capital-gains taxes accumulate from selling, both for tax-loss harvesting and for rebalancing your margin account as needed. Every March 1, you pay off any taxes owed, if necessary by selling some securities. However, almost uniformly you have net capital losses, because basically the only times you might sell securities at a capital gain are (1) if the broker liquidates them to keep you within the <REPLACE>broker_max_margin_to_assets_ratio_as_percent</REPLACE>% margin limit or (2) if you're unemployed for a while and have to sell ETF shares with gains.
+Your capital-gains taxes accumulate from selling, both for tax-loss harvesting and for rebalancing your margin account as needed. Every March 1, you pay off any taxes owed, if necessary by selling some securities. However, almost uniformly you have net capital losses, because basically the only times you might sell securities at a capital gain are (1) if the broker liquidates them to keep you within the 50% margin limit or (2) if you're unemployed for a while and have to sell ETF shares with gains.
 
 In rare cases, such as when a big negative black swan occurs, highly leveraged accounts might go bankrupt due to having more debt than remaining assets. In this case, I set the ending value of the margin account to 0 to be conservative, even though in practice, someone who went bankrupt could presumably continue earning and investing somewhat in subsequent years. Note that only margin accounts can go bankrupt.
 
 When you're ready to donate the securities, you use your investments to pay off any remaining margin loans. Because you're donating the final securities, there's no capital-gains tax on them. If instead you use this calculator for personal investing (say, for retirement) rather than investing prior to donating, then you'd need to account for capital-gains tax upon selling. (In that case, it's less bad to pay capital-gains taxes early because doing so increases your cost basis, though it's still better to delay tax payments to later years because of the <a href="https://en.wikipedia.org/wiki/Time_value_of_money">time value of money</a>.)
 
-The final comparison among the strategies as presented in the results is the real present value of accumulated savings, i.e., the value after <REPLACE>years_until_donate</REPLACE> years times (1 + inflation_rate)<sup>-<REPLACE>years_until_donate</REPLACE></sup> to adjust for inflation and then times exp(-avg_ETF_returns * <REPLACE>years_until_donate</REPLACE>)</sup> to make it a present value. Looking at real present values is more informative than nominal future values because we have a better sense of what the value of a dollar is right now than what the value of a dollar will be in <REPLACE>years_until_donate</REPLACE> years.
+The final comparison among the strategies as presented in the results is the real present value of accumulated savings, i.e., the value after 15 years times (1 + inflation_rate)<sup>-15</sup> to adjust for inflation and then times exp(-avg_ETF_returns * 15)</sup> to make it a present value. Looking at real present values is more informative than nominal future values because we have a better sense of what the value of a dollar is right now than what the value of a dollar will be in 15 years.
 
-<h3>esults vs. theory</h3>
+<h2>Results vs. theory</h2>
 
 <span style="color:red">ADD COMPARISON OF THEORETICAL LEVERAGED RESULTS VS. ACTUAL</span>
 
@@ -627,7 +343,13 @@ The simulation discussed above has many real-world complexities. Theoretical aca
 </ul>
 Following are the results with this much simpler version of the simulation:
 
-<REPLACE>closetotheory_results_table</REPLACE>
+<table>
+<tr><td><i>Type</i></td> <td><i>Mean &plusmn; stderr</i></td> <td><i>Median</i></td> <td><i>Min</i></td> <td><i>Max</i></td> <td><i>E[&radic;<span style="text-decoration: overline">wealth</span>] &plusmn; stderr</i></td> <td><i>&sigma;<sub>ln(wealth)</sub></i></td> </tr>
+<tr><td><i>Regular</i></td> <td>$299 &plusmn; $0</td> <td>$299</td> <td>$299</td> <td>$299</td> <td>17 &plusmn; 0</td> <td>0.00</td></tr>
+<tr><td><i>Margin</i></td> <td>$29 &plusmn; $0</td> <td>$29</td> <td>$29</td> <td>$29</td> <td>5 &plusmn; 0</td> <td>0.00</td></tr>
+<tr><td><i>Regular + 50% match</i></td> <td>$449 &plusmn; $0</td> <td>$449</td> <td>$449</td> <td>$449</td> <td>21 &plusmn; 0</td> <td>0.00</td></tr>
+</table>
+Margin is better than regular 0% of the time. Margin resulted in bankruptcy 0.0% of the time.
 
 I compare these numbers with theory below.
 <!--
@@ -641,64 +363,101 @@ On the other hand, consider the <a href="https://en.wikipedia.org/wiki/Geometric
 </blockquote>
 This seems to be what I'm using in my simulation (modulo the fact that my simulation has a granularity of a day at a time, not the infinitesimal granularity of the above continuous-time SDE). Solving this SDE <a href="https://en.wikipedia.org/wiki/Geometric_Brownian_motion#Solving_the_SDE">tells us</a> that S<sub>t</sub> is not actually S<sub>0</sub> exp(X<sub>t</sub>) but is instead S<sub>0</sub> exp(X<sub>t</sub> - &sigma;<sup>2</sup>t/2). Then, because of how expectations work for lognormal distributions, <a href="https://en.wikipedia.org/wiki/Geometric_Brownian_motion#Properties">we have that</a> E[S<sub>t</sub>] = S<sub>0</sub> exp(&mu;t). The -&sigma;<sup>2</sup>t/2 cancelled with a +&sigma;<sup>2</sup>t/2. However, this formula doesn't agree with my simulation results. Why not?))
 -->
-<h4>Validating the results of regular investing</h4>
+<h3>Validating the results of regular investing</h3>
 
-<h5>Median wealth</h5>
-
-The theoretical median outcome for regular investing is shown in the <a href="#regular_median">regular median equation</a>. However, when I reported my numbers in this simulation, I discounted final wealth using <a href="https://en.wikipedia.org/wiki/Compound_interest#Continuous_compounding">continuous compounding</a> at a discount rate of &mu; = <REPLACE>annual_mu</REPLACE> per year over a time of t = <REPLACE>years_until_donate</REPLACE> years. That is, I multiplied the final amounts by exp(- <REPLACE>annual_mu</REPLACE> * <REPLACE>years_until_donate</REPLACE>). Multiplying the <a href="#regular_median">regular median equation</a> by this factor gives S<sub>0</sub> exp(&mu;t - &sigma;<sup>2</sup>t/2) exp(-&mu;t) = S<sub>0</sub> exp(-&sigma;<sup>2</sup>t/2). This is what we predict the median simulation outcome will be.
-
-In the simulation, I used t = <REPLACE>years_until_donate</REPLACE> years, &mu; = <REPLACE>annual_mu</REPLACE> per year, &sigma; = <REPLACE>annual_sigma</REPLACE>, and S<sub>0</sub> = <REPLACE>one_month_pay</REPLACE>.<!-- There's not actually a single initial price S<sub>0</sub> because the securities are bought over time. However, we can pretend that the investor buys just one big initial security whose price equals the present value of purchases discounted at an interest rate of <REPLACE>annual_mu_as_percent</REPLACE>. An analytic formula for this discounted sum is messy, so I just computed it <a href="https://docs.google.com/spreadsheets/d/1STH-QEMwybDKrouTnNEWeXQXU9VK1SEmq_qNxPCdUTc/edit?usp=sharing">in a spreadsheet</a>. If we ignore periods of unemployment and inflation, the result is that S<sub>0</sub> = <REPLACE>one_month_pay</REPLACE>.--> The empirical median from the above table, <REPLACE>actual_median_ignoring_complications</REPLACE>, is very close to<span style="color:orange">CHECK THIS MANUALLY</span> the theoretical value, <REPLACE>one_month_pay</REPLACE> exp(-<REPLACE>annual_sigma</REPLACE><sup>2</sup><REPLACE>years_until_donate</REPLACE>/2) = <REPLACE>theoretical_median_PV_ignoring_complications</REPLACE>.
-
-<h5>Mean wealth</h5>
-
-We found the theoretical mean above in <a href="#regular_mean">regular mean equation</a>. When discounted, it becomes S<sub>0</sub> exp(&mu;t) exp(-&mu;t) = S<sub>0</sub>, i.e., just the initial price. So the theoretical mean is just the initial amount invested: <REPLACE>one_month_pay</REPLACE>. The empirical mean value from the above table is <REPLACE>actual_mean_ignoring_complications</REPLACE>.
-
-<h5>Std dev of log wealth</h5>
-
-If we take ln of both sides of the <a href="#regular_S_t">regular S<sub>t</sub> equation</a>, we get
+Let S<sub>t</sub> be the price of a stock or ETF at year t. The <a href="https://en.wikipedia.org/wiki/Geometric_Brownian_motion#Technical_definition:_the_SDE">geometric Brownian motion stochastic differential equation</a> (SDE) is
 <blockquote>
+dS<sub>t</sub>/S<sub>t</sub> = &mu; dt + &sigma; dW<sub>t</sub>,
+</blockquote>
+where W<sub>t</sub> is a Weiner process with mean 0 and variance t. That is, if Z is a standard-normal random variable, then dW<sub>t</sub> = Z &radic;<span style="text-decoration: overline">dt</span>. This is what I'm using in my simulation, except that "dt" is not infinitesimal but a whole day of time.
+
+Solving this SDE <a href="https://en.wikipedia.org/wiki/Geometric_Brownian_motion#Solving_the_SDE">tells us</a> that
+<blockquote>
+S<sub>t</sub> = S<sub>0</sub> exp(&mu;t - &sigma;<sup>2</sup>t/2 + &sigma;W<sub>t</sub>).
+</blockquote>
+S<sub>t</sub>/S<sub>0</sub> has a <a href="https://en.wikipedia.org/wiki/Log-normal_distribution">lognormal distribution</a> with location parameter &mu;t - &sigma;<sup>2</sup>t/2 and scale parameter &sigma;&radic;<span style="text-decoration: overline">t</span>.
+
+<h4>Median wealth</h4>
+
+The <a href="https://en.wikipedia.org/wiki/Log-normal_distribution#Mode_and_median">median</a> of a lognormal distribution is exp(location_parameter). Thus
+<blockquote>
+median(S<sub>t</sub>/S<sub>0</sub>) = exp(&mu;t - &sigma;<sup>2</sup>t/2), which implies<br />
+median(S<sub>t</sub>) = S<sub>0</sub> exp(&mu;t - &sigma;<sup>2</sup>t/2)
+</blockquote>
+because S<sub>0</sub> is constant and so doesn't affect the sorted ranking of S<sub>t</sub> values.
+
+When I reported my numbers in this simulation, I discounted with <a href="https://en.wikipedia.org/wiki/Compound_interest#Continuous_compounding">continuous interest</a> using an interest rate of &mu; = 0.054 per year and a time of t = 15 years. That is, I multiplied the final amounts by exp(- 0.054 * 15). As a result of this discounting, we should actually observe that the median of the distribution will be S<sub>0</sub> exp(&mu;t - &sigma;<sup>2</sup>t/2) exp(-&mu;t) = S<sub>0</sub> exp(-&sigma;<sup>2</sup>t/2).
+
+In the simulation, I used t = 15 years, &mu; = 0.054 per year, &sigma; = 0.22, and S<sub>0</sub> = <REPLACE>one_month_pay</REPLACE>.<!-- There's not actually a single initial price S<sub>0</sub> because the securities are bought over time. However, we can pretend that the investor buys just one big initial security whose price equals the present value of purchases discounted at an interest rate of 5.4%. An analytic formula for this discounted sum is messy, so I just computed it <a href="https://docs.google.com/spreadsheets/d/1STH-QEMwybDKrouTnNEWeXQXU9VK1SEmq_qNxPCdUTc/edit?usp=sharing">in a spreadsheet</a>. If we ignore periods of unemployment and inflation, the result is that S<sub>0</sub> = <REPLACE>one_month_pay</REPLACE>.--> The actual median from the above table, <REPLACE>actual_median_ignoring_complications</REPLACE>, is very close to<span style="color:orange">CHECK THIS MANUALLY</span> the theoretical value, <REPLACE>one_month_pay</REPLACE> exp(-0.22<sup>2</sup>15/2) = <REPLACE>theoretical_median_PV_ignoring_complications</REPLACE>.
+
+<h4>Mean wealth</h4>
+
+The mean of a lognormal distribution is exp(location_parameter + scale_parameter<sup>2</sup>/2). Hence
+<blockquote>
+mean(S<sub>t</sub>/S<sub>0</sub>) = exp(&mu;t - &sigma;<sup>2</sup>t/2 + [&sigma;&radic;<span style="text-decoration: overline">t</span>]<sup>2</sup>/2)<br />
+= exp(&mu;t), which implies that<br />
+mean(S<sub>t</sub>) = S<sub>0</sub> exp(&mu;t),
+</blockquote>
+since the constant S<sub>0</sub> can come out of the mean() operator. This equation is confirmed <a href="https://en.wikipedia.org/wiki/Geometric_Brownian_motion#Properties">by Wikipedia</a>.
+
+Because I discounted my results by exp(-&mu;t), the mean reported in the table above should be approximately S<sub>0</sub> exp(&mu;t) exp(-&mu;t) = S<sub>0</sub>, i.e., just the initial price, <REPLACE>one_month_pay</REPLACE>. The actual mean value from the above table is <REPLACE>actual_mean_ignoring_complications</REPLACE>.
+
+<h4>Std dev of log wealth</h4>
+
+<blockquote>
+S<sub>t</sub> = S<sub>0</sub> exp(&mu;t - &sigma;<sup>2</sup>t/2 + &sigma;W<sub>t</sub>) implies<br />
 ln(S<sub>t</sub>) = ln(S<sub>0</sub>) + &mu;t - &sigma;<sup>2</sup>t/2 + &sigma;W<sub>t</sub>.
 </blockquote>
 The only randomness here is in W<sub>t</sub>, so
 <blockquote>
-StdDev[ln(S<sub>t</sub>)] = StdDev[&sigma;W<sub>t</sub>] = &sigma;StdDev[W<sub>t</sub>] = &sigma;&radic;<span style="text-decoration: overline">t</span> = <REPLACE>annual_sigma</REPLACE> * &radic;<span style="text-decoration: overline"><REPLACE>years_until_donate</REPLACE></span> = <REPLACE>annual_sigma * sqrt(years_until_donate)</REPLACE>.
+StdDev[ln(S<sub>t</sub>)] = StdDev[&sigma;W<sub>t</sub>] = &sigma;StdDev[W<sub>t</sub>] = &sigma;&radic;<span style="text-decoration: overline">t</span> = 0.22 * &radic;<span style="text-decoration: overline">15</span> = 0.85.
 </blockquote>
 In the simulations, I found StdDev[ln(S<sub>t</sub>)] = &sigma;<sub>ln(wealth)</sub> = <REPLACE>actual_sigma_of_log_wealth</REPLACE> for regular investing, which is again pretty close.<span style="color:orange">CHECK THIS MANUALLY</span>
 
-<h4>Validating the results of margin investing</h4>
+<h3>Validating the results of margin investing</h3>
 
-<h5>Median wealth</h5>
+Let V<sub>t</sub> denote the net wealth of a leveraged portfolio at year t. (V<sub>t</sub> is just like S<sub>t</sub> but for leveraged investing.) <a href="http://www.fsa.ulaval.ca/nfa2003/papiers/Craig%20Wilson.pdf" title="'Leveraged Stock Portfolios over Long Holding Periods: A Continuous Time Model' (2003)">Domian et al. (2003)</a> show (p. 5, eqn. 13) that for a c-times leveraged portfolio (e.g., c = 2 means 2X leverage) and borrowing interest rate r, the applicable SDE is
+<blockquote>
+dV<sub>t</sub>/V<sub>t</sub> = (r + (&mu;-r)c) dt + c &sigma; dW<sub>t</sub>.
+</blockquote>
+This makes sense because the infinitesimal expected return should be c&mu; dt, the infinitesimal standard deviation should be c&sigma;, and the infinitesimal borrowing cost should be (c-1)r dt (since only c-1 of the purchased units are borrowed).
 
-Discounting the <a href="#leveraged_median">leveraged median equation</a>:
+<a href="http://www.fsa.ulaval.ca/nfa2003/papiers/Craig%20Wilson.pdf" title="'Leveraged Stock Portfolios over Long Holding Periods: A Continuous Time Model' (2003)">Domian et al. (2003)</a> solve this equation in the same way as we solved the standard SDE before (p. 5, eqn. 14). The result is
+<blockquote>
+V<sub>t</sub> = V<sub>0</sub> exp{ (r + (&mu;-r)c) t - c<sup>2</sup>&sigma;<sup>2</sup>t/2 + c&sigma;W<sub>t</sub> }.
+</blockquote>
+V<sub>t</sub>/V<sub>0</sub> is lognormal with location parameter (r + (&mu;-r)c) t - c<sup>2</sup>&sigma;<sup>2</sup>t/2 and scale parameter c&sigma;&radic;<span style="text-decoration: overline">t</span>.
+
+<h4>Median wealth</h4>
+
 <ul>
-<li>Theoretical discounted median = V<sub>0</sub> exp{(r + (&mu;-r)c) t - c<sup>2</sup>&sigma;<sup>2</sup>t/2} exp(-&mu;t) = V<sub>0</sub> exp{(rt + &mu;ct - &mu;t - rct - c<sup>2</sup>&sigma;<sup>2</sup>t/2} = V<sub>0</sub> exp{&mu;(c-1)t - r(c-1)t - c<sup>2</sup>&sigma;<sup>2</sup>t/2} = V<sub>0</sub> exp{(&mu;-r)(c-1)t - c<sup>2</sup>&sigma;<sup>2</sup>t/2} = <REPLACE>one_month_pay</REPLACE> * exp{(<REPLACE>annual_mu</REPLACE>-<REPLACE>annual_margin_interest_rate</REPLACE>) * (<REPLACE>broker_imposed_leverage_limit</REPLACE>-1) * <REPLACE>years_until_donate</REPLACE> - <REPLACE>broker_imposed_leverage_limit</REPLACE><sup>2</sup> * <REPLACE>annual_sigma</REPLACE><sup>2</sup> * <REPLACE>years_until_donate</REPLACE>/2} = <REPLACE>leveraged_theoretical_median_PV_ignoring_complications</REPLACE></li>
+<li>Theoretical discounted median = V<sub>0</sub> exp{location_parameter} exp(-&mu;t) = V<sub>0</sub> exp{(r + (&mu;-r)c) t - c<sup>2</sup>&sigma;<sup>2</sup>t/2} exp(-&mu;t) = V<sub>0</sub> exp{(rt + &mu;ct - &mu;t - rct - c<sup>2</sup>&sigma;<sup>2</sup>t/2} = V<sub>0</sub> exp{&mu;(c-1)t - r(c-1)t - c<sup>2</sup>&sigma;<sup>2</sup>t/2} = V<sub>0</sub> exp{(&mu;-r)(c-1)t - c<sup>2</sup>&sigma;<sup>2</sup>t/2} = <REPLACE>one_month_pay</REPLACE> * exp{(0.054-0.03) * (<REPLACE>broker_imposed_leverage_limit</REPLACE>-1) * 15 - <REPLACE>broker_imposed_leverage_limit</REPLACE><sup>2</sup> * 0.22<sup>2</sup> * 15/2} = <REPLACE>leveraged_theoretical_median_PV_ignoring_complications</REPLACE></li>
 <li>Empirical discounted median = <REPLACE>leveraged_actual_median_ignoring_complications</REPLACE></li>
 </ul>
 
-<h5>Mean wealth</h5>
+<h4>Mean wealth</h4>
 
-Discounting the <a href="#leveraged_mean">leveraged mean equation</a>:
 <ul>
-<li>Theoretical discounted mean = V<sub>0</sub> exp{(r + (&mu;-r)c) t} exp(-&mu;t) = V<sub>0</sub> exp{rt + &mu;ct - &mu;t - rct} = V<sub>0</sub> exp{&mu;(c-1)t - r(c-1)t} = V<sub>0</sub> exp{(&mu;-r)(c-1)t} = <REPLACE>one_month_pay</REPLACE> * exp{(<REPLACE>annual_mu</REPLACE>-<REPLACE>annual_margin_interest_rate</REPLACE>) * (<REPLACE>broker_imposed_leverage_limit</REPLACE>-1) * <REPLACE>years_until_donate</REPLACE>} = <REPLACE>leveraged_theoretical_mean_PV_ignoring_complications</REPLACE></li>
+<li>Theoretical discounted mean = V<sub>0</sub> exp(location_parameter + scale_parameter<sup>2</sup>/2) exp(-&mu;t) = V<sub>0</sub> exp{(r + (&mu;-r)c) t - c<sup>2</sup>&sigma;<sup>2</sup>t/2 + c<sup>2</sup>&sigma;<sup>2</sup>t/2} exp(-&mu;t) = V<sub>0</sub> exp{(r + (&mu;-r)c) t} exp(-&mu;t) = V<sub>0</sub> exp{rt + &mu;ct - &mu;t - rct} = V<sub>0</sub> exp{&mu;(c-1)t - r(c-1)t} = V<sub>0</sub> exp{(&mu;-r)(c-1)t} = <REPLACE>one_month_pay</REPLACE> * exp{(0.054-0.03) * (<REPLACE>broker_imposed_leverage_limit</REPLACE>-1) * 15} = <REPLACE>leveraged_theoretical_mean_PV_ignoring_complications</REPLACE></li>
 <li>Empirical discounted mean = <REPLACE>leveraged_actual_mean_ignoring_complications</REPLACE></li>
 </ul>
 
-<h5>Std dev of log wealth</h5>
+<h4>Std dev of log wealth</h4>
 
-Taking ln of both sides of the <a href="#leveraged_V_t">leveraged V<sub>t</sub> equation</a>:
 <blockquote>
+V<sub>t</sub> = V<sub>0</sub> exp{ (r + (&mu;-r)c) t - c<sup>2</sup>&sigma;<sup>2</sup>t/2 + c&sigma;W<sub>t</sub> } implies<br />
 ln(V<sub>t</sub>) = ln(V<sub>0</sub>) + (r + (&mu;-r)c) t - c<sup>2</sup>&sigma;<sup>2</sup>t/2 + c&sigma;W<sub>t</sub>.
 </blockquote>
 The only randomness here is in W<sub>t</sub>, so
 <blockquote>
-StdDev[ln(V<sub>t</sub>)] = StdDev[c&sigma;W<sub>t</sub>] = c&sigma;StdDev[W<sub>t</sub>] = c&sigma;&radic;<span style="text-decoration: overline">t</span> = <REPLACE>broker_imposed_leverage_limit</REPLACE> * <REPLACE>annual_sigma</REPLACE> * &radic;<span style="text-decoration: overline"><REPLACE>years_until_donate</REPLACE></span> = <REPLACE>leveraged_theoretical_sigma_ln_wealth</REPLACE>.
+StdDev[ln(V<sub>t</sub>)] = StdDev[c&sigma;W<sub>t</sub>] = c&sigma;StdDev[W<sub>t</sub>] = c&sigma;&radic;<span style="text-decoration: overline">t</span> = <REPLACE>broker_imposed_leverage_limit</REPLACE> * 0.22 * &radic;<span style="text-decoration: overline">15</span> = <REPLACE>leveraged_theoretical_sigma_ln_wealth</REPLACE>.
 </blockquote>
 
 The empirical value of &sigma;<sub>ln(wealth)</sub> for margin investing in the above table was <REPLACE>leveraged_actual_sigma_of_log_wealth</REPLACE>.
 
-<h4>Prob[margin beats regular]</h4>
+<h3>Prob[margin beats regular]</h3>
 
-We want to know the probability that margin investing does better than regular, Prob[V<sub>t</sub> > S<sub>t</sub>], on the same underlying asset trajectory. Assume both portfolios start out with equal initial capital: V<sub>0</sub> = S<sub>0</sub> = K. Then, using the <a href="#regular_S_t">regular S<sub>t</sub> equation</a> and <a href="#leveraged_V_t">leveraged V<sub>t</sub> equation</a>:
+We want to know the probability that margin investing does better than regular, Prob[V<sub>t</sub> > S<sub>t</sub>], on the same underlying asset trajectory. Assume both portfolios start out with equal initial capital: V<sub>0</sub> = S<sub>0</sub> = K. Then
 <blockquote>
 Prob[V<sub>t</sub> > S<sub>t</sub>] = Prob[ln(V<sub>t</sub>) > ln(S<sub>t</sub>)]<br />
 = Prob[ln(K) + (r + (&mu;-r)c) t - c<sup>2</sup>&sigma;<sup>2</sup>t/2 + c&sigma;W<sub>t</sub> > ln(K) + &mu;t - &sigma;<sup>2</sup>t/2 + &sigma;W<sub>t</sub>]<br />
@@ -716,38 +475,38 @@ Now recall that if Z is a standard-normal random variable, W<sub>t</sub> = Z&rad
 Prob[V<sub>t</sub> > S<sub>t</sub>] = Prob[Z/&radic;<span style="text-decoration: overline">t</span> > (c+1)&sigma;/2 - (&mu;-r)/&sigma;]<br />
 = Prob[Z > &radic;<span style="text-decoration: overline">t</span>( (c+1)&sigma;/2 - (&mu;-r)/&sigma; )]<br />
 = 1 - Prob[Z &leq; &radic;<span style="text-decoration: overline">t</span>( (c+1)&sigma;/2 - (&mu;-r)/&sigma; )]<br />
-= 1 - Prob[Z &leq; &radic;<span style="text-decoration: overline"><REPLACE>years_until_donate</REPLACE></span>( (<REPLACE>broker_imposed_leverage_limit</REPLACE>+1)<REPLACE>annual_sigma</REPLACE>/2 - (<REPLACE>annual_mu</REPLACE>-<REPLACE>annual_margin_interest_rate</REPLACE>)/<REPLACE>annual_sigma</REPLACE> )]<br />
+= 1 - Prob[Z &leq; &radic;<span style="text-decoration: overline">15</span>( (<REPLACE>broker_imposed_leverage_limit</REPLACE>+1)0.22/2 - (0.054-0.03)/0.22 )]<br />
 = 1 - Prob[&nbsp;Z &le; <REPLACE>Z_value_threshold</REPLACE>&nbsp;]<br />
 <a href="https://surfstat.anu.edu.au/surfstat-home/tables/normal.php" title="&quot;SurfStat standard normal calculator&quot;">= 1 - <REPLACE>prob_Z_leq_threshold</REPLACE></a><br />
 = <REPLACE>prob_Z_gt_threshold</REPLACE>.
 </blockquote>
 The empirical probability of margin outperforming regular investing in the above table is <REPLACE>actual_percent_times_margin_is_better</REPLACE>%.
 
-<h4>Relaxing the simplifying assumptions</h4>
+<h3>Relaxing the simplifying assumptions</h3>
 
 When doing this empirical validation, I ran the simulation with many complicating factors ignored in order to better match theory. This section shows how the results change as the complicating factors are gradually added back in, until eventually we arrive back at the complicated, "default" configuration.
 
-<h5>From simple scenario, relax assumption of only earning one initial paycheck</h5>
+<h4>From simple scenario, relax assumption of only earning one initial paycheck</h4>
 
 <REPLACE>closetotheoryminus1_results_table</REPLACE>
 
-<h5>From that, relax assumption of maintaining leverage equal to broker max</h5>
+<h4>From that, relax assumption of maintaining leverage equal to broker max</h4>
 
 <REPLACE>closetotheoryminus2_results_table</REPLACE>
 
-<h5>From that, relax assumption of not tapering off leverage toward end</h5>
+<h4>From that, relax assumption of not tapering off leverage toward end</h4>
 
 <REPLACE>closetotheoryminus3_results_table</REPLACE>
 
-<h5>From that, relax assumption of no black swans</h5>
+<h4>From that, relax assumption of no black swans</h4>
 
 <REPLACE>closetotheoryminus4_results_table</REPLACE>
 
-<h5>From that, relax assumption of no taxes</h5>
+<h4>From that, relax assumption of no taxes</h4>
 
 <REPLACE>closetotheoryminus5_results_table</REPLACE>
 
-<h5>From that, relax assumption of no inflation</h5>
+<h4>From that, relax assumption of no inflation</h4>
 
 <REPLACE>closetotheoryminus6_results_table</REPLACE>
 
@@ -765,7 +524,7 @@ If we take the same settings in the results table immediately above but instead 
 
 "<a href="http://www.mathisen.ca/leveraging/leveraging.pdf">Understanding Investment Leverage</a>" notes that margin performs better when the average stock/ETF returns exceed a "break-even" threshold. Assuming that capital-gains taxes and tax deductions aren't especially relevant, the break-even threshold should roughly be the margin interest rate -- call it r. In other words, the probability that margin beats non-margin for a given dollar invested is roughly the probability that the t-year returns of investing in the market beat the t-year accumulation of interest at rate r. Let X<sub>t</sub> be the random variable representing the accumulated t-year market return, and let Z be a standard-normal random variable. Then
 <blockquote>
-Prob[&nbsp;margin beats regular&nbsp;] &asymp; Prob[&nbsp;investments exceed break-even threshold&nbsp;] = Prob[&nbsp;exp(X<sub>t</sub>) > exp(rt)&nbsp;] = Prob[&nbsp;X<sub>t</sub> > rt&nbsp;] = Prob[&nbsp;&mu;t + Z&sigma;&radic;<span style="text-decoration: overline">t</span> > rt&nbsp;] = Prob[&nbsp;Z&sigma;&radic;<span style="text-decoration: overline">t</span> > (r-&mu;)t&nbsp;] = Prob[&nbsp;Z > ( (r-&mu;)/&sigma; ) &radic;<span style="text-decoration: overline">t</span>&nbsp;] = 1 - Prob[&nbsp;Z &le; ( (r-&mu;)/&sigma; ) &radic;<span style="text-decoration: overline">t</span>&nbsp;&nbsp;] = 1 - Prob[&nbsp;Z &le; ( (<REPLACE>annual_margin_interest_rate</REPLACE>-<REPLACE>annual_mu</REPLACE>)/<REPLACE>annual_sigma</REPLACE> ) &radic;<span style="text-decoration: overline"><REPLACE>years_until_donate</REPLACE></span>&nbsp;&nbsp;] = 1 - Prob[&nbsp;Z &le; <REPLACE>Z_value_threshold</REPLACE>&nbsp;] <a href="https://surfstat.anu.edu.au/surfstat-home/tables/normal.php" title="&quot;SurfStat standard normal calculator&quot;">= 1 - <REPLACE>prob_Z_leq_threshold</REPLACE></a> = <REPLACE>prob_Z_gt_threshold</REPLACE>.
+Prob[&nbsp;margin beats regular&nbsp;] &asymp; Prob[&nbsp;investments exceed break-even threshold&nbsp;] = Prob[&nbsp;exp(X<sub>t</sub>) > exp(rt)&nbsp;] = Prob[&nbsp;X<sub>t</sub> > rt&nbsp;] = Prob[&nbsp;&mu;t + Z&sigma;&radic;<span style="text-decoration: overline">t</span> > rt&nbsp;] = Prob[&nbsp;Z&sigma;&radic;<span style="text-decoration: overline">t</span> > (r-&mu;)t&nbsp;] = Prob[&nbsp;Z > ( (r-&mu;)/&sigma; ) &radic;<span style="text-decoration: overline">t</span>&nbsp;] = 1 - Prob[&nbsp;Z &le; ( (r-&mu;)/&sigma; ) &radic;<span style="text-decoration: overline">t</span>&nbsp;&nbsp;] = 1 - Prob[&nbsp;Z &le; ( (0.03-0.054)/0.22 ) &radic;<span style="text-decoration: overline">15</span>&nbsp;&nbsp;] = 1 - Prob[&nbsp;Z &le; <REPLACE>Z_value_threshold</REPLACE>&nbsp;] <a href="https://surfstat.anu.edu.au/surfstat-home/tables/normal.php" title="&quot;SurfStat standard normal calculator&quot;">= 1 - <REPLACE>prob_Z_leq_threshold</REPLACE></a> = <REPLACE>prob_Z_gt_threshold</REPLACE>.
 </blockquote>
 -->
 
@@ -773,11 +532,11 @@ Prob[&nbsp;margin beats regular&nbsp;] &asymp; Prob[&nbsp;investments exceed bre
 
 <i>Lifecycle Investing</i> points out that most 401k plans don't allow leverage. But many employers match 401k contributions at a 2X or 1.5X rate. The book says you should always max out matching 401k contributions before investing with leverage on your own.
 
-To test this out, I added to my simulation an investor who just contributed to a regular, non-margin brokerage account but was able to put in <REPLACE>match_percent_from_401k</REPLACE>% more than normal. For instance, if regular investors contributed $2500/month, this investor contributed $3750/month. In practice, employers typically cap the amount of 401k contributions that can be matched per pay period at a relatively low level, but I ignored that point so that I could compare the 401k investor on equal footing with the other investors, and then if I saw the 401k investor beating the others, it would follow that any given dollar of employer-matched 401k investing would beat any given dollar of non-employer-matched margin investing, which would imply that you should max out employer matching first and only then use margin investing for the remaining income.
+To test this out, I added to my simulation an investor who just contributed to a regular, non-margin brokerage account but was able to put in 50% more than normal. For instance, if regular investors contributed $2500/month, this investor contributed $3750/month. In practice, employers typically cap the amount of 401k contributions that can be matched per pay period at a relatively low level, but I ignored that point so that I could compare the 401k investor on equal footing with the other investors, and then if I saw the 401k investor beating the others, it would follow that any given dollar of employer-matched 401k investing would beat any given dollar of non-employer-matched margin investing, which would imply that you should max out employer matching first and only then use margin investing for the remaining income.
 
-I did indeed find that a <REPLACE>match_percent_from_401k</REPLACE>%-matched 401k beat either other type of investing. This was shown in the results table in the previous section. Before I added tax logic to my simulation, the 401k-matching strategy returned <i>exactly</i> 1.5 times the regular investing strategy, which it should given that I compared the investments with respect to the same random stock-market returns.
+I did indeed find that a 50%-matched 401k beat either other type of investing. This was shown in the results table in the previous section. Before I added tax logic to my simulation, the 401k-matching strategy returned <i>exactly</i> 1.5 times the regular investing strategy, which it should given that I compared the investments with respect to the same random stock-market returns.
 
-In reality, the amount you can contribute to a <REPLACE>match_percent_from_401k</REPLACE>% matched 401k is more than <REPLACE>match_percent_from_401k</REPLACE>% of what you can invest on margin on your own because a 401k is pre-tax, while margin investing uses post-tax dollars. However, you'll later have to pay taxes on your 401k withdrawals, so if your tax rate is the same now vs. in retirement, the tax-deferred nature of 401k contributions doesn't matter, since the amount at the end is (1-income_tax_rate) times (the pre-tax income that you put in plus equity appreciation). That said, if (as is common) you expect to have a lower marginal tax rate in retirement, this makes 401k contributing look even more favorable.
+In reality, the amount you can contribute to a 50% matched 401k is more than 50% of what you can invest on margin on your own because a 401k is pre-tax, while margin investing uses post-tax dollars. However, you'll later have to pay taxes on your 401k withdrawals, so if your tax rate is the same now vs. in retirement, the tax-deferred nature of 401k contributions doesn't matter, since the amount at the end is (1-income_tax_rate) times (the pre-tax income that you put in plus equity appreciation). That said, if (as is common) you expect to have a lower marginal tax rate in retirement, this makes 401k contributing look even more favorable.
 
 <h3>What about non-matched 401k?</h3>
 
@@ -786,7 +545,7 @@ The annual contribution limit for a 401k <a href="http://www.irs.gov/uac/Newsroo
 <h4>Reasons favoring 401k:</h4>
 
 <ul>
-<li>If you expect to have a lot of income during retirement, you'd presumably pay at least 15% taxes on capital gains outside a 401k. In the default margin-investing scenario above, margin investing beat regular investing by ~<REPLACE>margin_better_than_regular_percent</REPLACE>% in expectation <i>with higher risk</i>. So if you plan to spend the savings on yourself, if you use a margin account, your savings would be only (1 + .<REPLACE>margin_better_than_regular_percent</REPLACE>)(1 - <REPLACE>long_term_cap_gains_rate</REPLACE>) = <REPLACE>(1+margin_advantage)(1-long_term_cap_gains)</REPLACE> as much as if you had put them in a non-leveraged 401k account that doesn't incur capital-gains taxes.</li>
+<li>If you expect to have a lot of income during retirement, you'd presumably pay at least 15% taxes on capital gains outside a 401k. In the default margin-investing scenario above, margin investing beat regular investing by ~<REPLACE>margin_better_than_regular_percent</REPLACE>% in expectation <i>with higher risk</i>. So if you plan to spend the savings on yourself, if you use a margin account, your savings would be only (1 + .<REPLACE>margin_better_than_regular_percent</REPLACE>)(1 - 0.15) = <REPLACE>(1+margin_advantage)(1-long_term_cap_gains)</REPLACE> as much as if you had put them in a non-leveraged 401k account that doesn't incur capital-gains taxes.</li>
 <li>If you expect to be in a lower income bracket during retirement (say 15% instead of 28%), then contributing to a 401k allows you to pay less income tax in addition to no capital-gains tax.</li>
 </ul>
 
@@ -815,9 +574,17 @@ For small-time donors, deducting a donation now vs. later may not be crucial. Be
 
 In contrast, donating to a DAF is quite important for big-time donors who plan to give at least 50% of adjusted gross (AGI) income each year. This is because donating every year helps these donors take full advantage of deductions given that at most 50% of a person's AGI can be deducted for charity contributions in a single year. Charitable deductions above 50% carry forward to future years, but if you consistently donate above 50% <i>every year</i>, you'll never get a chance to take all your accumulated charity deductions. Hence, deducting charity donations each year that you earn becomes important.
 
-If a donor in this situation doesn't have a charity picked out yet and would lose the year's charitable deductions if she didn't donate to a DAF, then donating to a DAF saves taxes. Say the donor is deep in the 28% marginal income bracket. By donating some amount $X (assume $X is below the 50%-of-AGI limit), she gets $.28X back on taxes (and that refund is untaxed), so it's as if she multiplied her money by 1.28. In other words, donating to a DAF is similar to donating to a 401k that matches 28% rather than <REPLACE>match_percent_from_401k</REPLACE>%.
+If a donor in this situation doesn't have a charity picked out yet and would lose the year's charitable deductions if she didn't donate to a DAF, then donating to a DAF saves taxes. Say the donor is deep in the 28% marginal income bracket. By donating some amount $X (assume $X is below the 50%-of-AGI limit), she gets $.28X back on taxes (and that refund is untaxed), so it's as if she multiplied her money by 1.28. In other words, donating to a DAF is similar to donating to a 401k that matches 28% rather than 50%.
 
 Whether this is better than leverage depends on the donor's risk tolerance and the advantage of leverage. For a risk-neutral investor, the DAF is better only if the expected wealth of using margin is less than 28% higher than not. For a risk-averse investor with utility(wealth) = &radic;<span style="text-decoration: overline">wealth</span>, the DAF is better unless the expected-utility value in the above table is more than &radic;<span style="text-decoration: overline">1.28</span> times better for margin than non-margin (which it isn't). The reason for the &radic;<span style="text-decoration: overline">1.28</span> threshold is that donating to a DAF multiplies wealth by 1.28 with certainty, which means it multiplies expected &radic;<span style="text-decoration: overline">wealth</span> by &radic;<span style="text-decoration: overline">1.28</span>.
+
+<h3>Should you invest at all?</h3>
+
+There's <a href="http://www.effective-altruism.com/ea/4e/giving_now_vs_later_a_summary/" title="'Giving now vs. later: a summary' by Julia Wise">much</a> <a href="http://effective-altruism.com/ea/4e/giving_now_vs_later_a_summary/3bq" title="'Brian_Tomasik comments on Giving now vs. later: a summary - Effective Altruism Forum'">discussion</a> of the question of whether to donate now or later.
+
+For my personal situation, I think the optimal strategy is to donate some amount now toward projects that are either very underfunded or that should be done sooner rather than later. For instance, the <a href="http://foundational-research.org/">Foundational Research Institute</a> is more urgent than a regular charity because its conclusions will help me direct the remainder of my donations. For the rest of my donations, I'd rather wait at least a decade, because I'm continuing to learn a lot, and my conclusions may change with new insights.
+
+This explains why the altruist in my simulations only invests ~$30,000/year rather than a larger amount. It's because she's donating much of the remainder, either to charities directly or at least to a DAF to max out her 50%-of-AGI limit.
 
 <h2>Optimal leverage</h2>
 
@@ -825,9 +592,9 @@ In practice, margin leverage is not unlimited. But suppose it were. What would b
 
 <h3>Maximizing expected average return</h3>
 
-In 2007, when I first learned about the <a href="https://en.wikipedia.org/wiki/Capital_allocation_line">capital allocation line</a>, I saw that it suggests an investor could get arbitrarily high expected returns with arbitrarily high amounts of leverage. For a purely risk-neutral investor, this is a bonanza.
+In 2007, when I first learned about the <a href="https://en.wikipedia.org/wiki/Capital_allocation_line">capital allocation line</a>, I saw that it suggests an investor could get arbitrarily high expected returns with arbitrarily high amounts of leverage. For a risk-neutral investor, this would seem to be a bonanza.
 
-However, as <a href="http://www.fsa.ulaval.ca/nfa2003/papiers/Craig%20Wilson.pdf" title="'Leveraged Stock Portfolios over Long Holding Periods: A Continuous Time Model' (2003)">Domian et al. (2003)</a> explain: "In the single-period CAPM, expected return is an increasing linear function of the degree of leverage. But in our continuous time model, expected annualized return is a concave function of leverage." In fact, <a href="http://www.fsa.ulaval.ca/nfa2003/papiers/Craig%20Wilson.pdf" title="'Leveraged Stock Portfolios over Long Holding Periods: A Continuous Time Model' (2003)">Domian et al. (2003)</a> show that using c-times leverage (e.g., c = 2 means 2X leverage) and investing a fixed initial sum of wealth:
+Unfortunately, as <a href="http://www.fsa.ulaval.ca/nfa2003/papiers/Craig%20Wilson.pdf" title="'Leveraged Stock Portfolios over Long Holding Periods: A Continuous Time Model' (2003)">Domian et al. (2003)</a> explain: "In the single-period CAPM, expected return is an increasing linear function of the degree of leverage. But in our continuous time model, expected annualized return is a concave function of leverage." In fact, Domian et al. (2003) show that using c-times leverage (e.g., c = 2 means 2X leverage) and investing a fixed initial sum of wealth:
 <blockquote>
 E[R<sub>t</sub>] = r + (&mu; - r)c - &sigma;<sup>2</sup>c<sup>2</sup>/2
 </blockquote>
@@ -846,17 +613,17 @@ Recall that in general, the continuously compounded equivalent of some return x 
 ln(1+&Rho;<sub>t</sub>) = ln[ (V<sub>t</sub>/V<sub>0</sub>)<sup>1/t</sup> ] = R<sub>t</sub>.
 </blockquote>)), where V<sub>t</sub> is the t-year accumulated wealth and V<sub>0</sub> is the starting wealth.
 
-<a href="http://www.fsa.ulaval.ca/nfa2003/papiers/Craig%20Wilson.pdf" title="'Leveraged Stock Portfolios over Long Holding Periods: A Continuous Time Model' (2003)">Domian et al. (2003)</a> show (eqn. 20, p. 7) that the leverage amount c<sup>*</sup> which optimizes E[R<sub>t</sub>] is
+<a href="http://www.fsa.ulaval.ca/nfa2003/papiers/Craig%20Wilson.pdf" title="'Leveraged Stock Portfolios over Long Holding Periods: A Continuous Time Model' (2003)">Domian et al. (2003)</a> show (equation 20, p. 7) that the leverage amount c<sup>*</sup> which optimizes E[R<sub>t</sub>] is
 <blockquote>
 c<sup>*</sup> = (&mu; - r)/&sigma;<sup>2</sup>.
 </blockquote>
-Using the parameter values for my default simulation, this optimal fraction is (<REPLACE>annual_mu</REPLACE>-<REPLACE>annual_margin_interest_rate</REPLACE>)/<REPLACE>annual_sigma</REPLACE><sup>2</sup> = <REPLACE>Kelly_ratio_as_percent</REPLACE>%. Hence, this suggests using no leverage and splitting 50:50<span style="color:orange">CHECK THIS MANUALLY</span> between stocks and bonds! This isn't consistent with my results or with conventional wisdom. Of course, the parameters I used in this calculation were quite conservative. Based on historical US data, some people would set &mu; at more like .1, in which case the optimal betting fraction would be <REPLACE>Kelly_ratio_if_mu_is_10_percent</REPLACE>, i.e., almost 1.5X leverage.<span style="color:orange">CHECK THIS MANUALLY</span>
+Using the parameter values for my default simulation, this optimal fraction is (0.054-0.03)/0.22<sup>2</sup> = 50%. Hence, this suggests using no leverage and splitting 50:50<span style="color:orange">CHECK THIS MANUALLY</span> between stocks and bonds! This isn't consistent with my results or with conventional wisdom. Of course, the parameters I used in this calculation were quite conservative. Based on historical US data, some people would set &mu; at more like .1, in which case the optimal betting fraction would be 1.45, i.e., almost 1.5X leverage.<span style="color:orange">CHECK THIS MANUALLY</span>
 
 The c<sup>*</sup> formula above corresponds to the <a href="https://en.wikipedia.org/wiki/Kelly_criterion">Kelly criterion</a>. <a href="https://www.math.washington.edu/~morrow/336_10/papers/jane.pdf" title="&quot;Betting with the Kelly Criterion&quot;">This summary</a> reviews how to derive the c<sup>*</sup> equation in a different way (p. 5). The Kelly criterion <a href="http://finance.martinsewell.com/money-management/Markowitz1976.pdf" title="see p. 1273 of 'Investment for the long run: New evidence for an old rule' by Harry Markowitz (1976)">optimizes</a> the growth rate of a portfolio with a single initial investment over the infinite future, i.e., R<sub>&infin;</sub> using the above notation. This is equivalent to optimizing E[R<sub>1</sub>] because, <a href="http://finance.martinsewell.com/money-management/Markowitz1976.pdf" title="see p. 1274, eqn. 4 of 'Investment for the long run: New evidence for an old rule' by Harry Markowitz (1976)">by</a> the strong law of large numbers, R<sub>&infin;</sub> = E[R<sub>1</sub>] with probability 1. Since E[R<sub>t</sub>] doesn't depend on t, what optimizes optimizes E[R<sub>t</sub>] in general also optimizes E[R<sub>1</sub>].
 
 <h3>Maximizing expected utility</h3>
 
-However, even though the Kelly criterion beats any other investment policy after a gazillion years, it doesn't beat any other investment policy after the <REPLACE>years_until_donate</REPLACE> years before the investor donates the accumulated savings. In particular, note that the Kelly criterion is extremely worried about bankruptcy, since that nullifies all hope of future returns, while for a <REPLACE>years_until_donate</REPLACE>-year altruistic investor, bankruptcy is sad but potentially worth the risk of greater return.
+However, even though the Kelly criterion beats any other investment policy after a gazillion years, it doesn't beat any other investment policy after the 15 years before the investor donates the accumulated savings. In particular, note that the Kelly criterion is extremely worried about bankruptcy, since that nullifies all hope of future returns, while for a 15-year altruistic investor, bankruptcy is sad but potentially worth the risk of greater return.
 
 A better policy for finite time horizons is just to optimize the expected utility that will result from the donated wealth. Let u(V<sub>t</sub>) be the utility of donating an amount V<sub>t</sub>. Typically u is concave because additional dollars contribute less value. Also, in a world where other charity donations are highly correlated with yours based on market performance, if you get a lot of wealth because the market does well, other investors are also getting a lot of wealth, and hence, the value of a donate dollar <a href="http://reducing-suffering.org/when-should-altruists-be-financially-risk-averse/#Money_is_less_valuable_in_richer_worlds">isn't quite as high</a>. For these reasons, I've used u(V<sub>t</sub>) = &radic;<span style="text-decoration: overline">V</span><sub>t</sub> in the results tables of this piece.
 
@@ -949,34 +716,33 @@ It's still not obvious how to evaluate the sign of this, since x < 0 while (cx+y
 
 Let's plug in the default parameter values for this essay:
 <blockquote>
-x = <REPLACE>annual_sigma</REPLACE><sup>2</sup><REPLACE>years_until_donate</REPLACE>(.5<sup>2</sup>-.5) = <REPLACE>x_value_for_second_derivative</REPLACE><br />
-y = (<REPLACE>annual_mu</REPLACE>-<REPLACE>annual_margin_interest_rate</REPLACE>)*<REPLACE>years_until_donate</REPLACE>*.5 = <REPLACE>y_value_for_second_derivative</REPLACE>.
+x = 0.22<sup>2</sup>15(.5<sup>2</sup>-.5) = <REPLACE>x_value_for_second_derivative</REPLACE><br />
+y = (0.054-0.03)*15*.5 = <REPLACE>y_value_for_second_derivative</REPLACE>.
 </blockquote>
-And, as will be shown in the main text, c<sup>*</sup> = <REPLACE>c_star_for_alpha_equals_one_half</REPLACE>. Hence, 
+And, as will be shown in the main text, c<sup>*</sup> = 0.99. Hence, 
 <blockquote>
-x + (c<sup>*</sup>x+y)<sup>2</sup> = <REPLACE>x_value_for_second_derivative</REPLACE> + (<REPLACE>c_star_for_alpha_equals_one_half</REPLACE> * <REPLACE>x_value_for_second_derivative</REPLACE> + <REPLACE>y_value_for_second_derivative</REPLACE>)<sup>2</sup> = <REPLACE>full_equation_with_x_y_and_c</REPLACE> < 0.
+x + (c<sup>*</sup>x+y)<sup>2</sup> = <REPLACE>x_value_for_second_derivative</REPLACE> + (0.99 * <REPLACE>x_value_for_second_derivative</REPLACE> + <REPLACE>y_value_for_second_derivative</REPLACE>)<sup>2</sup> = <REPLACE>full_equation_with_x_y_and_c</REPLACE> < 0.
 </blockquote>
 Because x and y are roughly equal and opposite in magnitude, when c<sup>*</sup> is near 1, the squared term is roughly 0, so the result is roughly equal to x, which is necessarily negative for &alpha; values in the interval (0,1).-- >)):
 
 <!--
 I WAS SILLY AND DIDN'T REALIZE THE dEV/dc = 0 EQUATION WAS EASY TO SOLVE. THIS IS FROM BEFORE I REALIZED THAT:
 
-Since this expression is ugly, I plotted it in Wolfram Alpha, using the default parameters in this piece (including &alpha; = .5 and t = <REPLACE>years_until_donate</REPLACE>) and setting V<sub>0</sub> = 1 since it's irrelevant to solving the equation:
+Since this expression is ugly, I plotted it in Wolfram Alpha, using the default parameters in this piece (including &alpha; = .5 and t = 15) and setting V<sub>0</sub> = 1 since it's irrelevant to solving the equation:
 <blockquote>
-<a href="https://www.wolframalpha.com/input/?i=plot%5Bexp%7B+%5B.03+%2B+%28.054-.03%29c%5D*15*.5+%2B+%5B.22%5E2*c%5E2%2F2%5D+*+15+*+%28.5%5E2-.5%29+%7D+*+%5B+%28.054-.03%29*15*.5+%2B+c*.22%5E2*15*%28.5%5E2-.5%29+%5D%2Cc%2C0%2C25%5D">plot[exp{ [<REPLACE>annual_margin_interest_rate</REPLACE> + (<REPLACE>annual_mu</REPLACE>-<REPLACE>annual_margin_interest_rate</REPLACE>)c]*<REPLACE>years_until_donate</REPLACE>*.5 + [<REPLACE>annual_sigma</REPLACE>^2*c^2/2] * <REPLACE>years_until_donate</REPLACE> * (.5^2-.5) } * [ (<REPLACE>annual_mu</REPLACE>-<REPLACE>annual_margin_interest_rate</REPLACE>)*<REPLACE>years_until_donate</REPLACE>*.5 + c*<REPLACE>annual_sigma</REPLACE>^2*<REPLACE>years_until_donate</REPLACE>*(.5^2-.5) ],c,0,10]</a><span style="color:orange">REWRITE PRECEDING LINK IF PARAMS CHANGE!</span> <!-- with current params: plot[exp{ [.03 + (.054-.03)c]*15*.5 + [.22^2*c^2/2] * 15 * (.5^2-.5) } * [ (.054-.03)*15*.5 + c*.22^2*15*(.5^2-.5) ],c,0,10] -- >
+<a href="https://www.wolframalpha.com/input/?i=plot%5Bexp%7B+%5B.03+%2B+%28.054-.03%29c%5D*15*.5+%2B+%5B.22%5E2*c%5E2%2F2%5D+*+15+*+%28.5%5E2-.5%29+%7D+*+%5B+%28.054-.03%29*15*.5+%2B+c*.22%5E2*15*%28.5%5E2-.5%29+%5D%2Cc%2C0%2C25%5D">plot[exp{ [0.03 + (0.054-0.03)c]*15*.5 + [0.22^2*c^2/2] * 15 * (.5^2-.5) } * [ (0.054-0.03)*15*.5 + c*0.22^2*15*(.5^2-.5) ],c,0,10]</a><span style="color:orange">REWRITE PRECEDING LINK IF PARAMS CHANGE!</span> <!-- with current params: plot[exp{ [.03 + (.054-.03)c]*15*.5 + [.22^2*c^2/2] * 15 * (.5^2-.5) } * [ (.054-.03)*15*.5 + c*.22^2*15*(.5^2-.5) ],c,0,10] -- >
 </blockquote>
-If we set equal to 0 and <a href="https://www.wolframalpha.com/input/?i=solve%5Bexp%7B+%5B.03+%2B+%28.054-.03%29c%5D*15*.5+%2B+%5B.22%5E2*c%5E2%2F2%5D+*+15+*+%28.5%5E2-.5%29+%7D+*+%5B+%28.054-.03%29*15*.5+%2B+c*.22%5E2*15*%28.5%5E2-.5%29+%5D%3D0%2Cc%5D">solve the equation</a>, <span style="color:orange">REWRITE PRECEDING LINK IF PARAMS CHANGE!</span> we get c<sup>*</sup> = <REPLACE>c_star_for_alpha_equals_one_half</REPLACE>.
+If we set equal to 0 and <a href="https://www.wolframalpha.com/input/?i=solve%5Bexp%7B+%5B.03+%2B+%28.054-.03%29c%5D*15*.5+%2B+%5B.22%5E2*c%5E2%2F2%5D+*+15+*+%28.5%5E2-.5%29+%7D+*+%5B+%28.054-.03%29*15*.5+%2B+c*.22%5E2*15*%28.5%5E2-.5%29+%5D%3D0%2Cc%5D">solve the equation</a>, <span style="color:orange">REWRITE PRECEDING LINK IF PARAMS CHANGE!</span> we get c<sup>*</sup> = 0.99.
 
-If &alpha; had been 0.75, we would have had c<sup>*</sup> = <REPLACE>c_star_for_alpha_equals_three_fourths</REPLACE>, and for &alpha; = 0.25, c<sup>*</sup> = <REPLACE>c_star_for_alpha_equals_one_fourth</REPLACE>.<!-- use this equation and ctrl+h on a with the alpha value:  solve[exp{ [.03 + (.054-.03)c]*15*a + [.22^2*c^2/2] * 15 * (a^2-a) } * [ (.054-.03)*15*a + c*.22^2*15*(a^2-a) ]=0,c]  -->Here's a plot of c<sup>*</sup> vs. &alpha; for the default parameters used in this piece<!--((It uses Python's numerical equation solver for the full &part;E[utility(V<sub>t</sub>)] / &part;c equation rather than the analytical formula and hence is a nice sanity check.))-->:
+If &alpha; had been 0.75, we would have had c<sup>*</sup> = 1.98, and for &alpha; = 0.25, c<sup>*</sup> = 0.66.<!-- use this equation and ctrl+h on a with the alpha value:  solve[exp{ [.03 + (.054-.03)c]*15*a + [.22^2*c^2/2] * 15 * (a^2-a) } * [ (.054-.03)*15*a + c*.22^2*15*(a^2-a) ]=0,c]  -->Here's a plot of c<sup>*</sup> vs. &alpha; for the default parameters used in this piece<!--((It uses Python's numerical equation solver for the full &part;E[utility(V<sub>t</sub>)] / &part;c equation rather than the analytical formula and hence is a nice sanity check.))-->:
 
-<span class="fullwidthimage"><img src="<REPLACE>c_star_vs_alpha_fig</REPLACE>" title="I release this image into the public domain worldwide." /></span>
+<span class="fullwidthimage"><img src="http://reducing-suffering.org/wp-content/uploads/2015/04/c_star_vs_alpha_2015Apr30_08h45m29s.png" title="I release this image into the public domain worldwide." /></span>
 
-If we took a more optimistic value for &mu; (say, &mu;=<REPLACE>optimistic_mu</REPLACE>), we would instead have this graph:
+If we took a more optimistic value for &mu; (say, &mu;=0.08), we would instead have this graph:
 
-<span class="fullwidthimage"><img src="<REPLACE>optimistic_c_star_vs_alpha_fig</REPLACE>" title="I release this image into the public domain worldwide." /></span>
+<span class="fullwidthimage"><img src="http://reducing-suffering.org/wp-content/uploads/2015/04/optimistic_c_star_vs_alpha_2015Apr30_08h45m29s.png" title="I release this image into the public domain worldwide." /></span>
 
 The equation c<sup>*</sup> = (&mu;-r) / [&sigma;<sup>2</sup>(1-&alpha;)] works not just for &alpha; values between 0 and 1 but also (heuristically only!) for the edge cases: &alpha; = 0 and &alpha; = 1. If we say that &alpha; = 0 means utility(wealth) = ln(wealth), which is the assumption behind the Kelly criterion, then our equation falls back to the Kelly equation (Case 1). And for &alpha; = 1, utility(wealth) = wealth, so the investor is risk-neutral and thus should aim for infinite leverage (Case 2).
-
 
 <h3>Simulations in the literature</h3>
 
@@ -1003,9 +769,9 @@ if f = A/B then &sigma;<sub>f</sub> is roughly |f| &radic;[ (&sigma;<sub>A</sub>
 </blockquote>
 For simplicity, I omitted the correlation component of the equation (the -2&sigma;<sub>AB</sub>/AB part), which only makes my error bars conservatively big given that the sample-mean margin investment performance has a high correlation with the sample-mean regular investment performance, since the sample means for both quantities will be too high when particularly good stock returns are sampled and too low when particularly bad returns are sampled.
 
-Unfortunately, it looks like the error bars in this graph are actually too small. This is because the averages for some leverage amounts clearly deviate from the trend of the curve, and their error bars don't even overlap with the error bars of neighboring points on the curve. But the curve should be continuous in theory. Hence, the error bars must be too small.)) shows how well leverage does compared with non-leveraged investing as a function of the leverage amount. As in the tables above, I took utility(wealth) = &radic;<span style="text-decoration: overline">wealth</span>. Each data point came from <REPLACE>num_trials</REPLACE><span style="color:orange">This often gets messed up</span> trials.
+Unfortunately, it looks like the error bars in this graph are actually too small. This is because the averages for some leverage amounts clearly deviate from the trend of the curve, and their error bars don't even overlap with the error bars of neighboring points on the curve. But the curve should be continuous in theory. Hence, the error bars must be too small.)) shows how well leverage does compared with non-leveraged investing as a function of the leverage amount. As in the tables above, I took utility(wealth) = &radic;<span style="text-decoration: overline">wealth</span>. Each data point came from 1<span style="color:orange">This often gets messed up</span> trials.
 
-<span class="fullwidthimage"><img src="<REPLACE>closetotheory_optimal_leverage_graph</REPLACE>" title="I release this image into the public domain worldwide." /></span>
+<span class="fullwidthimage"><img src="C:\Users\brian_000\Desktop\CurrentUtilEss\levrge\code\essays\2015Apr30_08h45m29s\closetotheory_optimal_leverage_graph_2015Apr30_08h45m29s.png" title="I release this image into the public domain worldwide." /></span>
 
 <span style="color:red">HOW DOES optimum COMPARE TO THEORY? optimal lev should be ~1 for sqrt() utility or max val for linear utility</span>
 
@@ -1035,7 +801,7 @@ The peaks of the curves seem to be around 2.5X leverage<span style="color:orange
 
 <h3>Don't rebalance monthly</h3>
 
-In my default simulation configuration, the investor may become less leveraged over time because she only takes 2X leverage on new equity purchases. If the market rises, her leverage becomes less than 2X due to higher equity without correspondingly higher debt. By default I avoided rebalancing to increase leverage in these cases out of concern that too much rebalancing would be harmful, along the lines of what we see with leveraged ETFs. But I wanted to try a variant where this kind of rebalancing was done monthly if the margin-to-equity ratio fell below <REPLACE>volunary_max_margin_to_assets_as_percent</REPLACE>% (the investor's personal not-quite-2X leverage target). In order to avoid incurring transactions costs on trivially small equity purchases, the investor only buys new ETF shares for rebalancing if she can buy at least $<REPLACE>min_additional_purchase_amount</REPLACE> of such shares at once.
+In my default simulation configuration, the investor may become less leveraged over time because she only takes 2X leverage on new equity purchases. If the market rises, her leverage becomes less than 2X due to higher equity without correspondingly higher debt. By default I avoided rebalancing to increase leverage in these cases out of concern that too much rebalancing would be harmful, along the lines of what we see with leveraged ETFs. But I wanted to try a variant where this kind of rebalancing was done monthly if the margin-to-equity ratio fell below 45% (the investor's personal not-quite-2X leverage target). In order to avoid incurring transactions costs on trivially small equity purchases, the investor only buys new ETF shares for rebalancing if she can buy at least $50 of such shares at once.
 
 <REPLACE>dontreb_results_table</REPLACE>
 
@@ -1106,7 +872,7 @@ I plan to learn more about IB's actual liquidation algorithm (some sources: <a h
 
 <h3>Use VIX daily volatilities</h3>
 
-The default simulation assumes a constant annualized volatility of &sigma; = <REPLACE>annual_sigma</REPLACE>. In the real world, volatility swings a lot and sometimes reaches very high levels. How much does this affect the results? To see, I downloaded <a href="http://www.cboe.com/publish/scheduledtask/mktdata/datahouse/vixcurrent.csv">VIX data</a> from <a href="http://www.cboe.com/micro/vix/historical.aspx" title="&quot;VIX Options and Futures Historical Data&quot;">CBOE</a> between 2004 and 2015. This gave a list of volatility numbers. In the simulation, I let the daily volatility values run through that list in order, and if the simulation had more days than the VIX data, I cycled through from the start again. The VIX data include the crash of 2008 (see <a href="http://avondaleam.com/how-good-is-the-vix-at-forecasting-future-volatility/" title="&quot;How Good is the VIX at Forecasting Future Volatility?&quot;">here</a> for a chart of the data), so probably this data set overstates volatility relative to typical market conditions.
+The default simulation assumes a constant annualized volatility of &sigma; = 0.22. In the real world, volatility swings a lot and sometimes reaches very high levels. How much does this affect the results? To see, I downloaded <a href="http://www.cboe.com/publish/scheduledtask/mktdata/datahouse/vixcurrent.csv">VIX data</a> from <a href="http://www.cboe.com/micro/vix/historical.aspx" title="&quot;VIX Options and Futures Historical Data&quot;">CBOE</a> between 2004 and 2015. This gave a list of volatility numbers. In the simulation, I let the daily volatility values run through that list in order, and if the simulation had more days than the VIX data, I cycled through from the start again. The VIX data include the crash of 2008 (see <a href="http://avondaleam.com/how-good-is-the-vix-at-forecasting-future-volatility/" title="&quot;How Good is the VIX at Forecasting Future Volatility?&quot;">here</a> for a chart of the data), so probably this data set overstates volatility relative to typical market conditions.
 
 <REPLACE>VIX_results_table</REPLACE>
 
@@ -1114,7 +880,7 @@ The default simulation assumes a constant annualized volatility of &sigma; = <RE
 
 <h3>Invest for 5 years instead of 15</h3>
 
-"<a href="http://www.mathisen.ca/leveraging/leveraging.pdf">Understanding Investment Leverage</a>" (p. 8) notes that leverage is less risky over longer time horizons. Hence, we'd expect to see higher risk measures for investing over 5 years vs. <REPLACE>years_until_donate</REPLACE> years. That's indeed what we see below.<span style="color:orange">CHECK THIS MANUALLY</span>
+"<a href="http://www.mathisen.ca/leveraging/leveraging.pdf">Understanding Investment Leverage</a>" (p. 8) notes that leverage is less risky over longer time horizons. Hence, we'd expect to see higher risk measures for investing over 5 years vs. 15 years. That's indeed what we see below.<span style="color:orange">CHECK THIS MANUALLY</span>
 
 <REPLACE>yrs5_results_table</REPLACE>
 
@@ -1174,7 +940,7 @@ This variant is mainly useful for debugging. It helps show what effect stock-mar
 
 <h3>Margin interest rate = 1.5%</h3>
 
-The actual margin interest rate for Interactive Brokers in 2015 <a href="https://www.interactivebrokers.com/en/index.php?f=interest&p=schedule2" title="&quot;Interest Rates Charged to You on Margin Loan Balances&quot;">is around 1.5%</a>, so I wanted to test this parameter setting rather than just the default, more cautious value of <REPLACE>annual_margin_interest_rate_as_percent</REPLACE>. With &mu; = <REPLACE>annual_mu_as_percent</REPLACE>, this implies an <a href="https://en.wikipedia.org/wiki/Equity_premium_puzzle">equity premium</a> of ~<REPLACE>equity_premium_as_percent</REPLACE>%.
+The actual margin interest rate for Interactive Brokers in 2015 <a href="https://www.interactivebrokers.com/en/index.php?f=interest&p=schedule2" title="&quot;Interest Rates Charged to You on Margin Loan Balances&quot;">is around 1.5%</a>, so I wanted to test this parameter setting rather than just the default, more cautious value of 3.0%. With &mu; = 5.4%, this implies an <a href="https://en.wikipedia.org/wiki/Equity_premium_puzzle">equity premium</a> of ~4%.
 
 <REPLACE>int_r015_results_table</REPLACE>
 
@@ -1194,9 +960,6 @@ Finally, my simulation may be overly conservative when it comes to black-swan ri
 
 <h3>Introduction</h3>
 
-copy stuff from tex piece
-
-
 <h3>Theoretical returns</h3>
 
 
@@ -1209,7 +972,12 @@ made simpler...
 
 f = extra expenses from expense ratio and taxes (assume they subtract continuously rather than only periodically or yearly for simplicity)
 
-<REPLACE>ETF_match_theory_results_table</REPLACE>
+<table>
+<tr><td><i>Type</i></td> <td><i>Mean &plusmn; stderr</i></td> <td><i>Median</i></td> <td><i>Min</i></td> <td><i>Max</i></td> <td><i>E[&radic;<span style="text-decoration: overline">wealth</span>] &plusmn; stderr</i></td> <td><i>&sigma;<sub>ln(wealth)</sub></i></td> </tr>
+<tr><td><i>Regular</i></td> <td>$2,455 &plusmn; $293</td> <td>$1,764</td> <td>$271</td> <td>$25,241</td> <td>45 &plusmn; 2</td> <td>0.79</td></tr>
+<tr><td><i>Leveraged ETF</i></td> <td>$4,039 &plusmn; $1,788</td> <td>$852</td> <td>$20</td> <td>$174,579</td> <td>41 &plusmn; 5</td> <td>1.57</td></tr>
+</table>
+Margin is better than regular 17% of the time. Margin resulted in bankruptcy 0.0% of the time.
 
 Low median is why they're discouraged! They usually lose! But sometimes win, and that's not on the radar for most investors.
 
@@ -1226,15 +994,15 @@ dS<sub>t</sub>/S<sub>t</sub> = (&mu;-f) dt + &sigma; dW<sub>t</sub>,
 
 
 <blockquote>
-theoretical discounted median(S<sub>t</sub>) = S<sub>0</sub> exp((&mu;-f)t - &sigma;<sup>2</sup>t/2) exp(-&mu;t) = S<sub>0</sub> exp(-ft - &sigma;<sup>2</sup>t/2) = <REPLACE>starting_balance_for_leveraged_ETF_sim</REPLACE> * exp(-<REPLACE>regular_ETF_expense_ratio</REPLACE> * <REPLACE>years_until_donate</REPLACE> - <REPLACE>annual_sigma</REPLACE><sup>2</sup> * <REPLACE>years_until_donate</REPLACE>/2) = <REPLACE>theoretical_median_regular_ETF</REPLACE><br />
-empirical discounted median (from above table) = <REPLACE>actual_median_regular_ETF</REPLACE>
+theoretical discounted median(S<sub>t</sub>) = S<sub>0</sub> exp((&mu;-f)t - &sigma;<sup>2</sup>t/2) exp(-&mu;t) = S<sub>0</sub> exp(-ft - &sigma;<sup>2</sup>t/2) = 2500 * exp(-0 * 15 - 0.22<sup>2</sup> * 15/2) = $1,739<br />
+empirical discounted median (from above table) = $1,764
 </blockquote>
 
 <h5>Mean</h5>
 
 <blockquote>
-theoretical discounted mean(S<sub>t</sub>) = S<sub>0</sub> exp((&mu;-f)t) exp(-&mu;t) = S<sub>0</sub> exp(-ft) = <REPLACE>starting_balance_for_leveraged_ETF_sim</REPLACE> * exp(-<REPLACE>regular_ETF_expense_ratio</REPLACE> * <REPLACE>years_until_donate</REPLACE>) = <REPLACE>theoretical_mean_regular_ETF</REPLACE>
-empirical discounted mean (from above table) = <REPLACE>actual_mean_regular_ETF</REPLACE>
+theoretical discounted mean(S<sub>t</sub>) = S<sub>0</sub> exp((&mu;-f)t) exp(-&mu;t) = S<sub>0</sub> exp(-ft) = 2500 * exp(-0 * 15) = $2,500
+empirical discounted mean (from above table) = $2,455 &plusmn; $293
 </blockquote>
 
 <h4>Leveraged ETF</h4>
@@ -1249,20 +1017,20 @@ dV<sub>t</sub>/V<sub>t</sub> = (r + (&mu;-r)c) dt - f dt + c &sigma; dW<sub>t</s
 <h5>Median</h5>
 
 <blockquote>
-theoretical discounted median(V<sub>t</sub>) = V<sub>0</sub> exp{(&mu;-r)(c-1)t - ft - c<sup>2</sup>&sigma;<sup>2</sup>t/2} = <REPLACE>starting_balance_for_leveraged_ETF_sim</REPLACE> * exp{(<REPLACE>annual_mu</REPLACE>-<REPLACE>annual_margin_interest_rate</REPLACE>) * (<REPLACE>LEV_ETF_LEVERAGE_RATIO</REPLACE>-1) * <REPLACE>years_until_donate</REPLACE> - <REPLACE>lev_ETF_expense_ratio</REPLACE> * <REPLACE>years_until_donate</REPLACE> - <REPLACE>LEV_ETF_LEVERAGE_RATIO</REPLACE><sup>2</sup> * <REPLACE>annual_sigma</REPLACE><sup>2</sup> * <REPLACE>years_until_donate</REPLACE>/2} = <REPLACE>theoretical_median_lev_ETF</REPLACE>
-empirical discounted median (from above table) = <REPLACE>actual_median_lev_ETF</REPLACE>
+theoretical discounted median(V<sub>t</sub>) = V<sub>0</sub> exp{(&mu;-r)(c-1)t - ft - c<sup>2</sup>&sigma;<sup>2</sup>t/2} = 2500 * exp{(0.054-0.03) * (2.0-1) * 15 - 0 * 15 - 2.0<sup>2</sup> * 0.22<sup>2</sup> * 15/2} = $839
+empirical discounted median (from above table) = $852
 </blockquote>
 
 <h5>Mean</h5>
 
 <blockquote>
-theoretical discounted mean(V<sub>t</sub>) = V<sub>0</sub> exp{(&mu;-r)(c-1)t - ft} = <REPLACE>starting_balance_for_leveraged_ETF_sim</REPLACE> * exp{(<REPLACE>annual_mu</REPLACE>-<REPLACE>annual_margin_interest_rate</REPLACE>) * (<REPLACE>LEV_ETF_LEVERAGE_RATIO</REPLACE>-1) * <REPLACE>years_until_donate</REPLACE> - <REPLACE>lev_ETF_expense_ratio</REPLACE> * <REPLACE>years_until_donate</REPLACE>} = <REPLACE>theoretical_mean_lev_ETF</REPLACE>
-empirical discounted mean (from above table) = <REPLACE>actual_mean_lev_ETF</REPLACE>
+theoretical discounted mean(V<sub>t</sub>) = V<sub>0</sub> exp{(&mu;-r)(c-1)t - ft} = 2500 * exp{(0.054-0.03) * (2.0-1) * 15 - 0 * 15} = $3,583
+empirical discounted mean (from above table) = $4,039 &plusmn; $1,788
 </blockquote>
 
 
 
-<span class="fullwidthimage"><img src="<REPLACE>ETF_match_theory_exp_util</REPLACE>" title="I release this image into the public domain worldwide." /></span>
+<span class="fullwidthimage"><img src="C:\Users\brian_000\Desktop\CurrentUtilEss\levrge\code\essays\2015Apr30_08h45m29s\ETF_match_theory_exp_util_2015Apr30_08h45m29s.png" title="I release this image into the public domain worldwide." /></span>
 
 <h3>Daily vs. monthly rebalancing</h3>
 
@@ -1272,28 +1040,41 @@ What if the fund rebalances monthly? In this case, the fund's return over the mo
 
 My margin simulations did keep track of margin and asset totals given daily changes in prices, and they rebalanced monthly. So if we strip away the other complexities of the margin simulation, it should approximate the simple leveraged ETF simulation but with exact monthly rebalancing. I presented the results for the barebones version of the margin simulation previously, but for reference, here they are again:
 
-<REPLACE>closetotheory_results_table</REPLACE>
+<table>
+<tr><td><i>Type</i></td> <td><i>Mean &plusmn; stderr</i></td> <td><i>Median</i></td> <td><i>Min</i></td> <td><i>Max</i></td> <td><i>E[&radic;<span style="text-decoration: overline">wealth</span>] &plusmn; stderr</i></td> <td><i>&sigma;<sub>ln(wealth)</sub></i></td> </tr>
+<tr><td><i>Regular</i></td> <td>$299 &plusmn; $0</td> <td>$299</td> <td>$299</td> <td>$299</td> <td>17 &plusmn; 0</td> <td>0.00</td></tr>
+<tr><td><i>Margin</i></td> <td>$29 &plusmn; $0</td> <td>$29</td> <td>$29</td> <td>$29</td> <td>5 &plusmn; 0</td> <td>0.00</td></tr>
+<tr><td><i>Regular + 50% match</i></td> <td>$449 &plusmn; $0</td> <td>$449</td> <td>$449</td> <td>$449</td> <td>21 &plusmn; 0</td> <td>0.00</td></tr>
+</table>
+Margin is better than regular 0% of the time. Margin resulted in bankruptcy 0.0% of the time.
 
 These aren't quite comparable to the daily-rebalanced leveraged-ETF results just presented because my leveraged-ETF simulations include an expense ratio, while the margin simulations didn't (or had a very tiny expense ratio in the form of trading fees). So here are the results of the leveraged-ETF simulation if the expense ratios are set to 0:
 
-<REPLACE>ETF_match_theory_no_exp_ratios_results_table</REPLACE>
-
-For some reason, daily rebalancing has a lower expected value than monthly rebalancing.<span style="color:orange">CHECK THIS MANUALLY</span> This seems wrong because it contradicts the trend observed in previous sections that more frequent rebalancing (monthly rather than never) gave higher expected returns. Maybe there's some optimal rebalancing frequency greater than daily, but more likely this difference results from some difference between my two simulations that I haven't yet tracked down.
+<table>
+<tr><td><i>Type</i></td> <td><i>Mean &plusmn; stderr</i></td> <td><i>Median</i></td> <td><i>Min</i></td> <td><i>Max</i></td> <td><i>E[&radic;<span style="text-decoration: overline">wealth</span>] &plusmn; stderr</i></td> <td><i>&sigma;<sub>ln(wealth)</sub></i></td> </tr>
+<tr><td><i>Regular</i></td> <td>$2,324 &plusmn; $214</td> <td>$1,653</td> <td>$141</td> <td>$13,275</td> <td>44 &plusmn; 2</td> <td>0.90</td></tr>
+<tr><td><i>Leveraged ETF</i></td> <td>$2,757 &plusmn; $599</td> <td>$758</td> <td>$5</td> <td>$48,466</td> <td>39 &plusmn; 4</td> <td>1.78</td></tr>
+</table>
+Margin is better than regular 20% of the time. Margin resulted in bankruptcy 0.0% of the time.
 
 <h3>Including black swans</h3>
 
-<REPLACE>ETF_default_results_table</REPLACE>
+<table>
+<tr><td><i>Type</i></td> <td><i>Mean &plusmn; stderr</i></td> <td><i>Median</i></td> <td><i>Min</i></td> <td><i>Max</i></td> <td><i>E[&radic;<span style="text-decoration: overline">wealth</span>] &plusmn; stderr</i></td> <td><i>&sigma;<sub>ln(wealth)</sub></i></td> </tr>
+<tr><td><i>Regular</i></td> <td>$2,473 &plusmn; $267</td> <td>$1,509</td> <td>$182</td> <td>$15,483</td> <td>45 &plusmn; 2</td> <td>0.93</td></tr>
+<tr><td><i>Leveraged ETF</i></td> <td>$3,378 &plusmn; $857</td> <td>$596</td> <td>$7</td> <td>$62,526</td> <td>39 &plusmn; 4</td> <td>1.88</td></tr>
+</table>
+Margin is better than regular 18% of the time. Margin resulted in bankruptcy 0.0% of the time.
 
-<span class="fullwidthimage"><img src="<REPLACE>ETF_default_exp_util</REPLACE>" title="I release this image into the public domain worldwide." /></span>
+<span class="fullwidthimage"><img src="C:\Users\brian_000\Desktop\CurrentUtilEss\levrge\code\essays\2015Apr30_08h45m29s\ETF_default_exp_util_2015Apr30_08h45m29s.png" title="I release this image into the public domain worldwide." /></span>
 
 
 <h3>Various tax rates</h3>
 
-taxes understate impact b/c I can't easily do the $3K loss deduction limit :( :( so don't trust the #s!
+do an exp_util graph that plots many different curves depending on tax rate
 
-<span class="fullwidthimage"><img src="<REPLACE>ETF_default_moderate_taxes_exp_util</REPLACE>" title="I release this image into the public domain worldwide." /></span>
+<span class="fullwidthimage"><img src="C:\Users\brian_000\Desktop\CurrentUtilEss\levrge\code\essays\2015Apr30_08h45m29s\ETF_default_exp_util_2015Apr30_08h45m29s.png" title="I release this image into the public domain worldwide." /></span>
 
-<span class="fullwidthimage"><img src="<REPLACE>ETF_default_high_taxes_exp_util</REPLACE>" title="I release this image into the public domain worldwide." /></span>
 
 
 <h2>A note on refreshing this essay</h2>
