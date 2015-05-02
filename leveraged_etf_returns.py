@@ -8,10 +8,11 @@ from scipy.optimize import fsolve
 import os
 from os import path
 import write_results
+import write_essay
 
 MODERATE_ANNUAL_FRACTION_OF_SHORT_TERM_CAP_GAINS = .15 # CHANGE ME
 HIGH_ANNUAL_FRACTION_OF_SHORT_TERM_CAP_GAINS = .75 # CHANGE ME
-NUM_TRAJECTORIES_TO_SAVE_AS_FIGURES = 10
+NUM_TRAJECTORIES_TO_SAVE_AS_FIGURES = min(10,write_essay.LEV_ETF_NUM_SAMPLES)
 
 LEV_ETF_SCENARIOS = {"Match theory":"ETF_match_theory",
                      "Default (include black swans)":"ETF_default",
@@ -114,6 +115,9 @@ def many_runs(funds_and_expense_ratios, tax_rate, years, leverage_ratio, num_sam
             fund_arrays[fund_types[0]],fund_arrays[fund_types[1]])
     """
 
+"""
+NOT USED ANYMORE
+
 def find_alpha_where_expected_utilities_are_equal(regular_vals, lev_fund_vals):
     LOW_ALPHA = .01
     HIGH_ALPHA = 1
@@ -131,6 +135,7 @@ def find_alpha_where_expected_utilities_are_equal(regular_vals, lev_fund_vals):
 
 def expected_utility(numpy_array_of_wealth_values, alpha):
     return numpy.mean(map(lambda wealth: wealth**alpha, numpy_array_of_wealth_values))
+"""
 
 def sweep_variations(funds_and_expense_ratios, years, leverage_ratio, num_samples, amount_to_invest, 
                      outfilepath=None):
@@ -159,7 +164,7 @@ def sweep_variations(funds_and_expense_ratios, years, leverage_ratio, num_sample
 if __name__ == "__main__":
     YEARS = 1
     LEVERAGE_RATIO = 2
-    NUM_SAMPLES = 1000
+    NUM_SAMPLES = 1
     AMOUNT_TO_INVEST = 1000.0
     market = Market.Market()
     """exact trading days don't matter; it's just about how granular

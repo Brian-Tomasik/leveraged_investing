@@ -78,6 +78,11 @@ class BrokerageAccount(object):
     def __margin_plus_positive_taxes(self, taxes):
         return self.margin + max(taxes.current_estimate_of_tax_bill_or_refund(), 0) # Don't count negative taxes because the broker doesn't count that, and we need to stay within broker limits
 
+    def assets_minus_margin(self):
+        assets_minus_margin = self.assets - self.margin
+        assert assets_minus_margin >= 0, "More margin loans than total assets!"
+        return assets_minus_margin
+
     def margin_to_assets(self):
         if self.assets == 0:
             return 0

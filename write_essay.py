@@ -30,7 +30,7 @@ REPLACE_STR_END = "</REPLACE>"
 TIMESTAMP_FORMAT = '%Y%b%d_%Hh%Mm%Ss'
 OPTIMISTIC_MU = .08
 LEV_ETF_LEVERAGE_RATIO = 2.0
-LEV_ETF_NUM_SAMPLES = 10000
+LEV_ETF_NUM_SAMPLES = 1
 FUNDS_AND_EXPENSE_RATIOS = {"regular":.001, "lev":.01}
 
 def write_essay(skeleton, outfile, cur_working_dir, num_trials, 
@@ -108,11 +108,21 @@ def write_essay(skeleton, outfile, cur_working_dir, num_trials,
         output_text = add_figures("optimal_leverage_graph", output_text, optimal_leverage_graph, 
                                   cur_working_dir, use_local_image_file_paths, abbrev, timestamp)
         # Now add other figures, for the default margin-to-assets amount
-        for graph_type in ["hist_margin", "wealthtraj", "avgMTA", "indMTA", "carrcg", plots.EXPECTED_UTILITY_GRAPH_PREFIX]:
+        for graph_type in ["bothhist", "wealthtraj", "avgMTA", "indMTA", "carrcg", plots.EXPECTED_UTILITY_GRAPH_PREFIX]:
             path_to_current_figure = "{}_{}.png".format(prefix_for_default_results_files, 
                                                         graph_type)
             output_text = add_figures(graph_type, output_text, path_to_current_figure, 
                                       cur_working_dir, use_local_image_file_paths, abbrev, timestamp)
+        iter_num = 0
+        next_attempted_figure_file = "%s_regularvsmar_iter%i.png" % \
+            (prefix_for_default_results_files, iter_num)
+        while os.path.exists(next_attempted_figure_file):
+            output_text = add_figures("margin_sample_traj%i" % iter_num, output_text, \
+                next_attempted_figure_file, 
+                cur_working_dir, use_local_image_file_paths, abbrev, timestamp)
+            iter_num += 1
+            next_attempted_figure_file = "%s_regularvsmar_iter%i.png" % \
+            (prefix_for_default_results_files, iter_num)
 
         """Now scenario-specific content: Default scenario"""
         if scenario == "Default":
@@ -151,7 +161,8 @@ def write_essay(skeleton, outfile, cur_working_dir, num_trials,
     """Add default params and calculations using those params"""
     output_text = output_text.replace(REPLACE_STR_FRONT + "num_trials" + REPLACE_STR_END, str(num_trials))
     output_text = add_param_settings_and_related_calculations(output_text)
-    output_text = add_general_theoretical_calculations(output_text, cur_working_dir, timestamp)
+    output_text = add_general_theoretical_calculations(output_text, cur_working_dir, timestamp,
+                                                       use_local_image_file_paths)
 
     # Add the date to the output file. Run this at the end because
     # the computations above may take days or weeks. :P
@@ -305,7 +316,8 @@ def add_brokerage_params_and_calculations(output_text):
 
     return output_text
 
-def add_general_theoretical_calculations(output_text, cur_working_dir, timestamp):
+def add_general_theoretical_calculations(output_text, cur_working_dir, timestamp,
+                                         use_local_image_file_paths):
     default_investor = Investor.Investor()
     default_market = Market.Market()
 
@@ -363,10 +375,14 @@ def add_general_theoretical_calculations(output_text, cur_working_dir, timestamp
     fig_name_including_path = os.path.join(cur_working_dir,fig_name)
     """plots.theoretical_optimal_leverage_based_on_risk_tolerance(fig_name_including_path,
         *throw_out_alphas_where_c_star_is_extreme(alpha_values,c_star_values))""" # no longer needed
-    plots.theoretical_optimal_leverage_based_on_risk_tolerance(fig_name_including_path,alpha_values,c_star_values)
+    plots.theoretical_optimal_leverage_based_on_risk_tolerance(fig_name_including_path,
+                                                               alpha_values,c_star_values)
+    if use_local_image_file_paths:
+        html_fig_path = fig_name
+    else: # use WordPress path that will exist once we upload the file
+        html_fig_path = get_WordPress_img_url_path(timestamp, fig_name)
     output_text = output_text.replace(REPLACE_STR_FRONT + "c_star_vs_alpha_fig" + REPLACE_STR_END, 
-                                      get_WordPress_img_url_path(timestamp, fig_name))
-
+                                      html_fig_path)
 
     # curve of c* vs. alpha for more optimistic mu assumption
     optimistic_c_star_values = map(lambda alpha: c_star(alpha,OPTIMISTIC_MU), alpha_values)
@@ -374,8 +390,13 @@ def add_general_theoretical_calculations(output_text, cur_working_dir, timestamp
     optimistic_fig_name_including_path = os.path.join(cur_working_dir,optimistic_fig_name)
     plots.theoretical_optimal_leverage_based_on_risk_tolerance(optimistic_fig_name_including_path,
                                                                alpha_values,optimistic_c_star_values)
+    if use_local_image_file_paths:
+        html_fig_path_optimistic = optimistic_fig_name
+    else: # use WordPress path that will exist once we upload the file
+        html_fig_path_optimistic = get_WordPress_img_url_path(timestamp, optimistic_fig_name)
     output_text = output_text.replace(REPLACE_STR_FRONT + "optimistic_c_star_vs_alpha_fig" + REPLACE_STR_END, 
-                                      get_WordPress_img_url_path(timestamp, optimistic_fig_name))
+                                      html_fig_path_optimistic)
+
     output_text = output_text.replace(REPLACE_STR_FRONT + "optimistic_mu" + REPLACE_STR_END, 
                                       str(OPTIMISTIC_MU))
     """
@@ -610,13 +631,14 @@ def parse_percent_times_margin_is_better(results_table_contents):
     return matches.group(1)
 
 if __name__ == "__main__":
+    start_time = time.time()
     DATA_ALREADY_EXISTS_AND_HAS_THIS_TIMESTAMP = None
     #DATA_ALREADY_EXISTS_AND_HAS_THIS_TIMESTAMP = "2015May02_04h07m41s" # 100 runs from 2 May!
     """if the above variable is non-None, it saves lots of computation and just computes the HTML 
     and copies the required figures from saved data"""
     data_already_exists = DATA_ALREADY_EXISTS_AND_HAS_THIS_TIMESTAMP is not None
 
-    LOCAL_FILE_PATHS_IN_HTML = False
+    LOCAL_FILE_PATHS_IN_HTML = True
 
     # Open essay skeleton.
     SKELETON = "essay_skeleton.html"
@@ -651,13 +673,17 @@ _the same as when you ran the results being pointed to_
 or else the params filled in to the output HTMl file will be wrong!
 ============
 """
-            #NUM_TRIALS = 1
-            NUM_TRIALS = 100
-            #APPROX_NUM_SIMULTANEOUS_PROCESSES = 1
-            APPROX_NUM_SIMULTANEOUS_PROCESSES = 3
+            NUM_TRIALS = 2000
+            #NUM_TRIALS = 100
+            APPROX_NUM_SIMULTANEOUS_PROCESSES = 1
+            #APPROX_NUM_SIMULTANEOUS_PROCESSES = 3
             write_essay(skeleton, outfile, cur_folder, NUM_TRIALS, LOCAL_FILE_PATHS_IN_HTML, 
                         APPROX_NUM_SIMULTANEOUS_PROCESSES, data_already_exists, timestamp)
 
         """Once this is finished, you should have a timestamped folder with an essay HTML file and
         a bunch of figures. Just bulk upload the figures to WordPress and copy-paste
         the HTML text into WordPress's text editor, and you're done!"""
+    stop_time = time.time()
+    print "\nStarted running at %s" % time.ctime(start_time)
+    print "Finished running at %s" % time.ctime(stop_time)
+    print "Hours elapsed = %f" % ((stop_time-start_time)/(60*60))

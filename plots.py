@@ -4,26 +4,44 @@ import operator
 from matplotlib import pyplot
 from os import path
 import Market
+import margin_leverage
 
-DAYS_PER_YEAR = 365
 OPTIMAL_LEVERAGE_GRAPH_PREFIX = "aaa_opt_lev" # add "aaa_" to put it first alphabetically so it's easier to find
 EXPECTED_UTILITY_GRAPH_PREFIX = "exp_util"
 
 def graph_histograms(account_values, num_samples, outfilepath):
     alpha_for_pyplot = .5
     num_bins = max(10, num_samples/10)
+
+    # Plot each histogram separately
     for type in ["regular", "margin", "matched401k"]:
         median_value = util.percentile(account_values[type], .5)
         numpy_array = numpy.array(account_values[type])
         bin_min = min(numpy_array)
-        bin_max = 4 * median_value # avoids having a distorted graph due to far-right skewed values
+        bin_max = 15 * median_value # avoids having a distorted graph due to far-right skewed values
         graph_bins = numpy.linspace(bin_min, bin_max, num_bins)
-        pyplot.hist(numpy_array, bins=graph_bins, alpha=alpha_for_pyplot, color="r")
+        if type is "regular":
+            regular_array = numpy_array
+            regular_bins = graph_bins
+        elif type is "margin":
+            margin_array = numpy_array
+            margin_bins = graph_bins
+        pyplot.hist(numpy_array, bins=graph_bins, alpha=alpha_for_pyplot)
         pyplot.title("Distribution of results for " + type + " investing")
         pyplot.xlabel("Real present value of donated $")
         pyplot.ylabel("Frequency out of " + str(num_samples) + " runs")
         pyplot.savefig(outfilepath + "_hist_" + type)
         pyplot.close()
+
+    # Plot regular and margin together
+    pyplot.hist(regular_array, bins=regular_bins, alpha=alpha_for_pyplot, label="regular")
+    pyplot.hist(margin_array, bins=margin_bins, alpha=alpha_for_pyplot, label="margin")
+    pyplot.title("Distribution of results: regular vs. margin")
+    pyplot.xlabel("Real present value of donated $")
+    pyplot.ylabel("Frequency out of " + str(num_samples) + " runs")
+    pyplot.legend()
+    pyplot.savefig(outfilepath + "_bothhist")
+    pyplot.close()
 
 def graph_expected_utility_vs_alpha(numpy_regular, numpy_margin, outdir_name):
     """alpha is as in utility(wealth) = wealth^alpha"""
@@ -46,7 +64,7 @@ def graph_expected_utility_vs_alpha(numpy_regular, numpy_margin, outdir_name):
 
 def graph_historical_margin_to_assets_ratios(collection_of_ratios, avg_ratios, outfilepath):
     num_days = len(avg_ratios)
-    x_axis = [float(day)/DAYS_PER_YEAR for day in xrange(num_days)]
+    x_axis = [float(day)/margin_leverage.DAYS_PER_YEAR for day in xrange(num_days)]
 
     # Plot individual trajectories
     for individual in collection_of_ratios:
@@ -68,7 +86,7 @@ def graph_historical_margin_to_assets_ratios(collection_of_ratios, avg_ratios, o
 
 def graph_historical_wealth_trajectories(wealth_histories, outfilepath):
     num_days = len(wealth_histories[0])
-    x_axis = [float(day)/DAYS_PER_YEAR for day in xrange(num_days)]
+    x_axis = [float(day)/margin_leverage.DAYS_PER_YEAR for day in xrange(num_days)]
 
     # Plot individual trajectories
     for individual in wealth_histories:
@@ -82,7 +100,7 @@ def graph_historical_wealth_trajectories(wealth_histories, outfilepath):
 
 def graph_carried_taxes_trajectories(carried_tax_histories, outfilepath):
     num_days = len(carried_tax_histories[0])
-    x_axis = [float(day)/DAYS_PER_YEAR for day in xrange(num_days)]
+    x_axis = [float(day)/margin_leverage.DAYS_PER_YEAR for day in xrange(num_days)]
 
     # Plot individual trajectories
     for individual in carried_tax_histories:
@@ -161,12 +179,28 @@ def graph_trends_vs_leverage_amount(output_queue, outdir_name):
     pyplot.savefig(path.join(outdir_name,OPTIMAL_LEVERAGE_GRAPH_PREFIX))
     pyplot.close()
 
-def theoretical_optimal_leverage_based_on_risk_tolerance(fig_name_including_path,alpha_values,c_star_values):
+def theoretical_optimal_leverage_based_on_risk_tolerance(fig_name_including_path,
+                                                         alpha_values,c_star_values):
     pyplot.plot(alpha_values, c_star_values)
     pyplot.title("Optimal theoretical leverage, c*, vs. degree of risk tolerance, alpha")
     pyplot.xlabel("alpha: measure of risk tolerance, as in utility(wealth) = (wealth)^alpha")
     pyplot.ylabel("c*: optimal leverage amount, like c* = 2 means 2X leverage is optimal")
     pyplot.savefig(fig_name_including_path)
+    pyplot.close()
+
+def graph_margin_vs_regular_trajectories(regular_wealths, margin_wealths, outfilepath, iter_num):
+    num_days = len(regular_wealths)
+    assert len(margin_wealths) == num_days, "Input arrays not the same length."
+    default_market = Market.Market()
+    x_axis = [float(day)/margin_leverage.DAYS_PER_YEAR for day in xrange(num_days)]
+
+    pyplot.plot(x_axis, regular_wealths, label="regular")
+    pyplot.plot(x_axis, margin_wealths, label="margin")
+    pyplot.title("Trajectories of regular vs. margin investing for one simulation run")
+    pyplot.xlabel("Years since beginning")
+    pyplot.ylabel("Nominal asset value ($)")
+    pyplot.legend()
+    pyplot.savefig(outfilepath + "_regularvsmar_iter%i" % iter_num)
     pyplot.close()
 
 def graph_lev_ETF_and_underlying_trajectories(regular_ETF, lev_ETF, outfilepath, iter_num):

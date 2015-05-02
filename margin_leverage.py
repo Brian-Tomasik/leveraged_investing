@@ -14,9 +14,9 @@ from os import path
 from multiprocessing import Process, Queue
 import time
 
-USE_SMALL_SCENARIO_SET_FOR_QUICK_TEST = False
+USE_SMALL_SCENARIO_SET_FOR_QUICK_TEST = True
 if USE_SMALL_SCENARIO_SET_FOR_QUICK_TEST:
-    SCENARIOS = {"Default":"default"}
+    SCENARIOS = {"No unemployment or inflation or taxes or black swans, only paid in first month, don't taper off leverage toward end, voluntary max leverage equals broker max leverage":"closetotheory"}
     #SCENARIOS = {"No unemployment or inflation or taxes or black swans, only paid in first month, don't taper off leverage toward end, voluntary max leverage equals broker max leverage":"closetotheory",
     #             "Default":"default",
     #             "No unemployment or inflation or taxes or black swans, don't taper off leverage toward end, voluntary max leverage equals broker max leverage":"closetotheoryminus1",
@@ -56,8 +56,9 @@ TAX_LOSS_HARVEST_DAY = 360 # day number 360 in late Dec
 TAX_DAY = 60 # day of tax payments/refund assuming you get your refund around March 1; ignoring payments during the year...
 TINY_NUMBER = .000001
 THRESHOLD_FOR_TAX_CONVERGENCE = 50
+GO_BANKRUPT_BELOW_THIS_MARGIN_AMOUNT = -300000
 
-def one_run(investor,market,verbosity):
+def one_run(investor,market,verbosity,outfilepath,iter_num,num_margin_trajectories_to_save_as_figures):
     days_from_start_to_donation_date = int(DAYS_PER_YEAR * investor.years_until_donate)
     accounts = dict()
     accounts["regular"] = BrokerageAccount.BrokerageAccount(0,0,0,investor.taper_off_leverage_toward_end,investor.initial_personal_max_margin_to_assets_relative_to_broker_max)
@@ -70,6 +71,7 @@ def one_run(investor,market,verbosity):
     this variable records how many of those emergency assets you used up, which means you're
     not getting to invest them in the market. Hence, this is like a debt you borrow from yourself
     that you need to pay off over time by replenishing your emergency fund."""
+    margin_strategy_went_bankrupt = False
 
     taxes = dict()
     for type in ["regular", "margin", "matched401k"]:
@@ -79,6 +81,7 @@ def one_run(investor,market,verbosity):
 
     # Record history over lifetime of investment
     historical_margin_to_assets_ratios = numpy.zeros(days_from_start_to_donation_date)
+    historical_regular_wealth = numpy.zeros(days_from_start_to_donation_date)
     historical_margin_wealth = numpy.zeros(days_from_start_to_donation_date)
     historical_carried_taxes = numpy.zeros(days_from_start_to_donation_date)
 
@@ -88,8 +91,18 @@ def one_run(investor,market,verbosity):
 
         # Record historical info for future reference
         historical_margin_to_assets_ratios[day] = accounts["margin"].margin_to_assets()
-        historical_margin_wealth[day] = accounts["margin"].assets + debt_to_yourself_after_margin_account_lost_all_value
+        historical_regular_wealth[day] = accounts["regular"].assets_minus_margin()
+        historical_margin_wealth[day] = accounts["margin"].assets_minus_margin() - debt_to_yourself_after_margin_account_lost_all_value
         historical_carried_taxes[day] = taxes["margin"].total_gain_or_loss()
+
+        # Go bankrupt? If so, reset account values, and don't invest on margin anymore!
+        if historical_margin_wealth[day] < GO_BANKRUPT_BELOW_THIS_MARGIN_AMOUNT:
+            print "Going bankrupt due to a net margin-strategy value of %s." % util.format_as_dollar_string(historical_margin_wealth[day])
+            margin_strategy_went_bankrupt = True
+            debt_to_yourself_after_margin_account_lost_all_value = 0
+            """Set margin account to have 0 as max margin-to-assets ratio because we're
+            not using margin investing anymore (since our credit score, etc. is hammered)."""
+            accounts["margin"] = BrokerageAccount.BrokerageAccount(0,0,0,investor.taper_off_leverage_toward_end,investor.initial_personal_max_margin_to_assets_relative_to_broker_max)
 
         """ Stock market changes on non-holiday weekdays.
         The functions to check if it's a weekend and a holiday are based on the year
@@ -227,8 +240,9 @@ def one_run(investor,market,verbosity):
                             also shouldn't go into debt from capital-gains taxes. But just in case,
                             the following "else" statement accounts for this possibility."""
                         else:
-                            debt_to_yourself_after_margin_account_lost_all_value = debt_to_self_from_taxes
-                            print "\nNote: You're going into debt from capital-gains taxes. This is unusual."
+                            if debt_to_self_from_taxes > 0:
+                                debt_to_yourself_after_margin_account_lost_all_value += debt_to_self_from_taxes
+                                print "\nNote: You're going into debt from capital-gains taxes. This is unusual."
                 elif bill_or_refund < 0: # got IRS refund
                     if type is "margin":
                         if debt_to_yourself_after_margin_account_lost_all_value >= -bill_or_refund:
@@ -247,6 +261,14 @@ def one_run(investor,market,verbosity):
                 if type is not "margin" or not (debt_to_yourself_after_margin_account_lost_all_value > 0):
                     accounts[type].tax_loss_harvest(day, taxes[type])
 
+        # Make sure our variables are in order.
+        have_assets_and_no_debt = accounts["margin"].assets > 0 and debt_to_yourself_after_margin_account_lost_all_value == 0
+        have_debt_and_no_assets = accounts["margin"].assets == 0 and debt_to_yourself_after_margin_account_lost_all_value > 0
+        have_no_assets_and_no_debt = accounts["margin"].assets == 0 and debt_to_yourself_after_margin_account_lost_all_value == 0
+        if have_no_assets_and_no_debt:
+            print "WARNING: You have no assets and no debt."
+            assert have_assets_and_no_debt or have_debt_and_no_assets or have_no_assets_and_no_debt, "Variables are messed up!"
+
     if not (debt_to_yourself_after_margin_account_lost_all_value > 0):
         """Now that we've donated, finish up. We need to pay off all margin debt. In
         the process of buying/selling, we incur capital-gains taxes (positive or negative).
@@ -262,25 +284,41 @@ def one_run(investor,market,verbosity):
                 bill_or_refund = taxes["margin"].process_taxes()
             if bill_or_refund < 0 and not (debt_to_yourself_after_margin_account_lost_all_value > 0):
                 accounts["margin"].buy_ETF_without_margin(-bill_or_refund, days_from_start_to_donation_date) # can't use margin anymore because we're done paying off loans
+        assert accounts["margin"].margin == 0, "We haven't paid off all margin!"
+    else:
+        assert accounts["margin"].assets == 0, "If we have net self-debt, we shouldn't have assets."
 
-    if accounts["regular"].assets < TINY_NUMBER:
-        print "WARNING: In this simulation round, the regular account ended with only %." % util.format_as_dollar_string(accounts["regular"].assets) ,
+    if accounts["regular"].assets_minus_margin() < TINY_NUMBER:
+        print "WARNING: In this simulation round, the regular account ended with only %s." % \
+            util.format_as_dollar_string(accounts["regular"].assets_minus_margin()) ,
 
-    # Make sure our variables are in order.
-    have_assets_and_no_debt = accounts["margin"].assets > 0 and debt_to_yourself_after_margin_account_lost_all_value == 0
-    have_debt_and_no_assets = accounts["margin"].assets == 0 and debt_to_yourself_after_margin_account_lost_all_value > 0
-    assert have_assets_and_no_debt or have_debt_and_no_assets, "Variables are messed up!"
-    ending_margin_balance = accounts["margin"].assets + debt_to_yourself_after_margin_account_lost_all_value
+    ending_margin_balance = accounts["margin"].assets_minus_margin() - debt_to_yourself_after_margin_account_lost_all_value
+
+    # Go bankrupt? If so, reset account values, and don't invest on margin anymore!
+    if ending_margin_balance < GO_BANKRUPT_BELOW_THIS_MARGIN_AMOUNT:
+        print "Going bankrupt due to a net margin-strategy value of %s." % util.format_as_dollar_string(historical_margin_wealth[day])
+        margin_strategy_went_bankrupt = True
+        debt_to_yourself_after_margin_account_lost_all_value = 0
+        """Set margin account to have 0 as max margin-to-assets ratio because we're
+        not using margin investing anymore (since our credit score, etc. is hammered)."""
+        accounts["margin"] = BrokerageAccount.BrokerageAccount(0,0,0,investor.taper_off_leverage_toward_end,investor.initial_personal_max_margin_to_assets_relative_to_broker_max)
+        ending_margin_balance = 0
+
+    # Possibly save this trajectory of regular vs. margin wealth
+    if iter_num < num_margin_trajectories_to_save_as_figures:
+        plots.graph_margin_vs_regular_trajectories(historical_regular_wealth, \
+            historical_margin_wealth, outfilepath, iter_num)
 
     # Return present values of the account balances
     historical_margin_wealth = map(lambda wealth: market.real_present_value(wealth,investor.years_until_donate), historical_margin_wealth)
-    return (market.real_present_value(accounts["regular"].assets,investor.years_until_donate),
-            market.real_present_value(ending_margin_balance,investor.years_until_donate),
-            market.real_present_value(accounts["matched401k"].assets,investor.years_until_donate),
-            historical_margin_to_assets_ratios, historical_margin_wealth, 
-            historical_carried_taxes, have_debt_and_no_assets)
 
-def run_samples(investor,market,num_samples=1000,outfilepath=None,output_queue=None,verbosity=1):
+    return (market.real_present_value(accounts["regular"].assets_minus_margin(),investor.years_until_donate),
+            market.real_present_value(ending_margin_balance,investor.years_until_donate),
+            market.real_present_value(accounts["matched401k"].assets_minus_margin(),investor.years_until_donate),
+            historical_margin_to_assets_ratios, historical_margin_wealth, 
+            historical_carried_taxes, have_debt_and_no_assets, margin_strategy_went_bankrupt)
+
+def run_samples(investor,market,num_samples,outfilepath,output_queue=None,verbosity=1,num_margin_trajectories_to_save_as_figures=5):
     account_values = dict()
     account_types = ["regular", "margin", "matched401k"]
     NUM_HISTORIES_TO_PLOT = 20
@@ -290,14 +328,17 @@ def run_samples(investor,market,num_samples=1000,outfilepath=None,output_queue=N
     carried_tax_histories = []
     running_average_margin_to_assets_ratios = None
     num_times_margin_ended_with_net_debt = 0
+    num_times_margin_strategy_went_bankrupt = 0
     for type in account_types:
         account_values[type] = []
+    num_margin_trajectories_to_save_as_figures = min(num_margin_trajectories_to_save_as_figures, num_samples) # save fewer figures if we don't have enough samples
 
     start_time = time.time()
     for sample in xrange(num_samples):
         (regular_val, margin_val, matched_401k_val, margin_to_assets_ratios, 
-         margin_wealth, carried_taxes, margin_account_has_net_debt) = one_run(
-             investor,market,verbosity)
+         margin_wealth, carried_taxes, margin_account_has_net_debt,
+         margin_strategy_went_bankrupt) = one_run(investor,market,verbosity,outfilepath,sample,
+                                                  num_margin_trajectories_to_save_as_figures)
         account_values["regular"].append(regular_val)
         account_values["margin"].append(margin_val)
         account_values["matched401k"].append(matched_401k_val)
@@ -314,6 +355,8 @@ def run_samples(investor,market,num_samples=1000,outfilepath=None,output_queue=N
             running_average_margin_to_assets_ratios += margin_to_assets_ratios
         if margin_account_has_net_debt:
             num_times_margin_ended_with_net_debt += 1
+        if margin_strategy_went_bankrupt:
+            num_times_margin_strategy_went_bankrupt += 1
 
         if verbosity > 0:
             NUM_SAMPLES_FOR_TIMING = 10
@@ -340,7 +383,8 @@ def run_samples(investor,market,num_samples=1000,outfilepath=None,output_queue=N
             numpy_margin,numpy_regular)
         ratio_of_medians = numpy.median(numpy_margin)/numpy.median(numpy_regular)
         (ratio_of_exp_util, ratio_of_exp_util_error) = util.ratio_of_means_with_error_bars(
-            map(math.sqrt, numpy_margin), map(math.sqrt, numpy_regular))
+            map(util.sqrt_wealth_linear_if_negative, numpy_margin), 
+            map(util.sqrt_wealth_linear_if_negative, numpy_regular))
         N_to_1_leverage = util.max_margin_to_assets_ratio_to_N_to_1_leverage(investor.broker_max_margin_to_assets_ratio)
         assert N_to_1_leverage >= 1, "N_to_1_leverage is < 1"
         output_queue.put( (N_to_1_leverage, ratio_of_means, ratio_of_means_error,
@@ -348,8 +392,9 @@ def run_samples(investor,market,num_samples=1000,outfilepath=None,output_queue=N
 
     if outfilepath:
         with open(write_results.results_table_file_name(outfilepath), "w") as outfile:
-            write_results.write_file_table(account_values, account_types, 
-                                           float(num_times_margin_ended_with_net_debt)/num_samples, outfile)
+            write_results.write_file_table(account_values, account_types, \
+                float(num_times_margin_strategy_went_bankrupt)/num_samples, outfile, \
+                fraction_times_margin_ended_with_net_debt=float(num_times_margin_ended_with_net_debt)/num_samples)
         with open(write_results.other_results_file_name(outfilepath), "w") as outfile:
             write_results.write_means(account_values, investor.years_until_donate, outfile)
             write_results.write_percentiles(account_values, outfile)
@@ -591,7 +636,8 @@ def optimal_leverage_for_all_scenarios(num_trials, use_timestamped_dirs, cur_wor
     finish running!"""
     scenarios_not_to_sweep = ["closetotheoryminus%i" % i for i in [2,3,4,5,6]]
     scenarios_not_to_sweep.append("sig0")
-    #scenarios_not_to_sweep.append("default")# comment out later
+    scenarios_not_to_sweep.append("default")# comment out later
+    scenarios_not_to_sweep.append("closetotheory")# comment out later
     for scenario_name in SCENARIOS.keys():
         if SCENARIOS[scenario_name] in scenarios_not_to_sweep: # skip them to speed up computing
             """In this case, only get results for the default margin-to-assets setting
@@ -610,20 +656,16 @@ def optimal_leverage_for_all_scenarios(num_trials, use_timestamped_dirs, cur_wor
 
 def run_one_variant(num_trials):
     outdir_name = util.create_timestamped_dir("one") # concise way of writing "one variant"
-    #scenario = "Rebalance to increase leverage"
-    #scenario = "Favored tax ordering when liquidate"
-    #scenario = "No unemployment or inflation or taxes or black swans, only paid in first month"
-    #scenario = "No unemployment or inflation or taxes or black swans, only paid in first month, don't rebalance monthly"
-    #scenario = "No unemployment or inflation or taxes or black swans, don't rebalance monthly"
-    scenario = "Default"
-    #scenario = "Rebalance to increase leverage, no tax-loss harvesting"
+    #scenario = "Default"
+    scenario = "No unemployment or inflation or taxes or black swans, only paid in first month, don't taper off leverage toward end, voluntary max leverage equals broker max leverage"
     args = args_for_this_scenario(scenario, num_trials, outdir_name)
     run_samples(*args)
 
 if __name__ == "__main__":
     #sweep_scenarios(1,1)
-    run_one_variant(10)
+    run_one_variant(1)
 """
+- change black swan prob back! to .0001
 Things that need to be checked because I sometimes set them to run faster:
 - years (15 vs. .1)
 - SCENARIOS at top of this file

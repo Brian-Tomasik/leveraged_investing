@@ -39,9 +39,16 @@ def update_price(current_price, rate_of_return):
         return (current_price, True) # True means price went to 0
     return (current_price, False)
 
+def sqrt_wealth_linear_if_negative(wealth):
+    return utility(wealth,.5)
 
 def utility(wealth, alpha):
-    return wealth**alpha
+    """If wealth is negative, return it straight so that utility is linearly bad
+   when wealth is negative."""
+    if wealth < 0:
+        return wealth
+    else:
+        return wealth**alpha
 
 def format_as_dollar_string(float_or_int_amount):
     return "${:,}".format(int(round(float_or_int_amount,0)))
