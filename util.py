@@ -24,6 +24,22 @@ def day_is_holiday(day_number_in_the_year):
             return True
     return False
 
+def update_price(current_price, rate_of_return):
+    """Let R dt be the rate of return for this small time step. dS = S R dt. 
+    Then to update S, we set S = S + dS = S + S R dt = S (1 + R dt),
+    i.e., S *= (1+rate_of_return)"""
+    COMPOUND_THE_WRONG_WAY = False
+    if COMPOUND_THE_WRONG_WAY:
+        """THIS IS WRONG AND CAUSED A BIG BUG WHEN I USED IT"""
+        current_price *= math.exp(rate_of_return)
+    else:
+        current_price *= (1+rate_of_return)
+    if current_price < 0:
+        current_price = 0
+        return (current_price, True) # True means price went to 0
+    return (current_price, False)
+
+
 def utility(wealth, alpha):
     return wealth**alpha
 

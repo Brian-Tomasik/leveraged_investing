@@ -15,7 +15,7 @@ def one_run(params):
 
     daily_returns_so_far = numpy.array([])
 
-    for day in range(total_days):
+    for day in xrange(total_days):
         # update fund prices
         daily_return = params.annual_sigma * random.gauss(0,1) * math.sqrt(delta_t) + params.annual_mu * delta_t
         """This is GBM for stock; for an example of this equation, see the first equation 
@@ -70,7 +70,7 @@ def run_trials(params,num_trials=1000,allowable_deviation_from_theory=.05,debug=
     regular_prices = []
     leveraged_prices = []
     num_prices_omitted = 0
-    for trial in range(num_trials):
+    for trial in xrange(num_trials):
         # compute simulated prices
         regular_price,leveraged_price,final_realized_variance = one_run(params)
         

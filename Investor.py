@@ -6,7 +6,7 @@ class Investor(object):
 
     def __init__(self, years_until_donate=15, initial_annual_income_for_investing=30000, 
                  annual_real_income_growth_percent=2, match_percent_from_401k=50,
-                 margin_account_bankrupt=False, taper_off_leverage_toward_end=True,
+                 taper_off_leverage_toward_end=True,
                  tax_rates=TaxRates.TaxRates(), rebalance_monthly_to_increase_leverage=True, 
                  pay_principal_throughout=False, broker_max_margin_to_assets_ratio=.5,
                  monthly_probability_of_layoff=.01, monthly_probability_find_work_after_laid_off=.2,
@@ -17,14 +17,6 @@ class Investor(object):
         self.initial_annual_income_for_investing = initial_annual_income_for_investing
         self.annual_real_income_growth_percent = annual_real_income_growth_percent
         self.match_percent_from_401k = match_percent_from_401k
-        self.__margin_account_bankrupt = False
-        """Note that only the margin account can go bankrupt. Because I use continuous
-        interest, where the multiple for a rate of r is exp(r), even if r is really negative,
-        the balance remains greater than zero even if small. Only with leverage can we 
-        actually go into the red. I assume that if you go bankrupt, your account's value is
-        zero even though technically, if someone went bankrupt, s/he could still invest
-        some with future income...."""
-
         self.__taper_off_leverage_toward_end = taper_off_leverage_toward_end
         self.__tax_rates = tax_rates
 
@@ -73,14 +65,6 @@ class Investor(object):
     @match_percent_from_401k.setter
     def match_percent_from_401k(self, val):
         self.__match_percent_from_401k = val
-
-    @property
-    def margin_account_bankrupt(self):
-        return self.__margin_account_bankrupt
-
-    @margin_account_bankrupt.setter
-    def margin_account_bankrupt(self, val):
-        self.__margin_account_bankrupt = val
 
     @property
     def taper_off_leverage_toward_end(self):

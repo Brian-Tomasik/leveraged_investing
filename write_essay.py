@@ -30,7 +30,7 @@ REPLACE_STR_END = "</REPLACE>"
 TIMESTAMP_FORMAT = '%Y%b%d_%Hh%Mm%Ss'
 OPTIMISTIC_MU = .08
 LEV_ETF_LEVERAGE_RATIO = 2.0
-LEV_ETF_NUM_SAMPLES = 10
+LEV_ETF_NUM_SAMPLES = 10000
 FUNDS_AND_EXPENSE_RATIOS = {"regular":.001, "lev":.01}
 
 def write_essay(skeleton, outfile, cur_working_dir, num_trials, 
@@ -73,6 +73,10 @@ def write_essay(skeleton, outfile, cur_working_dir, num_trials,
             output_text = leveraged_ETF_compare_against_theory(output_text,results_table_contents,
                                                                starting_balance_for_leveraged_ETF_sim)
         output_text = add_figures("exp_util", output_text, os.path.join(folder,"_exp_util.png"), 
+                cur_working_dir, use_local_image_file_paths, abbrev, timestamp)
+        for iter_num in xrange(leveraged_etf_returns.NUM_TRAJECTORIES_TO_SAVE_AS_FIGURES):
+            output_text = add_figures("sample_traj%i" % iter_num, output_text, \
+                os.path.join(folder,"_regularvslev_iter%i.png" % iter_num), 
                 cur_working_dir, use_local_image_file_paths, abbrev, timestamp)
 
     """Read and parse the results for margin."""
@@ -527,7 +531,7 @@ def theoretical_median_PV_ignoring_complications():
     default_market = Market.Market()
     initial_monthly_income = default_investor.initial_annual_income_for_investing / 12
     total_PV = 0.0
-    for month in range(12 * default_investor.years_until_donate):
+    for month in xrange(12 * default_investor.years_until_donate):
         cur_monthly_income = initial_monthly_income * (1+default_investor.annual_real_income_growth_percent/100.0)**math.floor(month/12)
         discounted_cur_monthly_income = cur_monthly_income * math.exp(- default_market.annual_mu * (month / 12.0))
         total_PV += discounted_cur_monthly_income
@@ -580,7 +584,7 @@ def get_mean_as_int_from_mean_plus_or_minus_stderr(input_string):
 
 def parse_value_from_results_table(results_table_contents, row_name, column_name):
     NUM_COLUMNS = 6
-    regex_for_header_columns = "".join([" <td><i>(.+)</i></td>" for column in range(NUM_COLUMNS)])
+    regex_for_header_columns = "".join([" <td><i>(.+)</i></td>" for column in xrange(NUM_COLUMNS)])
     regex_for_columns = regex_for_header_columns.replace("<i>","").replace("</i>","")
 
     text = '.*<tr><td><i>{}</i></td>{}.*'.format(row_name, regex_for_columns)
@@ -607,12 +611,12 @@ def parse_percent_times_margin_is_better(results_table_contents):
 
 if __name__ == "__main__":
     DATA_ALREADY_EXISTS_AND_HAS_THIS_TIMESTAMP = None
-    #DATA_ALREADY_EXISTS_AND_HAS_THIS_TIMESTAMP = "2015May01_14h57m04s" # latest big run
+    #DATA_ALREADY_EXISTS_AND_HAS_THIS_TIMESTAMP = "2015May02_04h07m41s" # 100 runs from 2 May!
     """if the above variable is non-None, it saves lots of computation and just computes the HTML 
     and copies the required figures from saved data"""
     data_already_exists = DATA_ALREADY_EXISTS_AND_HAS_THIS_TIMESTAMP is not None
 
-    LOCAL_FILE_PATHS_IN_HTML = True
+    LOCAL_FILE_PATHS_IN_HTML = False
 
     # Open essay skeleton.
     SKELETON = "essay_skeleton.html"
@@ -648,9 +652,9 @@ or else the params filled in to the output HTMl file will be wrong!
 ============
 """
             #NUM_TRIALS = 1
-            NUM_TRIALS = 1000
-            APPROX_NUM_SIMULTANEOUS_PROCESSES = 1
-            #APPROX_NUM_SIMULTANEOUS_PROCESSES = 2
+            NUM_TRIALS = 100
+            #APPROX_NUM_SIMULTANEOUS_PROCESSES = 1
+            APPROX_NUM_SIMULTANEOUS_PROCESSES = 3
             write_essay(skeleton, outfile, cur_folder, NUM_TRIALS, LOCAL_FILE_PATHS_IN_HTML, 
                         APPROX_NUM_SIMULTANEOUS_PROCESSES, data_already_exists, timestamp)
 

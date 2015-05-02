@@ -166,7 +166,7 @@ class BrokerageAccount(object):
         in fees and get S in cash to pay down margin debt. We need to set S
         such that (M-S)/(A-S-FS) = R  ==>  M-S = AR - SR - FSR  ==>
         M - AR = S - SR - FSR  ==>  M - AR = (1-R-FR)S  ==>  S = (M-AR)/(1-R-FR)"""
-        go_bankrupt = False
+        deficit_still_not_paid = 0
         margin_to_assets = self.margin_to_assets_include_tax_liabilities(taxes) if include_taxes_in_margin_ratio_calculation else self.margin_to_assets()
         margin = self.__margin_plus_positive_taxes(taxes) if include_taxes_in_margin_ratio_calculation else self.margin
         num_loops = 0
@@ -175,9 +175,11 @@ class BrokerageAccount(object):
             if we're including upcoming tax liabilities in the margin-to-assets calculation and
             if the process of selling securities increases those tax liabilities. This is very rare."""
             amount_of_cash_needed = (margin - self.assets * max_margin_to_assets_ratio) / (1 - max_margin_to_assets_ratio - FEE_PER_DOLLAR_TRADED * max_margin_to_assets_ratio)
-            go_bankrupt = self.__assets.sell(amount_of_cash_needed, FEE_PER_DOLLAR_TRADED, day, taxes, 
+            deficit_still_not_paid = self.__assets.sell(amount_of_cash_needed, FEE_PER_DOLLAR_TRADED, day, taxes, 
                                sell_best_for_taxes_first)
-            if go_bankrupt:
+            if deficit_still_not_paid > 0:
+                self.margin = 0 # Any remaining debt is paid off by emergency funds and becomes part of deficit to oneself
+                assert self.assets == 0, "Assets aren't zero even though we ran out of assets!"
                 break
             self.margin -= amount_of_cash_needed
             margin_to_assets = self.margin_to_assets_include_tax_liabilities(taxes) if include_taxes_in_margin_ratio_calculation else self.margin_to_assets()
@@ -185,7 +187,7 @@ class BrokerageAccount(object):
             num_loops += 1
             if num_loops == 10:
                 print "Looped at least 10 times when trying to sell enough securities to rebalance..."
-        return go_bankrupt
+        return deficit_still_not_paid
 
     def buy_ETF_at_fixed_ratio(self, money_on_hand, day, years_remaining):
         """Say the user added M dollars. We should buy an amount of ETF
@@ -211,11 +213,12 @@ class BrokerageAccount(object):
         take out additional debt D and use it to buy more stocks such that
         (M+D)/(A+D) = R  ==>  M+D = AR+DR  ==>  M-AR = DR-D  ==>  
         M-AR = D(R-1)  ==>  D = (M-AR)/(R-1) = (AR-M)/(1-R)"""
-        if self.margin_to_assets_include_tax_liabilities(taxes) < (1-EPSILON) * self.personal_max_margin_to_assets_ratio(years_remaining):
-            additional_debt = (self.assets * self.personal_max_margin_to_assets_ratio(years_remaining) - self.__margin_plus_positive_taxes(taxes)) / (1-self.personal_max_margin_to_assets_ratio(years_remaining))
-            if additional_debt >= MIN_ADDITIONAL_PURCHASE_AMOUNT: # due to transactions costs, we shouldn't bother buying new ETF shares if we only have a trivial amount of money for the purchase
-                self.margin += additional_debt
-                self.__assets.buy_new_lot(additional_debt, FEE_PER_DOLLAR_TRADED, day)
+        if self.assets > 0:
+            if self.margin_to_assets_include_tax_liabilities(taxes) < (1-EPSILON) * self.personal_max_margin_to_assets_ratio(years_remaining):
+                additional_debt = (self.assets * self.personal_max_margin_to_assets_ratio(years_remaining) - self.__margin_plus_positive_taxes(taxes)) / (1-self.personal_max_margin_to_assets_ratio(years_remaining))
+                if additional_debt >= MIN_ADDITIONAL_PURCHASE_AMOUNT: # due to transactions costs, we shouldn't bother buying new ETF shares if we only have a trivial amount of money for the purchase
+                    self.margin += additional_debt
+                    self.__assets.buy_new_lot(additional_debt, FEE_PER_DOLLAR_TRADED, day)
 
     def tax_loss_harvest(self, day, taxes):
         cash_earned = self.__assets.tax_loss_harvest(FEE_PER_DOLLAR_TRADED, day, taxes) # sell capital-loss lots
@@ -227,6 +230,6 @@ class BrokerageAccount(object):
 
     def pay_off_all_margin(self, day, taxes):
         assert self.assets >= self.margin, "More debt than equity!"
-        go_bankrupt = self.__assets.sell(self.margin, FEE_PER_DOLLAR_TRADED, day, taxes, True)
+        deficit_still_not_paid = self.__assets.sell(self.margin, FEE_PER_DOLLAR_TRADED, day, taxes, True)
         self.margin = 0
-        return go_bankrupt
+        return deficit_still_not_paid

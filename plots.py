@@ -3,12 +3,13 @@ import util
 import operator
 from matplotlib import pyplot
 from os import path
+import Market
 
 DAYS_PER_YEAR = 365
 OPTIMAL_LEVERAGE_GRAPH_PREFIX = "aaa_opt_lev" # add "aaa_" to put it first alphabetically so it's easier to find
 EXPECTED_UTILITY_GRAPH_PREFIX = "exp_util"
 
-def graph_results(account_values, num_samples, outfilepath):
+def graph_histograms(account_values, num_samples, outfilepath):
     alpha_for_pyplot = .5
     num_bins = max(10, num_samples/10)
     for type in ["regular", "margin", "matched401k"]:
@@ -45,7 +46,7 @@ def graph_expected_utility_vs_alpha(numpy_regular, numpy_margin, outdir_name):
 
 def graph_historical_margin_to_assets_ratios(collection_of_ratios, avg_ratios, outfilepath):
     num_days = len(avg_ratios)
-    x_axis = [float(day)/DAYS_PER_YEAR for day in range(num_days)]
+    x_axis = [float(day)/DAYS_PER_YEAR for day in xrange(num_days)]
 
     # Plot individual trajectories
     for individual in collection_of_ratios:
@@ -67,7 +68,7 @@ def graph_historical_margin_to_assets_ratios(collection_of_ratios, avg_ratios, o
 
 def graph_historical_wealth_trajectories(wealth_histories, outfilepath):
     num_days = len(wealth_histories[0])
-    x_axis = [float(day)/DAYS_PER_YEAR for day in range(num_days)]
+    x_axis = [float(day)/DAYS_PER_YEAR for day in xrange(num_days)]
 
     # Plot individual trajectories
     for individual in wealth_histories:
@@ -81,7 +82,7 @@ def graph_historical_wealth_trajectories(wealth_histories, outfilepath):
 
 def graph_carried_taxes_trajectories(carried_tax_histories, outfilepath):
     num_days = len(carried_tax_histories[0])
-    x_axis = [float(day)/DAYS_PER_YEAR for day in range(num_days)]
+    x_axis = [float(day)/DAYS_PER_YEAR for day in xrange(num_days)]
 
     # Plot individual trajectories
     for individual in carried_tax_histories:
@@ -112,7 +113,7 @@ def graph_trends_vs_leverage_amount(output_queue, outdir_name):
         attributes[key] = []
     for tuple in output_tuples:
         assert len(KEYS) == len(tuple), "Tuple is wrong length"
-        for i in range(len(tuple)):
+        for i in xrange(len(tuple)):
             attributes[KEYS[i]].append(tuple[i])
 
     # Plot the axes
@@ -166,4 +167,19 @@ def theoretical_optimal_leverage_based_on_risk_tolerance(fig_name_including_path
     pyplot.xlabel("alpha: measure of risk tolerance, as in utility(wealth) = (wealth)^alpha")
     pyplot.ylabel("c*: optimal leverage amount, like c* = 2 means 2X leverage is optimal")
     pyplot.savefig(fig_name_including_path)
+    pyplot.close()
+
+def graph_lev_ETF_and_underlying_trajectories(regular_ETF, lev_ETF, outfilepath, iter_num):
+    num_days = len(regular_ETF)
+    assert len(lev_ETF) == num_days, "Input arrays not the same length."
+    default_market = Market.Market()
+    x_axis = [float(day)/default_market.trading_days_per_year for day in xrange(num_days)]
+
+    pyplot.plot(x_axis, regular_ETF, label="regular ETF")
+    pyplot.plot(x_axis, lev_ETF, label="leveraged ETF")
+    pyplot.title("Trajectories of regular vs. leveraged ETF for one simulation run")
+    pyplot.xlabel("Years since beginning")
+    pyplot.ylabel("Nominal asset value ($)")
+    pyplot.legend()
+    pyplot.savefig(outfilepath + "_regularvslev_iter%i" % iter_num)
     pyplot.close()

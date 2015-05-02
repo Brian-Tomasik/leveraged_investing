@@ -9,8 +9,9 @@ import os
 from os import path
 import write_results
 
-MODERATE_ANNUAL_FRACTION_OF_SHORT_TERM_CAP_GAINS = .25 # CHANGE ME
+MODERATE_ANNUAL_FRACTION_OF_SHORT_TERM_CAP_GAINS = .15 # CHANGE ME
 HIGH_ANNUAL_FRACTION_OF_SHORT_TERM_CAP_GAINS = .75 # CHANGE ME
+NUM_TRAJECTORIES_TO_SAVE_AS_FIGURES = 10
 
 LEV_ETF_SCENARIOS = {"Match theory":"ETF_match_theory",
                      "Default (include black swans)":"ETF_default",
@@ -20,7 +21,8 @@ LEV_ETF_SCENARIOS = {"Match theory":"ETF_match_theory",
                      "Default (include black swans), high taxes":"ETF_default_high_taxes"}
 
 def one_run_daily_rebalancing(funds_and_expense_ratios, years, tax_rate, 
-                              leverage_ratio, amount_to_invest, market):
+                              leverage_ratio, amount_to_invest, market, iter_num,
+                              outfilepath):
     num_days = int(round(market.trading_days_per_year * years,0))
 
     regular_val = amount_to_invest
@@ -30,6 +32,9 @@ def one_run_daily_rebalancing(funds_and_expense_ratios, years, tax_rate,
     regular_daily_exp_ratio = funds_and_expense_ratios["regular"]/market.trading_days_per_year
     lev_fund_daily_exp_ratio = funds_and_expense_ratios["lev"]/market.trading_days_per_year
 
+    historical_regular_values = []
+    historical_lev_values = []
+
     for day in xrange(num_days):
         today_return = market.random_daily_return(day)
         after_tax_today_return = today_return * (1-tax_rate)
@@ -38,11 +43,26 @@ def one_run_daily_rebalancing(funds_and_expense_ratios, years, tax_rate,
         regular_val += regular_val * (after_tax_today_return-regular_daily_exp_ratio)
         if regular_val < 0:
             regular_val = 0 # can't have negative return
+        historical_regular_values.append(regular_val)
         lev_fund_val += lev_fund_val * (leverage_ratio * after_tax_today_return \
             - (leverage_ratio-1)*daily_interest_rate - \
             lev_fund_daily_exp_ratio)
         if lev_fund_val < 0:
             lev_fund_val = 0 # go bankrupt
+        historical_lev_values.append(lev_fund_val)
+
+    if iter_num < NUM_TRAJECTORIES_TO_SAVE_AS_FIGURES:
+        """
+        DON'T DISCOUNT SO THAT GRAPHS ARE MORE COMPARABLE TO REAL ONES THAT YOU'D SEE....
+        discounted_historical_regular_values = map(lambda wealth: \
+            present_value(wealth, market.annual_mu, years), historical_regular_values)
+        discounted_historical_lev_values = map(lambda wealth: \
+            present_value(wealth, market.annual_mu, years), historical_lev_values)
+        plots.graph_lev_ETF_and_underlying_trajectories(discounted_historical_regular_values, \
+            discounted_historical_lev_values, outfilepath, iter_num)
+        """
+        plots.graph_lev_ETF_and_underlying_trajectories(historical_regular_values, \
+            historical_lev_values, outfilepath, iter_num)
 
     return (present_value(regular_val, market.annual_mu, years), 
             present_value(lev_fund_val, market.annual_mu, years))
@@ -50,8 +70,8 @@ def one_run_daily_rebalancing(funds_and_expense_ratios, years, tax_rate,
 def present_value(wealth, discount_rate, years):
     return wealth * math.exp(-discount_rate * years)
 
-def many_runs(funds_and_expense_ratios, tax_rate, years, leverage_ratio, num_samples, amount_to_invest,
-              market, outfilepath):
+def many_runs(funds_and_expense_ratios, tax_rate, years, leverage_ratio, num_samples,
+              amount_to_invest, market, outfilepath):
     fund_types = funds_and_expense_ratios.keys()
     fund_arrays = dict()
     for type in fund_types:
@@ -62,8 +82,9 @@ def many_runs(funds_and_expense_ratios, tax_rate, years, leverage_ratio, num_sam
     for i in xrange(num_samples):
         output_values = one_run_daily_rebalancing(funds_and_expense_ratios, years, 
                                                   tax_rate, leverage_ratio, 
-                                                  amount_to_invest, market)
-        for i in range(len(fund_types)):
+                                                  amount_to_invest, market, i,
+                                                  outfilepath)
+        for i in xrange(len(fund_types)):
             fund_arrays[fund_types[i]] = numpy.append(fund_arrays[fund_types[i]], output_values[i])
             num_lev_bankruptcies += 1 if output_values[1]==0 else 0
 

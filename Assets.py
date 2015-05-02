@@ -39,7 +39,7 @@ class Assets(object):
         Since we're paying taxes, in order to get C dollars of after-tax cash back, we need 
         to sell more than C of actual ETFs.
         """
-        go_bankrupt = False
+        deficit_still_not_paid = 0
         if sell_best_for_taxes_first:
             # Sort to put ETFs that would incur lowest capital-gains taxes first.
             # Use decorate-sort-undecorate pattern because too complicated to use
@@ -56,13 +56,24 @@ class Assets(object):
                     cash_still_need_to_get, fee_per_dollar_traded, day, taxes)
                 if lot_emptied:
                     self.__lots_list.pop(0)
-            else: # list is empty; we have no more securities, but we need cash! we go bankrupt
-                go_bankrupt = True
-                print "Going bankrupt with %s still needing to be repaid." % util.format_as_dollar_string(cash_still_need_to_get)
-                assert self.total_assets() == 0, "Total assets aren't 0 despite bankruptcy."
+            else: # list is empty; we have no more securities, but we need cash!
+                deficit_still_not_paid = cash_still_need_to_get
+                print "Account wiped out with %s still needing to be repaid." % util.format_as_dollar_string(cash_still_need_to_get) ,
+                assert self.total_assets() == 0, "Total assets aren't 0 despite wiping out all assets."
                 break
         
-        return go_bankrupt
+        """If you have a deficit that isn't yet paid, you tap into other savings
+        you may have in order to pay for it. 
+        I assume the other savings have long-term maturity. 
+        Much of their value may be as capital gains rather than principal.
+        It's not clear what amount of them will be capital gains vs. what amount
+        are cost basis. As a compromise, I assume half of the amount of equity 
+        is in capital gains (since you can choose to sell those securities with
+        less capital gains first).
+        So the increase in your long-term capital gains is half of the amount
+        you sell."""
+        taxes.add_long_term_cap_gains(deficit_still_not_paid/2)
+        return deficit_still_not_paid
 
     def tax_loss_harvest(self, fee_per_dollar_traded, day, taxes):
         lots_to_harvest = [lot for tax, lot in self.__get_sorted_tax_rates_and_lots(day, taxes) if tax < 0]

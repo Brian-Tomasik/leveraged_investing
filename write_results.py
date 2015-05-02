@@ -33,12 +33,12 @@ def write_winner_for_each_percentile(account_values, outfile):
     upper_index = len(sorted_regular_list) - 1
     outfile.write("\n")
     outfile.write("Margin vs. regular % at percentiles 0 to 100:\n")
-    for percentile in range(100):
+    for percentile in xrange(100):
         index = int((percentile/100.0)*upper_index)
         if sorted_regular_list[index] > 0: # prevent divide-by-zero errors
             outfile.write( "{}% ".format(int(round( (100.0 * sorted_margin_list[index]) / sorted_regular_list[index], 0 ))) )
 
-def write_file_table(account_values, account_types, bankruptcy_fraction, outfile):
+def write_file_table(account_values, account_types, fraction_times_margin_ended_with_net_debt, outfile):
     REGULAR_INDEX = 0
     LEVERAGE_INDEX = 1
     assert account_types[REGULAR_INDEX] == "regular", "Regular account has to go in the 0th index"
@@ -58,10 +58,10 @@ def write_file_table(account_values, account_types, bankruptcy_fraction, outfile
             int(round(numpy.mean(sqrt_values),0)), int(round(util.stderr(sqrt_values),0)), 
             numpy.std(log_values) ))
     outfile.write("</table>")
-    outfile.write("\nMargin is better than regular {}% of the time. Margin resulted in bankruptcy {}% of the time.".format(
+    outfile.write("\nMargin is better than regular {}% of the time. Margin investor ended with net debt {}% of the time.".format(
         int(round(100 * util.probability_x_better_than_y(
             account_values[account_types[LEVERAGE_INDEX]],account_values[account_types[REGULAR_INDEX]]),1)), 
-        round(100 * bankruptcy_fraction,1)))
+        round(100 * fraction_times_margin_ended_with_net_debt,1)))
 
 def return_pretty_name_for_type(type):
     if type == "regular":
