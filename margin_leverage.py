@@ -13,6 +13,7 @@ import os
 from os import path
 from multiprocessing import Process, Queue
 import time
+from random import Random
 
 USE_SMALL_SCENARIO_SET_FOR_QUICK_TEST = True
 if USE_SMALL_SCENARIO_SET_FOR_QUICK_TEST:
@@ -58,7 +59,13 @@ TINY_NUMBER = .000001
 THRESHOLD_FOR_TAX_CONVERGENCE = 50
 GO_BANKRUPT_BELOW_THIS_MARGIN_AMOUNT = -300000
 
-def one_run(investor,market,verbosity,outfilepath,iter_num,num_margin_trajectories_to_save_as_figures):
+def one_run(investor,market,verbosity,outfilepath,iter_num,
+            num_margin_trajectories_to_save_as_figures, use_seed_for_market_randomness):
+    if use_seed_for_market_randomness:
+        randgenerator = Random("seedy character")
+    else:
+        randgenerator = None
+
     days_from_start_to_donation_date = int(DAYS_PER_YEAR * investor.years_until_donate)
     accounts = dict()
     accounts["regular"] = BrokerageAccount.BrokerageAccount(0,0,0,investor.taper_off_leverage_toward_end,investor.initial_personal_max_margin_to_assets_relative_to_broker_max)
@@ -83,7 +90,7 @@ def one_run(investor,market,verbosity,outfilepath,iter_num,num_margin_trajectori
     historical_margin_to_assets_ratios = numpy.zeros(days_from_start_to_donation_date)
     historical_regular_wealth = numpy.zeros(days_from_start_to_donation_date)
     historical_margin_wealth = numpy.zeros(days_from_start_to_donation_date)
-    historical_carried_taxes = numpy.zeros(days_from_start_to_donation_date)
+    historical_carried_cap_gains = numpy.zeros(days_from_start_to_donation_date)
 
     for day in xrange(days_from_start_to_donation_date):
         years_elapsed = day/DAYS_PER_YEAR
@@ -92,12 +99,15 @@ def one_run(investor,market,verbosity,outfilepath,iter_num,num_margin_trajectori
         # Record historical info for future reference
         historical_margin_to_assets_ratios[day] = accounts["margin"].margin_to_assets()
         historical_regular_wealth[day] = accounts["regular"].assets_minus_margin()
-        historical_margin_wealth[day] = accounts["margin"].assets_minus_margin() - debt_to_yourself_after_margin_account_lost_all_value
-        historical_carried_taxes[day] = taxes["margin"].total_gain_or_loss()
+        historical_margin_wealth[day] = accounts["margin"].assets_minus_margin() - \
+            debt_to_yourself_after_margin_account_lost_all_value
+        historical_carried_cap_gains[day] = taxes["margin"].total_gain_or_loss()
+        print historical_margin_wealth[day] # ZZZ UNDO
 
         # Go bankrupt? If so, reset account values, and don't invest on margin anymore!
         if historical_margin_wealth[day] < GO_BANKRUPT_BELOW_THIS_MARGIN_AMOUNT:
-            print "Going bankrupt due to a net margin-strategy value of %s." % util.format_as_dollar_string(historical_margin_wealth[day])
+            print "Going bankrupt due to a net margin-strategy value of %s." % \
+                util.format_as_dollar_string(historical_margin_wealth[day])
             margin_strategy_went_bankrupt = True
             debt_to_yourself_after_margin_account_lost_all_value = 0
             """Set margin account to have 0 as max margin-to-assets ratio because we're
@@ -112,7 +122,7 @@ def one_run(investor,market,verbosity,outfilepath,iter_num,num_margin_trajectori
         that I'm keeping track of what exact day of the year it is here, but 
         oh well. :)"""
         if not util.day_is_weekend(day % DAYS_PER_YEAR) and not util.day_is_holiday(day % DAYS_PER_YEAR):
-            random_daily_return = market.random_daily_return(day)
+            random_daily_return = market.random_daily_return(day, randgenerator)
 
             accounts["regular"].update_asset_prices(random_daily_return)
 
@@ -316,29 +326,33 @@ def one_run(investor,market,verbosity,outfilepath,iter_num,num_margin_trajectori
             market.real_present_value(ending_margin_balance,investor.years_until_donate),
             market.real_present_value(accounts["matched401k"].assets_minus_margin(),investor.years_until_donate),
             historical_margin_to_assets_ratios, historical_margin_wealth, 
-            historical_carried_taxes, have_debt_and_no_assets, margin_strategy_went_bankrupt)
+            historical_carried_cap_gains, have_debt_and_no_assets, margin_strategy_went_bankrupt)
 
-def run_samples(investor,market,num_samples,outfilepath,output_queue=None,verbosity=1,num_margin_trajectories_to_save_as_figures=5):
+def run_samples(investor,market,num_samples,outfilepath,output_queue=None,
+                verbosity=1,num_margin_trajectories_to_save_as_figures=10,
+                use_seed_for_market_randomness=False):
     account_values = dict()
     account_types = ["regular", "margin", "matched401k"]
     NUM_HISTORIES_TO_PLOT = 20
     PRINT_PROGRESS_AFTER_THESE_PERCENTS_DONE = sorted([.01, .1, .25, .5, .9])
     margin_to_assets_ratio_histories = []
     wealth_histories = []
-    carried_tax_histories = []
+    carried_cap_gains_histories = []
     running_average_margin_to_assets_ratios = None
     num_times_margin_ended_with_net_debt = 0
     num_times_margin_strategy_went_bankrupt = 0
     for type in account_types:
         account_values[type] = []
-    num_margin_trajectories_to_save_as_figures = min(num_margin_trajectories_to_save_as_figures, num_samples) # save fewer figures if we don't have enough samples
+    num_margin_trajectories_to_save_as_figures = min(num_margin_trajectories_to_save_as_figures, 
+                                                     num_samples) # save fewer figures if we don't have enough samples
 
     start_time = time.time()
     for sample in xrange(num_samples):
         (regular_val, margin_val, matched_401k_val, margin_to_assets_ratios, 
-         margin_wealth, carried_taxes, margin_account_has_net_debt,
+         margin_wealth, carried_cap_gains, margin_account_has_net_debt,
          margin_strategy_went_bankrupt) = one_run(investor,market,verbosity,outfilepath,sample,
-                                                  num_margin_trajectories_to_save_as_figures)
+                                                  num_margin_trajectories_to_save_as_figures,
+                                                  use_seed_for_market_randomness)
         account_values["regular"].append(regular_val)
         account_values["margin"].append(margin_val)
         account_values["matched401k"].append(matched_401k_val)
@@ -347,8 +361,8 @@ def run_samples(investor,market,num_samples,outfilepath,output_queue=None,verbos
             margin_to_assets_ratio_histories.append(margin_to_assets_ratios)
         if len(wealth_histories) < NUM_HISTORIES_TO_PLOT:
             wealth_histories.append(margin_wealth)
-        if len(carried_tax_histories) < NUM_HISTORIES_TO_PLOT:
-            carried_tax_histories.append(carried_taxes)
+        if len(carried_cap_gains_histories) < NUM_HISTORIES_TO_PLOT:
+            carried_cap_gains_histories.append(carried_cap_gains)
         if running_average_margin_to_assets_ratios is None:
             running_average_margin_to_assets_ratios = copy.copy(margin_to_assets_ratios)
         else:
@@ -405,7 +419,7 @@ def run_samples(investor,market,num_samples,outfilepath,output_queue=None,verbos
         plots.graph_historical_margin_to_assets_ratios(margin_to_assets_ratio_histories, 
                                                        avg_margin_to_assets_ratios, outfilepath)
         plots.graph_historical_wealth_trajectories(wealth_histories, outfilepath)
-        plots.graph_carried_taxes_trajectories(carried_tax_histories, outfilepath)
+        plots.graph_carried_cap_gains_trajectories(carried_cap_gains_histories, outfilepath)
     
     # TODO: return (mean_%_better, median%better)
 
@@ -659,7 +673,7 @@ def run_one_variant(num_trials):
     #scenario = "Default"
     scenario = "No unemployment or inflation or taxes or black swans, only paid in first month, don't taper off leverage toward end, voluntary max leverage equals broker max leverage"
     args = args_for_this_scenario(scenario, num_trials, outdir_name)
-    run_samples(*args)
+    run_samples(*args,use_seed_for_market_randomness=True)
 
 if __name__ == "__main__":
     #sweep_scenarios(1,1)

@@ -98,12 +98,12 @@ def graph_historical_wealth_trajectories(wealth_histories, outfilepath):
     pyplot.savefig(outfilepath + "_wealthtraj")
     pyplot.close()
 
-def graph_carried_taxes_trajectories(carried_tax_histories, outfilepath):
-    num_days = len(carried_tax_histories[0])
+def graph_carried_cap_gains_trajectories(carried_cap_gains_histories, outfilepath):
+    num_days = len(carried_cap_gains_histories[0])
     x_axis = [float(day)/margin_leverage.DAYS_PER_YEAR for day in xrange(num_days)]
 
     # Plot individual trajectories
-    for individual in carried_tax_histories:
+    for individual in carried_cap_gains_histories:
         assert len(individual) == num_days, "Inconsistent number of days in history vectors"
         pyplot.plot(x_axis, individual)
     pyplot.title("Carried capital gains/losses vs. year of simulation")

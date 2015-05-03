@@ -41,7 +41,9 @@ class EtfLot(object):
             amount_to_sell = cash_still_need_to_get / (1-fee_per_dollar_traded) # selling this amount leaves us with an after-fee amount of cash_still_need_to_get
             self.__current_price -= amount_to_sell
             if self.__current_price < .1:
-               print "WARNING! Stock price is only", self.__current_price ,
+                pass
+                # following can be uncommented, but it makes the output more verbose
+                #print "WARNING! Stock price is only", self.__current_price ,
             fraction_of_total_cap_gain_incurred = self.__capital_gain() * amount_to_sell / cur_price_before_sell_any_portion
             assert abs(fraction_of_total_cap_gain_incurred) <= abs(self.__capital_gain()), "Fractional capital gain is too big!"
             self.__record_cap_gains(taxes, long_or_short, fraction_of_total_cap_gain_incurred)

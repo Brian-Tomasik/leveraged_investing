@@ -183,6 +183,7 @@ class BrokerageAccount(object):
             deficit_still_not_paid = self.__assets.sell(amount_of_cash_needed, FEE_PER_DOLLAR_TRADED, day, taxes, 
                                sell_best_for_taxes_first)
             if deficit_still_not_paid > 0:
+                print "SETTING MARGIN TO 0"
                 self.margin = 0 # Any remaining debt is paid off by emergency funds and becomes part of deficit to oneself
                 assert self.assets == 0, "Assets aren't zero even though we ran out of assets!"
                 break

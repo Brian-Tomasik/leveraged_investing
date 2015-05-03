@@ -95,7 +95,7 @@ class Market(object):
         with open("vix_close_2Jan2004_to_10Apr2015.txt", "r") as data:
             self.__VIX_data = [float(price.strip())/100 for price in data.readlines()]
 
-    def random_daily_return(self, day):
+    def random_daily_return(self, day, randgenerator=None):
         delta_t = 1.0/self.__trading_days_per_year
         if self.__use_VIX_data_for_volatility:
             sigma_to_use = self.__VIX_data[day % self.__num_days_VIX_data]
@@ -105,7 +105,7 @@ class Market(object):
         mu_to_use = self.annual_mu
 
         # See if we have black swans
-        rand_float = random.random()
+        rand_float = randgenerator.random() if randgenerator else random.random()
         if rand_float < self.__large_black_swan_prob:
             sigma_to_use = self.__annual_sigma_for_large_black_swan
             mu_to_use = 0
@@ -113,7 +113,8 @@ class Market(object):
             sigma_to_use = self.__annual_sigma_for_medium_black_swan
             mu_to_use = 0
 
-        return sigma_to_use * random.gauss(0,1) * math.sqrt(delta_t) + mu_to_use * delta_t
+        randgauss = randgenerator.gauss(0,1) if randgenerator else random.gauss(0,1)
+        return sigma_to_use * randgauss * math.sqrt(delta_t) + mu_to_use * delta_t
         """
         The above is a GBM for stock; for an example of this equation, see the first equation 
         in section 7.1 of 'Path-dependence of Leveraged ETF returns', 

@@ -33,7 +33,7 @@ def update_price(current_price, rate_of_return):
         """THIS IS WRONG AND CAUSED A BIG BUG WHEN I USED IT"""
         current_price *= math.exp(rate_of_return)
     else:
-        current_price *= (1+rate_of_return)
+        current_price *= (1.0+rate_of_return)
     if current_price < 0:
         current_price = 0
         return (current_price, True) # True means price went to 0
