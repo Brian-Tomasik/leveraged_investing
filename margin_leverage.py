@@ -102,6 +102,7 @@ def one_run(investor,market,verbosity,outfilepath,iter_num,
         historical_margin_wealth[day] = accounts["margin"].assets_minus_margin() - \
             debt_to_yourself_after_margin_account_lost_all_value
         historical_carried_cap_gains[day] = taxes["margin"].total_gain_or_loss()
+        print "day = %i" % day
         print historical_margin_wealth[day] # ZZZ UNDO
 
         # Go bankrupt? If so, reset account values, and don't invest on margin anymore!
@@ -123,6 +124,7 @@ def one_run(investor,market,verbosity,outfilepath,iter_num,
         oh well. :)"""
         if not util.day_is_weekend(day % DAYS_PER_YEAR) and not util.day_is_holiday(day % DAYS_PER_YEAR):
             random_daily_return = market.random_daily_return(day, randgenerator)
+            print random_daily_return # ZZZ UNDO
 
             accounts["regular"].update_asset_prices(random_daily_return)
 
@@ -160,9 +162,12 @@ def one_run(investor,market,verbosity,outfilepath,iter_num,
             # matched 401k account buys ETF with employee and employer funds
             accounts["matched401k"].buy_ETF_at_fixed_ratio(pay * (1+investor.match_percent_from_401k/100.0), day, years_remaining)
 
-            if debt_to_yourself_after_margin_account_lost_all_value >= pay:
+            print "pay = %f" % pay # zzz UNDO
+
+            if debt_to_yourself_after_margin_account_lost_all_value > pay:
                 # pay off "debt" to oneself buy building savings back up
                 debt_to_yourself_after_margin_account_lost_all_value -= pay
+                assert accounts["margin"].margin == 0, "We shouldn't have margin debt if we're in this branch."
             else:
                 # The next steps are for the margin account. It
                 # 0. pays debt to itself if any
