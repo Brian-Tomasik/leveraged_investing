@@ -47,6 +47,10 @@ class Assets(object):
             self.__lots_list = [lot for tax, lot in self.__get_sorted_tax_rates_and_lots(day, taxes)]
         else:
             random.shuffle(self.__lots_list)
+            """We're not using the seeded random generator here because this function is called
+            different numbers of times by different variants and different random rounds. So there's
+            some extra randomness introduced by this across variants of the simulation, but hopefully
+            the effect isn't huge."""
 
         # get cash
         cash_still_need_to_get = amount_of_net_cash_to_get_back
@@ -58,7 +62,7 @@ class Assets(object):
                     self.__lots_list.pop(0)
             else: # list is empty; we have no more securities, but we need cash!
                 deficit_still_not_paid = cash_still_need_to_get
-                print "Account wiped out with %s still needing to be repaid." % util.format_as_dollar_string(cash_still_need_to_get) ,
+                print "Account wiped out with %s still needing to be repaid." % util.format_as_dollar_string(cash_still_need_to_get)
                 assert self.total_assets() == 0, "Total assets aren't 0 despite wiping out all assets."
                 break
         

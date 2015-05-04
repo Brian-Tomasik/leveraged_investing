@@ -18,7 +18,7 @@ def graph_histograms(account_values, num_samples, outfilepath):
         median_value = util.percentile(account_values[type], .5)
         numpy_array = numpy.array(account_values[type])
         bin_min = min(numpy_array)
-        bin_max = 15 * median_value # avoids having a distorted graph due to far-right skewed values
+        bin_max = min(max(numpy_array), 25 * median_value) # the "25 * median_value" part avoids having a distorted graph due to far-right skewed values
         graph_bins = numpy.linspace(bin_min, bin_max, num_bins)
         if type is "regular":
             regular_array = numpy_array

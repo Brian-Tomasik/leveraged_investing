@@ -40,7 +40,7 @@ def write_winner_for_each_percentile(account_values, outfile):
 
 def write_file_table(account_values, account_types, 
                      fraction_times_margin_strategy_went_bankrupt, outfile,
-                     fraction_times_margin_ended_with_net_debt=None):
+                     fraction_times_margin_ended_with_emergency_savings_gap=None):
     REGULAR_INDEX = 0
     LEVERAGE_INDEX = 1
     assert account_types[REGULAR_INDEX] == "regular", "Regular account has to go in the 0th index"
@@ -49,9 +49,8 @@ def write_file_table(account_values, account_types,
     outfile.write("""<tr><td><i>Type</i></td> <td><i>Mean &plusmn; stderr</i></td> <td><i>Median</i></td> <td><i>Min</i></td> <td><i>Max</i></td> <td><i>E[&radic;<span style="text-decoration: overline">wealth</span>] &plusmn; stderr</i></td> <td><i>&sigma;<sub>ln(wealth)</sub></i></td> </tr>\n""");
     for type in account_types:
         numpy_values = numpy.array(account_values[type])
-        positive_values_or_zeros = numpy.array([value if value > 0 else 0 for value in account_values[type]])
-        log_values = map(math.log, positive_values_or_zeros+1) # The +1 here is so that the log() value will be at least 0
-        sqrt_values = map(util.sqrt_wealth_linear_if_negative, numpy_values)
+        log_values = map(math.log, numpy_values+1) # The +1 here is so that the log() value will be at least 0
+        sqrt_values = map(math.sqrt, numpy_values)
         outfile.write("<tr><td><i>{}</i></td> <td>${:,} &plusmn; ${:,}</td> <td>${:,}</td> <td>${:,}</td> <td>${:,}</td> <td>{:,} &plusmn; {:,}</td> <td>{:.2f}</td></tr>\n".format( 
             return_pretty_name_for_type(type), 
             int(round(numpy.mean(numpy_values),0)) , int(round(util.stderr(numpy_values),0)), 
@@ -61,14 +60,14 @@ def write_file_table(account_values, account_types,
             int(round(numpy.mean(sqrt_values),0)), int(round(util.stderr(sqrt_values),0)), 
             numpy.std(log_values) ))
     outfile.write("</table>")
-    net_debt_string = ""
-    if fraction_times_margin_ended_with_net_debt is not None:
-        net_debt_string = " Margin investor ended with net debt {}% of the time.".format(round(100 * fraction_times_margin_ended_with_net_debt,1))
+    emergency_savings_gap = ""
+    if fraction_times_margin_ended_with_emergency_savings_gap is not None:
+        emergency_savings_gap = " Margin investor ended with no assets and a deficit in emergency savings {}% of the time.".format(round(100 * fraction_times_margin_ended_with_emergency_savings_gap,1))
     outfile.write("\nMargin is better than regular {}% of the time.{} Margin account went fully bankrupt {}% of the time.".format(
         int(round(100 * util.probability_x_better_than_y(
             account_values[account_types[LEVERAGE_INDEX]],
             account_values[account_types[REGULAR_INDEX]]),1)), 
-        net_debt_string,
+        emergency_savings_gap,
         round(100 * fraction_times_margin_strategy_went_bankrupt,1)))
 
 def return_pretty_name_for_type(type):

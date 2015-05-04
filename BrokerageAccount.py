@@ -75,48 +75,68 @@ class BrokerageAccount(object):
     def update_asset_prices(self, rate_of_return):
         self.__assets.update_prices(rate_of_return)
 
+    """
+    NOT USING ANYMORE
+
     def __margin_plus_positive_taxes(self, taxes):
         return self.margin + max(taxes.current_estimate_of_tax_bill_or_refund(), 0) # Don't count negative taxes because the broker doesn't count that, and we need to stay within broker limits
+    """
 
     def assets_minus_margin(self):
         assets_minus_margin = self.assets - self.margin
-        assert assets_minus_margin >= 0, "More margin loans than total assets!"
+        assert assets_minus_margin >= 0, "More margin loans (%s) than total assets (%s)!" % \
+            (util.format_as_dollar_string(self.margin), util.format_as_dollar_string(self.assets))
         return assets_minus_margin
 
     def margin_to_assets(self):
         if self.assets == 0:
-            return 0
+            if self.margin == 0:
+                return 0
+            else:
+                assert self.margin >= 0
+                return float("inf")
         else:
             if abs(self.margin-0) < EPSILON:
                 return 0
             else:
                 return float(self.margin)/self.assets
+    
+    """
+    NOT USING THIS ANYMORE. TOO CONFUSING AND NOT REALLY NEEDED 99.99% OF THE TIME
 
     def margin_to_assets_include_tax_liabilities(self, taxes):
-        """Include positive capital-gains taxes in "margin" because even if it's not owed to the
-        broker now, it will come due within a year, and we need to keep an eye on it."""
+        ""Include positive capital-gains taxes in "margin" because even if it's not owed to the
+        broker now, it will come due within a year, and we need to keep an eye on it.""
         if self.assets == 0:
-            return 0
+            if self.margin == 0:
+                return 0
+            else:
+                assert self.margin >= 0
+                return float("inf")
         else:
             margin_plus_positive_taxes = self.__margin_plus_positive_taxes(taxes)
             if abs(margin_plus_positive_taxes-0) < EPSILON:
                 return 0
             else:
                 return float(margin_plus_positive_taxes)/self.assets
+    """
 
     def debt_to_pay_off_to_restore_voluntary_max_margin_to_assets_ratio(self, taxes, years_remaining):
         """How much debt D would we need to pay off with added cash C to
         get us back to having a margin-to-assets ratio within the limit R?
         Let A be assets. If we're currently over the limit, we want to set
         C such that (D-C)/A = R  ==>  D-C = AR  ==>  C = D-AR"""
-        if self.margin_to_assets_include_tax_liabilities(taxes) <= (1+EPSILON) * self.personal_max_margin_to_assets_ratio(years_remaining):
+        if self.margin_to_assets() <= (1+EPSILON) * self.personal_max_margin_to_assets_ratio(years_remaining):
             return 0
         else:
-            return self.margin - self.assets * self.personal_max_margin_to_assets_ratio(years_remaining)
+            if self.margin_to_assets() == float("inf"):
+                return self.margin # if we have no assets, need to pay off all margin
+            else:
+                return self.margin - self.assets * self.personal_max_margin_to_assets_ratio(years_remaining)
 
     def voluntary_rebalance(self, day, taxes, years_remaining):
         """Restore our voluntarily self-imposed max margin-to-assets ratio."""
-        return self.rebalance(day, taxes, self.personal_max_margin_to_assets_ratio(years_remaining), True, True)
+        return self.rebalance(day, taxes, self.personal_max_margin_to_assets_ratio(years_remaining), True)
 
     def mandatory_rebalance(self, day, taxes, 
                             does_broker_liquidation_sell_tax_favored_first):
@@ -160,10 +180,9 @@ class BrokerageAccount(object):
         the account exactly in line with its margin requirements, which is the same thing I've done here.
         """
         return self.rebalance(day, taxes, self.__broker_max_margin_to_assets_ratio,
-                              False, does_broker_liquidation_sell_tax_favored_first)
+                              does_broker_liquidation_sell_tax_favored_first)
 
-    def rebalance(self, day, taxes, max_margin_to_assets_ratio, include_taxes_in_margin_ratio_calculation, 
-                  sell_best_for_taxes_first):
+    def rebalance(self, day, taxes, max_margin_to_assets_ratio, sell_best_for_taxes_first):
         """Restore us to a margin-to-assets ratio R within the limit (say, .5). Our 
         current margin amount is M and assets amount is A. We need to sell
         some assets to pay off some debt. To do this, we sell some amount S
@@ -171,29 +190,20 @@ class BrokerageAccount(object):
         in fees and get S in cash to pay down margin debt. We need to set S
         such that (M-S)/(A-S-FS) = R  ==>  M-S = AR - SR - FSR  ==>
         M - AR = S - SR - FSR  ==>  M - AR = (1-R-FR)S  ==>  S = (M-AR)/(1-R-FR)"""
-        deficit_still_not_paid = 0
-        margin_to_assets = self.margin_to_assets_include_tax_liabilities(taxes) if include_taxes_in_margin_ratio_calculation else self.margin_to_assets()
-        margin = self.__margin_plus_positive_taxes(taxes) if include_taxes_in_margin_ratio_calculation else self.margin
-        num_loops = 0
-        while margin_to_assets > (1+EPSILON) * max_margin_to_assets_ratio:
-            """The only case where we should use this while loop more than one pass through is
-            if we're including upcoming tax liabilities in the margin-to-assets calculation and
-            if the process of selling securities increases those tax liabilities. This is very rare."""
-            amount_of_cash_needed = (margin - self.assets * max_margin_to_assets_ratio) / (1 - max_margin_to_assets_ratio - FEE_PER_DOLLAR_TRADED * max_margin_to_assets_ratio)
+        if self.margin_to_assets() > (1+EPSILON) * max_margin_to_assets_ratio:
+            amount_of_cash_needed = (self.margin - self.assets * max_margin_to_assets_ratio) / (1 - max_margin_to_assets_ratio - FEE_PER_DOLLAR_TRADED * max_margin_to_assets_ratio)
             deficit_still_not_paid = self.__assets.sell(amount_of_cash_needed, FEE_PER_DOLLAR_TRADED, day, taxes, 
                                sell_best_for_taxes_first)
             if deficit_still_not_paid > 0:
-                print "SETTING MARGIN TO 0"
-                self.margin = 0 # Any remaining debt is paid off by emergency funds and becomes part of deficit to oneself
+                #print "SETTING MARGIN TO 0"
+                self.margin = 0 # Any remaining debt will be returned to be paid off by emergency funds instead of being margin in this account
                 assert self.assets == 0, "Assets aren't zero even though we ran out of assets!"
-                break
-            self.margin -= amount_of_cash_needed
-            margin_to_assets = self.margin_to_assets_include_tax_liabilities(taxes) if include_taxes_in_margin_ratio_calculation else self.margin_to_assets()
-            margin = self.__margin_plus_positive_taxes(taxes) if include_taxes_in_margin_ratio_calculation else self.margin
-            num_loops += 1
-            if num_loops == 10:
-                print "Looped at least 10 times when trying to sell enough securities to rebalance..."
-        return deficit_still_not_paid
+                return deficit_still_not_paid
+            else:
+                self.margin -= amount_of_cash_needed
+                assert self.margin >= 0, "Margin went negative!"
+                assert self.margin_to_assets() <= (1+EPSILON) * max_margin_to_assets_ratio, "Didn't get margin-to-assets ratio down enough."
+                return 0
 
     def buy_ETF_at_fixed_ratio(self, money_on_hand, day, years_remaining):
         """Say the user added M dollars. We should buy an amount of ETF
@@ -213,26 +223,27 @@ class BrokerageAccount(object):
     def compute_interest(self, annual_interest_rate, fraction_of_year_elapsed):
         return self.margin * ((1+annual_interest_rate)**fraction_of_year_elapsed - 1)
 
-    def voluntary_rebalance_to_increase_leverage(self, day, taxes, years_remaining):
+    def voluntary_rebalance_to_increase_leverage(self, day, years_remaining):
         """Suppose we have margin M, assets A, and a voluntary personally
         imposed max margin-to-assets ratio R. If M/A < R, we want to 
         take out additional debt D and use it to buy more stocks such that
         (M+D)/(A+D) = R  ==>  M+D = AR+DR  ==>  M-AR = DR-D  ==>  
         M-AR = D(R-1)  ==>  D = (M-AR)/(R-1) = (AR-M)/(1-R)"""
         if self.assets > 0:
-            if self.margin_to_assets_include_tax_liabilities(taxes) < (1-EPSILON) * self.personal_max_margin_to_assets_ratio(years_remaining):
-                additional_debt = (self.assets * self.personal_max_margin_to_assets_ratio(years_remaining) - self.__margin_plus_positive_taxes(taxes)) / (1-self.personal_max_margin_to_assets_ratio(years_remaining))
+            if self.margin_to_assets() < (1-EPSILON) * self.personal_max_margin_to_assets_ratio(years_remaining):
+                additional_debt = (self.assets * self.personal_max_margin_to_assets_ratio(years_remaining) - self.margin) / (1-self.personal_max_margin_to_assets_ratio(years_remaining))
                 if additional_debt >= MIN_ADDITIONAL_PURCHASE_AMOUNT: # due to transactions costs, we shouldn't bother buying new ETF shares if we only have a trivial amount of money for the purchase
                     self.margin += additional_debt
                     self.__assets.buy_new_lot(additional_debt, FEE_PER_DOLLAR_TRADED, day)
 
     def tax_loss_harvest(self, day, taxes):
-        cash_earned = self.__assets.tax_loss_harvest(FEE_PER_DOLLAR_TRADED, day, taxes) # sell capital-loss lots
-        if cash_earned > 0:
-            self.__assets.buy_new_lot(cash_earned, FEE_PER_DOLLAR_TRADED, day) # buy new lot
-            """IN REAL LIFE, THE INVESTOR WOULD HAVE TO WAIT 30 DAYS TO 
-            AVOID A WASH SALE! http://www.investopedia.com/terms/w/washsalerule.asp
-            I'm ignoring that here for simplicity."""
+        if self.assets > 0:
+            cash_earned = self.__assets.tax_loss_harvest(FEE_PER_DOLLAR_TRADED, day, taxes) # sell capital-loss lots
+            if cash_earned > 0:
+                self.__assets.buy_new_lot(cash_earned, FEE_PER_DOLLAR_TRADED, day) # buy new lot
+                """IN REAL LIFE, THE INVESTOR WOULD HAVE TO WAIT 30 DAYS TO 
+                AVOID A WASH SALE! http://www.investopedia.com/terms/w/washsalerule.asp
+                I'm ignoring that here for simplicity."""
 
     def pay_off_all_margin(self, day, taxes):
         assert self.assets >= self.margin, "More debt than equity!"

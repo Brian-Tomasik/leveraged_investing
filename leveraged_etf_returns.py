@@ -9,6 +9,7 @@ import os
 from os import path
 import write_results
 import write_essay
+from random import Random
 
 MODERATE_ANNUAL_FRACTION_OF_SHORT_TERM_CAP_GAINS = .15 # CHANGE ME
 HIGH_ANNUAL_FRACTION_OF_SHORT_TERM_CAP_GAINS = .75 # CHANGE ME
@@ -23,7 +24,7 @@ LEV_ETF_SCENARIOS = {"Match theory":"ETF_match_theory",
 
 def one_run_daily_rebalancing(funds_and_expense_ratios, years, tax_rate, 
                               leverage_ratio, amount_to_invest, market, iter_num,
-                              outfilepath):
+                              outfilepath, randgenerator):
     num_days = int(round(market.trading_days_per_year * years,0))
 
     regular_val = amount_to_invest
@@ -35,9 +36,11 @@ def one_run_daily_rebalancing(funds_and_expense_ratios, years, tax_rate,
 
     historical_regular_values = []
     historical_lev_values = []
+    num_times_randgenerator_was_called = 0
 
     for day in xrange(num_days):
-        today_return = market.random_daily_return(day)
+        (today_return, num_times_randgenerator_was_called) = market.random_daily_return(
+            day, randgenerator, num_times_randgenerator_was_called)
         after_tax_today_return = today_return * (1-tax_rate)
         # dS = S (mu * delta_t + sigma * sqrt(delta_t) * random_Z - exp_ratio * delta_t)
         # (new S) = (old S) + dS
@@ -66,17 +69,24 @@ def one_run_daily_rebalancing(funds_and_expense_ratios, years, tax_rate,
             historical_lev_values, outfilepath, iter_num)
 
     return (present_value(regular_val, market.annual_mu, years), 
-            present_value(lev_fund_val, market.annual_mu, years))
+            present_value(lev_fund_val, market.annual_mu, years),
+            num_times_randgenerator_was_called)
 
 def present_value(wealth, discount_rate, years):
     return wealth * math.exp(-discount_rate * years)
 
 def many_runs(funds_and_expense_ratios, tax_rate, years, leverage_ratio, num_samples,
-              amount_to_invest, market, outfilepath):
+              amount_to_invest, market, outfilepath, use_seed_for_randomness=True):
+    if use_seed_for_randomness:
+        randgenerator = Random("seedy character")
+    else:
+        randgenerator = None
+
     fund_types = funds_and_expense_ratios.keys()
     fund_arrays = dict()
     for type in fund_types:
         fund_arrays[type] = numpy.array([])
+    prev_num_times_randgenerator_was_called = -9999 # junk
 
     # Get results
     num_lev_bankruptcies = 0
@@ -84,7 +94,13 @@ def many_runs(funds_and_expense_ratios, tax_rate, years, leverage_ratio, num_sam
         output_values = one_run_daily_rebalancing(funds_and_expense_ratios, years, 
                                                   tax_rate, leverage_ratio, 
                                                   amount_to_invest, market, i,
-                                                  outfilepath)
+                                                  outfilepath, randgenerator)
+        assert len(output_values) == len(fund_types)+1, "output_values is wrong size"
+        num_times_randgenerator_was_called = output_values[-1]
+        if i > 0:
+            assert num_times_randgenerator_was_called == prev_num_times_randgenerator_was_called, \
+                "randgenerator was called different numbers of times across runs :("
+        prev_num_times_randgenerator_was_called = num_times_randgenerator_was_called
         for i in xrange(len(fund_types)):
             fund_arrays[fund_types[i]] = numpy.append(fund_arrays[fund_types[i]], output_values[i])
             num_lev_bankruptcies += 1 if output_values[1]==0 else 0
@@ -114,6 +130,8 @@ def many_runs(funds_and_expense_ratios, tax_rate, years, leverage_ratio, num_sam
         find_alpha_where_expected_utilities_are_equal(
             fund_arrays[fund_types[0]],fund_arrays[fund_types[1]])
     """
+    print "randgenerator called %i times. Check that this is equal across variants!" % \
+        num_times_randgenerator_was_called
 
 """
 NOT USED ANYMORE
@@ -157,7 +175,7 @@ def sweep_variations(funds_and_expense_ratios, years, leverage_ratio, num_sample
                 tax_rate = MODERATE_ANNUAL_FRACTION_OF_SHORT_TERM_CAP_GAINS * tax_rates.short_term_cap_gains_rate_plus_state()
             elif "high taxes" in scenario:
                 tax_rate = HIGH_ANNUAL_FRACTION_OF_SHORT_TERM_CAP_GAINS * tax_rates.short_term_cap_gains_rate_plus_state()
-        print "==Scenario: %s==" % scenario
+        print "\n==Scenario: %s==" % scenario
         many_runs(funds_and_expense_ratios, tax_rate, years, leverage_ratio, num_samples, amount_to_invest,
                   market, path.join(dir,""))
 

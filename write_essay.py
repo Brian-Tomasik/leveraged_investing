@@ -30,7 +30,7 @@ REPLACE_STR_END = "</REPLACE>"
 TIMESTAMP_FORMAT = '%Y%b%d_%Hh%Mm%Ss'
 OPTIMISTIC_MU = .08
 LEV_ETF_LEVERAGE_RATIO = 2.0
-LEV_ETF_NUM_SAMPLES = 1
+LEV_ETF_NUM_SAMPLES = 10000
 FUNDS_AND_EXPENSE_RATIOS = {"regular":.001, "lev":.01}
 
 def write_essay(skeleton, outfile, cur_working_dir, num_trials, 
@@ -155,7 +155,7 @@ def write_essay(skeleton, outfile, cur_working_dir, num_trials,
                                               util.format_as_dollar_string(equiv_increase_in_savings))
 
             output_text = output_text.replace(REPLACE_STR_FRONT + "margin_better_than_regular_expsqrtwealth_percent" + REPLACE_STR_END, str(percent_better_expsqrtwealth))
-        elif scenario == "No unemployment or inflation or taxes or black swans, only paid in first month, don't taper off leverage toward end, voluntary max leverage equals broker max leverage":
+        elif scenario == "No unemployment or inflation or taxes or black swans, only paid in first month, don't taper off leverage toward end, voluntary max leverage equals broker max leverage, no emergency savings":
             output_text = add_theoretical_calculations_for_no_unemployment_etc(output_text, results_table_contents)
 
     """Add default params and calculations using those params"""
@@ -166,8 +166,12 @@ def write_essay(skeleton, outfile, cur_working_dir, num_trials,
 
     # Add the date to the output file. Run this at the end because
     # the computations above may take days or weeks. :P
-    cur_date = datetime.now().strftime("%d %b. %Y")
-    output_text = output_text.replace(REPLACE_STR_FRONT + "date_of_last_update" + REPLACE_STR_END, cur_date)
+    cur_datetime = datetime.now()
+    cur_day_without_padding_zero = "{dt.day}".format(dt=cur_datetime)
+    cur_month_and_year = cur_datetime.strftime("%b. %Y").replace("May.","May") # if month is May, don't use a . because it's not an abbreviation
+    date_string = "%s %s" % (cur_day_without_padding_zero, cur_month_and_year)
+    output_text = output_text.replace(REPLACE_STR_FRONT + "date_of_last_update" + \
+        REPLACE_STR_END, date_string)
 
     # Done :) Write the final HTML
     outfile.write(output_text)
@@ -249,6 +253,9 @@ def add_investor_params_and_calculations(output_text):
 
     yearly_income_at_end_of_investing_period = default_investor.initial_annual_income_for_investing * (1+default_investor.annual_real_income_growth_percent/100.0)**default_investor.years_until_donate
     output_text = output_text.replace(REPLACE_STR_FRONT + "yearly_income_at_end_of_investing_period" + REPLACE_STR_END, util.format_as_dollar_string(yearly_income_at_end_of_investing_period))
+
+    assert default_investor.broker_max_margin_to_assets_ratio==.5, \
+        "broker_max_margin_to_assets_ratio has changed, but the essay text still assumes '2X leverage' in many places. Change that."
 
     return output_text
 
@@ -633,7 +640,7 @@ def parse_percent_times_margin_is_better(results_table_contents):
 if __name__ == "__main__":
     start_time = time.time()
     DATA_ALREADY_EXISTS_AND_HAS_THIS_TIMESTAMP = None
-    #DATA_ALREADY_EXISTS_AND_HAS_THIS_TIMESTAMP = "2015May02_04h07m41s" # 100 runs from 2 May!
+    #DATA_ALREADY_EXISTS_AND_HAS_THIS_TIMESTAMP = "2015May03_00h12m36s" # 
     """if the above variable is non-None, it saves lots of computation and just computes the HTML 
     and copies the required figures from saved data"""
     data_already_exists = DATA_ALREADY_EXISTS_AND_HAS_THIS_TIMESTAMP is not None
@@ -674,7 +681,6 @@ or else the params filled in to the output HTMl file will be wrong!
 ============
 """
             NUM_TRIALS = 1
-            #NUM_TRIALS = 100
             APPROX_NUM_SIMULTANEOUS_PROCESSES = 1
             #APPROX_NUM_SIMULTANEOUS_PROCESSES = 3
             write_essay(skeleton, outfile, cur_folder, NUM_TRIALS, LOCAL_FILE_PATHS_IN_HTML, 
