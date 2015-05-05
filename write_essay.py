@@ -30,7 +30,7 @@ REPLACE_STR_END = "</REPLACE>"
 TIMESTAMP_FORMAT = '%Y%b%d_%Hh%Mm%Ss'
 OPTIMISTIC_MU = .08
 LEV_ETF_LEVERAGE_RATIO = 2.0
-LEV_ETF_NUM_SAMPLES = 10000
+LEV_ETF_NUM_SAMPLES = 1
 FUNDS_AND_EXPENSE_RATIOS = {"regular":.001, "lev":.01}
 
 def write_essay(skeleton, outfile, cur_working_dir, num_trials, 
@@ -72,8 +72,12 @@ def write_essay(skeleton, outfile, cur_working_dir, num_trials,
         if scenario == "Match theory":
             output_text = leveraged_ETF_compare_against_theory(output_text,results_table_contents,
                                                                starting_balance_for_leveraged_ETF_sim)
-        output_text = add_figures("exp_util", output_text, os.path.join(folder,"_exp_util.png"), 
-                cur_working_dir, use_local_image_file_paths, abbrev, timestamp)
+        output_text = add_figures(plots.EXPECTED_UTILITY_GRAPH_PREFIX, output_text, \
+            os.path.join(folder,"_%s.png" % plots.EXPECTED_UTILITY_GRAPH_PREFIX), \
+            cur_working_dir, use_local_image_file_paths, abbrev, timestamp)
+        output_text = add_figures(plots.EXPECTED_SATURATION_UTILITY_GRAPH_PREFIX, output_text, \
+            os.path.join(folder,"_%s.png" % plots.EXPECTED_SATURATION_UTILITY_GRAPH_PREFIX), \
+            cur_working_dir, use_local_image_file_paths, abbrev, timestamp)
         for iter_num in xrange(leveraged_etf_returns.NUM_TRAJECTORIES_TO_SAVE_AS_FIGURES):
             output_text = add_figures("sample_traj%i" % iter_num, output_text, \
                 os.path.join(folder,"_regularvslev_iter%i.png" % iter_num), 
@@ -108,7 +112,9 @@ def write_essay(skeleton, outfile, cur_working_dir, num_trials,
         output_text = add_figures("optimal_leverage_graph", output_text, optimal_leverage_graph, 
                                   cur_working_dir, use_local_image_file_paths, abbrev, timestamp)
         # Now add other figures, for the default margin-to-assets amount
-        for graph_type in ["bothhist", "wealthtraj", "avgMTA", "indMTA", "carrcg", plots.EXPECTED_UTILITY_GRAPH_PREFIX]:
+        for graph_type in ["bothhist", "wealthtraj", "avgMTA", "indMTA", "carrcg", "percdiff",
+                           plots.EXPECTED_UTILITY_GRAPH_PREFIX,
+                           plots.EXPECTED_SATURATION_UTILITY_GRAPH_PREFIX]:
             path_to_current_figure = "{}_{}.png".format(prefix_for_default_results_files, 
                                                         graph_type)
             output_text = add_figures(graph_type, output_text, path_to_current_figure, 
@@ -422,6 +428,111 @@ def add_general_theoretical_calculations(output_text, cur_working_dir, timestamp
                                       str(round(full_equation_with_x_y_and_c,2)))
     """
 
+    # When expense ratio is worth it for leveraged ETFs
+    W = 1800
+    REG_ETF_EXP_RATIO = 0.001
+    LEV_ETF_EXP_RATIO = 0.01
+    default_K_threshold = W * default_investor.years_until_donate / \
+        ( math.exp( (default_market.annual_mu - default_market.annual_margin_interest_rate) * \
+       (broker_imposed_leverage_limit - 1.0) * default_investor.years_until_donate ) * \
+       ( math.exp(-REG_ETF_EXP_RATIO * default_investor.years_until_donate) - \
+       math.exp(-LEV_ETF_EXP_RATIO * default_investor.years_until_donate) ) )
+    output_text = output_text.replace(REPLACE_STR_FRONT + "default_K_threshold" + REPLACE_STR_END, 
+                                      util.format_as_dollar_string(default_K_threshold))
+    mu09_K_threshold = W * default_investor.years_until_donate / \
+        ( math.exp( (.09 - default_market.annual_margin_interest_rate) * \
+       (broker_imposed_leverage_limit - 1.0) * default_investor.years_until_donate ) * \
+       ( math.exp(-REG_ETF_EXP_RATIO * default_investor.years_until_donate) - \
+       math.exp(-LEV_ETF_EXP_RATIO * default_investor.years_until_donate) ) )
+    output_text = output_text.replace(REPLACE_STR_FRONT + "mu09_K_threshold" + REPLACE_STR_END, 
+                                      util.format_as_dollar_string(mu09_K_threshold))
+    W500_K_threshold = 500 * default_investor.years_until_donate / \
+        ( math.exp( (default_market.annual_mu - default_market.annual_margin_interest_rate) * \
+       (broker_imposed_leverage_limit - 1.0) * default_investor.years_until_donate ) * \
+       ( math.exp(-REG_ETF_EXP_RATIO * default_investor.years_until_donate) - \
+       math.exp(-LEV_ETF_EXP_RATIO * default_investor.years_until_donate) ) )
+    output_text = output_text.replace(REPLACE_STR_FRONT + "W500_K_threshold" + REPLACE_STR_END, 
+                                      util.format_as_dollar_string(W500_K_threshold))
+    W4000_K_threshold = 4000 * default_investor.years_until_donate / \
+        ( math.exp( (default_market.annual_mu - default_market.annual_margin_interest_rate) * \
+       (broker_imposed_leverage_limit - 1.0) * default_investor.years_until_donate ) * \
+       ( math.exp(-REG_ETF_EXP_RATIO * default_investor.years_until_donate) - \
+       math.exp(-LEV_ETF_EXP_RATIO * default_investor.years_until_donate) ) )
+    output_text = output_text.replace(REPLACE_STR_FRONT + "W4000_K_threshold" + REPLACE_STR_END, 
+                                      util.format_as_dollar_string(W4000_K_threshold))
+    W1000_mu09_K_threshold = 1000 * default_investor.years_until_donate / \
+        ( math.exp( (.09 - default_market.annual_margin_interest_rate) * \
+       (broker_imposed_leverage_limit - 1.0) * default_investor.years_until_donate ) * \
+       ( math.exp(-REG_ETF_EXP_RATIO * default_investor.years_until_donate) - \
+       math.exp(-LEV_ETF_EXP_RATIO * default_investor.years_until_donate) ) )
+    output_text = output_text.replace(REPLACE_STR_FRONT + "W1000_mu09_K_threshold" + REPLACE_STR_END, 
+                                      util.format_as_dollar_string(W1000_mu09_K_threshold))
+    levexpr005_K_threshold = W * default_investor.years_until_donate / \
+        ( math.exp( (default_market.annual_mu - default_market.annual_margin_interest_rate) * \
+       (broker_imposed_leverage_limit - 1.0) * default_investor.years_until_donate ) * \
+       ( math.exp(-REG_ETF_EXP_RATIO * default_investor.years_until_donate) - \
+       math.exp(-.005 * default_investor.years_until_donate) ) )
+    output_text = output_text.replace(REPLACE_STR_FRONT + "levexpr005_K_threshold" + REPLACE_STR_END, 
+                                      util.format_as_dollar_string(levexpr005_K_threshold))
+    lev3X_K_threshold = W * default_investor.years_until_donate / \
+        ( math.exp( (default_market.annual_mu - default_market.annual_margin_interest_rate) * \
+       (3 - 1.0) * default_investor.years_until_donate ) * \
+       ( math.exp(-REG_ETF_EXP_RATIO * default_investor.years_until_donate) - \
+       math.exp(-LEV_ETF_EXP_RATIO * default_investor.years_until_donate) ) )
+    output_text = output_text.replace(REPLACE_STR_FRONT + "lev3X_K_threshold" + REPLACE_STR_END, 
+                                      util.format_as_dollar_string(lev3X_K_threshold))
+
+    # When expense ratio is worth it for leveraged ETFs, including taxes
+    W = 1800
+    REG_ETF_EXP_RATIO = 0.001
+    LEV_ETF_EXP_RATIO = 0.01
+    default_F = .05
+    default_R = .28
+    default_K_threshold_with_taxes = W * default_investor.years_until_donate / \
+        ( math.exp( (default_market.annual_mu-default_market.annual_margin_interest_rate) * \
+        (broker_imposed_leverage_limit-1.0) * default_investor.years_until_donate \
+        - REG_ETF_EXP_RATIO * default_investor.years_until_donate ) - math.exp( \
+        (1.0-default_F * default_R) * \
+        (default_market.annual_mu-default_market.annual_margin_interest_rate) * \
+        (broker_imposed_leverage_limit-1.0) * default_investor.years_until_donate - \
+        (default_F * default_R * default_market.annual_mu + LEV_ETF_EXP_RATIO) * \
+        default_investor.years_until_donate ) )
+    output_text = output_text.replace(REPLACE_STR_FRONT + "default_K_threshold_with_taxes" + REPLACE_STR_END, 
+                                      util.format_as_dollar_string(default_K_threshold_with_taxes))
+    R14_K_threshold_with_taxes = W * default_investor.years_until_donate / \
+        ( math.exp( (default_market.annual_mu-default_market.annual_margin_interest_rate) * \
+        (broker_imposed_leverage_limit-1.0) * default_investor.years_until_donate \
+        - REG_ETF_EXP_RATIO * default_investor.years_until_donate ) - math.exp( \
+        (1.0-default_F * .14) * \
+        (default_market.annual_mu-default_market.annual_margin_interest_rate) * \
+        (broker_imposed_leverage_limit-1.0) * default_investor.years_until_donate - \
+        (default_F * .14 * default_market.annual_mu + LEV_ETF_EXP_RATIO) * \
+        default_investor.years_until_donate ) )
+    output_text = output_text.replace(REPLACE_STR_FRONT + "R14_K_threshold_with_taxes" + REPLACE_STR_END, 
+                                      util.format_as_dollar_string(R14_K_threshold_with_taxes))
+    F20_K_threshold_with_taxes = W * default_investor.years_until_donate / \
+        ( math.exp( (default_market.annual_mu-default_market.annual_margin_interest_rate) * \
+        (broker_imposed_leverage_limit-1.0) * default_investor.years_until_donate \
+        - REG_ETF_EXP_RATIO * default_investor.years_until_donate ) - math.exp( \
+        (1.0-.2 * default_R) * \
+        (default_market.annual_mu-default_market.annual_margin_interest_rate) * \
+        (broker_imposed_leverage_limit-1.0) * default_investor.years_until_donate - \
+        (.2 * default_R * default_market.annual_mu + LEV_ETF_EXP_RATIO) * \
+        default_investor.years_until_donate ) )
+    output_text = output_text.replace(REPLACE_STR_FRONT + "F20_K_threshold_with_taxes" + REPLACE_STR_END, 
+                                      util.format_as_dollar_string(F20_K_threshold_with_taxes))
+    F20R14_K_threshold_with_taxes = W * default_investor.years_until_donate / \
+        ( math.exp( (default_market.annual_mu-default_market.annual_margin_interest_rate) * \
+        (broker_imposed_leverage_limit-1.0) * default_investor.years_until_donate \
+        - REG_ETF_EXP_RATIO * default_investor.years_until_donate ) - math.exp( \
+        (1.0-.2 * .14) * \
+        (default_market.annual_mu-default_market.annual_margin_interest_rate) * \
+        (broker_imposed_leverage_limit-1.0) * default_investor.years_until_donate - \
+        (.2 * .14 * default_market.annual_mu + LEV_ETF_EXP_RATIO) * \
+        default_investor.years_until_donate ) )
+    output_text = output_text.replace(REPLACE_STR_FRONT + "F20R14_K_threshold_with_taxes" + REPLACE_STR_END, 
+                                      util.format_as_dollar_string(F20R14_K_threshold_with_taxes))
+
     return output_text
 
 def c_star(alpha, custom_mu=None):
@@ -573,14 +684,14 @@ def add_figures(graph_type, output_text, current_location_of_figure,
         # Copy the graph to be in the same folder as the essay HTML
         new_figure_file_name = "{}_{}_{}.png".format(scenario_abbrev, graph_type, timestamp)
         copy_destination_for_graph = os.path.join(cur_working_dir,new_figure_file_name)
-        shutil.copyfile(current_location_of_figure, copy_destination_for_graph)
-
-        # Replace the path to the optimal-leverage graph in the HTML file
-        if use_local_image_file_paths:
-            replacement_graph_path = copy_destination_for_graph
-        else: # use WordPress path that will exist once we upload the file
-            replacement_graph_path = get_WordPress_img_url_path(timestamp, new_figure_file_name)
-        output_text = output_text.replace(placeholder_string_for_figure, replacement_graph_path)
+        if os.path.exists(current_location_of_figure):
+            shutil.copyfile(current_location_of_figure, copy_destination_for_graph)
+            # Replace the path to the optimal-leverage graph in the HTML file
+            if use_local_image_file_paths:
+                replacement_graph_path = copy_destination_for_graph
+            else: # use WordPress path that will exist once we upload the file
+                replacement_graph_path = get_WordPress_img_url_path(timestamp, new_figure_file_name)
+            output_text = output_text.replace(placeholder_string_for_figure, replacement_graph_path)
     return output_text
 
 def get_WordPress_img_url_path(timestamp, fig_name):
@@ -680,7 +791,7 @@ _the same as when you ran the results being pointed to_
 or else the params filled in to the output HTMl file will be wrong!
 ============
 """
-            NUM_TRIALS = 1
+            NUM_TRIALS = 100
             APPROX_NUM_SIMULTANEOUS_PROCESSES = 1
             #APPROX_NUM_SIMULTANEOUS_PROCESSES = 3
             write_essay(skeleton, outfile, cur_folder, NUM_TRIALS, LOCAL_FILE_PATHS_IN_HTML, 

@@ -8,6 +8,7 @@ import margin_leverage
 
 OPTIMAL_LEVERAGE_GRAPH_PREFIX = "aaa_opt_lev" # add "aaa_" to put it first alphabetically so it's easier to find
 EXPECTED_UTILITY_GRAPH_PREFIX = "exp_util"
+EXPECTED_SATURATION_UTILITY_GRAPH_PREFIX = "exp_sat_util"
 
 def graph_histograms(account_values, num_samples, outfilepath):
     alpha_for_pyplot = .5
@@ -18,7 +19,7 @@ def graph_histograms(account_values, num_samples, outfilepath):
         median_value = util.percentile(account_values[type], .5)
         numpy_array = numpy.array(account_values[type])
         bin_min = min(numpy_array)
-        bin_max = min(max(numpy_array), 25 * median_value) # the "25 * median_value" part avoids having a distorted graph due to far-right skewed values
+        bin_max = min(max(numpy_array), 10 * median_value) # the "25 * median_value" part avoids having a distorted graph due to far-right skewed values
         graph_bins = numpy.linspace(bin_min, bin_max, num_bins)
         if type is "regular":
             regular_array = numpy_array
@@ -60,6 +61,24 @@ def graph_expected_utility_vs_alpha(numpy_regular, numpy_margin, outdir_name):
     pyplot.xlabel("alpha: measure of risk tolerance, as in utility(wealth) = (wealth)^alpha")
     pyplot.ylabel("expected_utility(margin) / expected_utility(regular)")
     pyplot.savefig("%s_%s" % (outdir_name, EXPECTED_UTILITY_GRAPH_PREFIX))
+    pyplot.close()
+
+def graph_expected_utility_vs_wealth_saturation_cutoff(numpy_regular, numpy_margin, \
+    outdir_name, min_log10_saturation, max_log10_saturation):
+    NUM_POINTS = 1000
+    saturation_values = numpy.logspace(min_log10_saturation,max_log10_saturation,NUM_POINTS)
+    ratio_of_expected_utilities = map(lambda saturation: \
+        numpy.mean(map(lambda wealth: util.saturation_utility(wealth, saturation), numpy_margin)) / \
+        numpy.mean(map(lambda wealth: util.saturation_utility(wealth, saturation), numpy_regular)),
+                                      saturation_values)
+    fig = pyplot.figure()
+    ax = fig.add_subplot(2,1,1) # see http://stackoverflow.com/a/1183415
+    ax.plot(saturation_values,ratio_of_expected_utilities)
+    ax.set_xscale('log')
+    pyplot.title("Ratio of margin/regular expected saturation-utility vs. saturation cutoff")
+    pyplot.xlabel("saturation cutoff: after what amount of $ does the value of more level off?")
+    pyplot.ylabel("exp_sat_utility(margin) / exp_sat_utility(regular)")
+    pyplot.savefig("%s_%s" % (outdir_name, EXPECTED_SATURATION_UTILITY_GRAPH_PREFIX))
     pyplot.close()
 
 def graph_historical_margin_to_assets_ratios(collection_of_ratios, avg_ratios, outfilepath):
@@ -110,6 +129,21 @@ def graph_carried_cap_gains_trajectories(carried_cap_gains_histories, outfilepat
     pyplot.xlabel("Years since beginning")
     pyplot.ylabel("Carried short+long-term capital gains/losses ($)")
     pyplot.savefig(outfilepath + "_carrcg")
+    pyplot.close()
+
+def graph_percent_differences_from_simple_calc(percent_differences_from_simple_calc, 
+                                               outfilepath):
+    num_days = len(percent_differences_from_simple_calc[0])
+    x_axis = [float(day)/margin_leverage.DAYS_PER_YEAR for day in xrange(num_days)]
+
+    # Plot individual trajectories
+    for trajectory in percent_differences_from_simple_calc:
+        assert len(trajectory) == num_days, "Inconsistent number of days in history vectors"
+        pyplot.plot(x_axis, trajectory)
+    pyplot.title("% differences of margin account values vs. a naive calculation")
+    pyplot.xlabel("Years since beginning")
+    pyplot.ylabel("% differences for various individual trajectories")
+    pyplot.savefig(outfilepath + "_percdiff")
     pyplot.close()
 
 def graph_trends_vs_leverage_amount(output_queue, outdir_name):

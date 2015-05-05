@@ -109,6 +109,8 @@ def many_runs(funds_and_expense_ratios, tax_rate, years, leverage_ratio, num_sam
     if outfilepath:
         plots.graph_expected_utility_vs_alpha(numpy.array(fund_arrays[fund_types[0]]), \
             numpy.array(fund_arrays[fund_types[1]]), outfilepath)
+        plots.graph_expected_utility_vs_wealth_saturation_cutoff(numpy.array(fund_arrays[fund_types[0]]), \
+            numpy.array(fund_arrays[fund_types[1]]), outfilepath, 1, 6)
 
     # Write results
     with open(write_results.results_table_file_name(outfilepath), "w") as outfile:

@@ -15,14 +15,16 @@ from multiprocessing import Process, Queue
 import time
 from random import Random
 
-USE_SMALL_SCENARIO_SET_FOR_QUICK_TEST = False
+USE_SMALL_SCENARIO_SET_FOR_QUICK_TEST = True
 if USE_SMALL_SCENARIO_SET_FOR_QUICK_TEST:
-    SCENARIOS = {"No unemployment or inflation or taxes or black swans, only paid in first month, don't taper off leverage toward end, voluntary max leverage equals broker max leverage, no emergency savings":"closetotheory"}
-    """
-    "Default":"default",
-                     "No emergency savings":"closetotheoryminus7",
-                     "Emergency savings = $1 million":"emergsav1m",
-                     """
+    SCENARIOS = {"No unemployment or inflation or taxes or black swans, only paid in first month, don't taper off leverage toward end, voluntary max leverage equals broker max leverage, no emergency savings":"closetotheory",
+                "No unemployment or inflation or taxes or black swans, don't taper off leverage toward end, voluntary max leverage equals broker max leverage, no emergency savings":"closetotheoryminus1",
+                 "No unemployment or inflation or taxes or black swans, don't taper off leverage toward end, no emergency savings":"closetotheoryminus2",
+                 "No unemployment or inflation or taxes or black swans, no emergency savings":"closetotheoryminus3",
+                 "No unemployment or inflation or taxes, no emergency savings":"closetotheoryminus4",
+                 "No unemployment or inflation, no emergency savings":"closetotheoryminus5",
+                 "No unemployment, no emergency savings":"closetotheoryminus6",
+                 "No emergency savings":"closetotheoryminus7"}
 else:
     SCENARIOS = {"No unemployment or inflation or taxes or black swans, only paid in first month, don't taper off leverage toward end, voluntary max leverage equals broker max leverage, no emergency savings":"closetotheory",
                  "Default":"default",
@@ -56,6 +58,9 @@ TAX_LOSS_HARVEST_DAY = 360 # day number 360 in late Dec
 TAX_DAY = 60 # day of tax payments/refund assuming you get your refund around March 1; ignoring payments during the year...
 TINY_NUMBER = .000001
 THRESHOLD_FOR_TAX_CONVERGENCE = 50
+DIFFERENCE_THRESHOLD_FOR_WARNING_ABOUT_DIFF_FROM_SIMPLE_COMPUTATION_PER_YEAR = .015
+TYPES = ["regular", "margin", "matched401k"]
+NUM_PERCENT_DIFFS_TO_PLOT = 10
 
 def one_run(investor,market,verbosity,outfilepath,iter_num,
             num_margin_trajectories_to_save_as_figures, randgenerator):
@@ -75,13 +80,13 @@ def one_run(investor,market,verbosity,outfilepath,iter_num,
     margin_strategy_went_bankrupt = False
     num_times_randgenerator_was_called = 0
 
-    TYPES = ["regular", "margin", "matched401k"]
     taxes = dict()
+    emergency_savings = dict()
+    simple_approx_account_values = dict()
     for type in TYPES:
         taxes[type] = Taxes.Taxes(investor.tax_rates)
-    emergency_savings = dict()
-    for type in TYPES:
         emergency_savings[type] = investor.initial_emergency_savings
+        simple_approx_account_values[type] = 0
     interest_and_salary_every_num_days = 30
     interest_and_salary_every_fraction_of_year = float(interest_and_salary_every_num_days) / DAYS_PER_YEAR
 
@@ -90,6 +95,7 @@ def one_run(investor,market,verbosity,outfilepath,iter_num,
     historical_regular_wealth = numpy.zeros(days_from_start_to_donation_date)
     historical_margin_wealth = numpy.zeros(days_from_start_to_donation_date)
     historical_carried_cap_gains = numpy.zeros(days_from_start_to_donation_date)
+    historical_margin_percent_differences_from_simple_calc = numpy.zeros(days_from_start_to_donation_date)
 
     for day in xrange(days_from_start_to_donation_date):
         years_elapsed = day/DAYS_PER_YEAR
@@ -102,6 +108,21 @@ def one_run(investor,market,verbosity,outfilepath,iter_num,
         historical_margin_wealth[day] = accounts["margin"].assets_minus_margin() + emergency_savings["margin"]
         historical_carried_cap_gains[day] = taxes["margin"].total_gain_or_loss()
 
+        # Check deviations from simple approximate estimates of account values
+        for type in TYPES:
+            actual_value = accounts[type].assets_minus_margin()
+            difference = util.fractional_difference(actual_value, simple_approx_account_values[type])
+            if type is not "margin":
+                assert abs(difference) < TINY_NUMBER, "Non-margin simple calculations should match the real things."
+            else:
+                percent_difference = 100*difference
+                historical_margin_percent_differences_from_simple_calc[day] = percent_difference
+                if abs(difference) > DIFFERENCE_THRESHOLD_FOR_WARNING_ABOUT_DIFF_FROM_SIMPLE_COMPUTATION_PER_YEAR * \
+                    investor.years_until_donate:
+                    print "WARNING: Actual account value (%s) differs by %i percent from simple approximate value (%s)." % \
+                        (util.format_as_dollar_string(actual_value), int(round(percent_difference,0)), \
+                        util.format_as_dollar_string(simple_approx_account_values[type]))
+
         """ Stock market changes on non-holiday weekdays.
         The functions to check if it's a weekend and a holiday are based on the year
         2015, when all holidays should have been non-weekends. This means there are
@@ -113,10 +134,32 @@ def one_run(investor,market,verbosity,outfilepath,iter_num,
             (random_daily_return, num_times_randgenerator_was_called) = \
                 market.random_daily_return(day, randgenerator, num_times_randgenerator_was_called)
 
-            # Update emergency savings
             for type in TYPES:
+                # Update emergency savings
                 (emergency_savings[type], price_went_to_zero) = \
                     util.update_price(emergency_savings[type], random_daily_return)
+                # Update simple approximations to account values
+                cur_leverage_multiple = util.max_margin_to_assets_ratio_to_N_to_1_leverage( \
+                    accounts[type].personal_max_margin_to_assets_ratio(years_remaining)) if \
+                    investor.rebalance_monthly_to_increase_leverage else \
+                    util.max_margin_to_assets_ratio_to_N_to_1_leverage( \
+                    accounts[type].margin_to_assets())
+                """The above if/else thing is because if we're rebalancing up towards a desired
+                leverage ratio, we want to check that future account values are consistent with that
+                desired leverage ratio. If we're not tracking a given leverage ratio because we're
+                not rebalancing monthly, then the calculation of simple account values should just
+                use the actual current margin-to-assets ratio, since there's no alternative but
+                to use that."""
+                if type is not "margin":
+                    assert cur_leverage_multiple == 1.0, "Non-leveraged methods shouldn't have non-1 leverage multiples."
+                if margin_strategy_went_bankrupt:
+                    cur_leverage_multiple = 1.0
+                    """When it goes bankrupt, the margin strategy stops using margin, so
+                    its leverage multiple should be 1.0 at that point."""
+                simple_approx_account_values[type] *= (1+cur_leverage_multiple*random_daily_return \
+                    - (cur_leverage_multiple-1.0)*market.annual_margin_interest_rate/market.trading_days_per_year)
+                if simple_approx_account_values[type] < 0:
+                    simple_approx_account_values[type] = 0
 
             # Update regular account
             accounts["regular"].update_asset_prices(random_daily_return)
@@ -154,10 +197,14 @@ def one_run(investor,market,verbosity,outfilepath,iter_num,
 
             # regular account just buys ETF
             accounts["regular"].buy_ETF_at_fixed_ratio(pay, day, years_remaining)
+            simple_approx_account_values["regular"] += pay * (1-BrokerageAccount.FEE_PER_DOLLAR_TRADED)
 
             # matched 401k account buys ETF with employee and employer funds
-            accounts["matched401k"].buy_ETF_at_fixed_ratio(pay * (1+investor.match_percent_from_401k/100.0), day, years_remaining)
+            matched_pay_amount = pay * (1+investor.match_percent_from_401k/100.0)
+            accounts["matched401k"].buy_ETF_at_fixed_ratio(matched_pay_amount, day, years_remaining)
+            simple_approx_account_values["matched401k"] += matched_pay_amount * (1-BrokerageAccount.FEE_PER_DOLLAR_TRADED)
 
+            simple_approx_account_values["margin"] += pay * (1-BrokerageAccount.FEE_PER_DOLLAR_TRADED)
             if margin_strategy_gap_in_emergency_funds(emergency_savings) > pay:
                 # restore emergency savings with pay
                 emergency_savings["margin"] += pay
@@ -343,7 +390,8 @@ def one_run(investor,market,verbosity,outfilepath,iter_num,
     real_present_value_of_ending_balances = map(real_present_value_function,ending_balances)
 
     return tuple(real_present_value_of_ending_balances) + (historical_margin_to_assets_ratios, \
-        historical_margin_wealth, historical_carried_cap_gains, have_savings_gap_and_no_assets, \
+        historical_margin_wealth, historical_carried_cap_gains, \
+        historical_margin_percent_differences_from_simple_calc, have_savings_gap_and_no_assets, \
         margin_strategy_went_bankrupt, num_times_randgenerator_was_called, )
 
 def margin_strategy_gap_in_emergency_funds(emergency_savings):
@@ -383,6 +431,7 @@ def run_samples(investor,market,num_samples,outfilepath,output_queue=None,
     margin_to_assets_ratio_histories = []
     wealth_histories = []
     carried_cap_gains_histories = []
+    margin_percent_differences_from_simple_calc_list = []
     running_average_margin_to_assets_ratios = None
     num_times_margin_ended_with_emergency_savings_gap = 0
     num_times_margin_strategy_went_bankrupt = 0
@@ -395,7 +444,8 @@ def run_samples(investor,market,num_samples,outfilepath,output_queue=None,
     start_time = time.time()
     for sample in xrange(num_samples):
         (regular_val, margin_val, matched_401k_val, margin_to_assets_ratios, 
-         margin_wealth, carried_cap_gains, margin_account_has_emergency_savings_gap,
+         margin_wealth, carried_cap_gains, margin_percent_differences_from_simple_calc, 
+         margin_account_has_emergency_savings_gap,
          margin_strategy_went_bankrupt, num_times_randgenerator_was_called) = \
              one_run(investor,market,verbosity,outfilepath,sample, \
              num_margin_trajectories_to_save_as_figures,randgenerator)
@@ -414,6 +464,8 @@ def run_samples(investor,market,num_samples,outfilepath,output_queue=None,
             wealth_histories.append(margin_wealth)
         if len(carried_cap_gains_histories) < NUM_HISTORIES_TO_PLOT:
             carried_cap_gains_histories.append(carried_cap_gains)
+        if len(margin_percent_differences_from_simple_calc_list) < NUM_PERCENT_DIFFS_TO_PLOT:
+            margin_percent_differences_from_simple_calc_list.append(margin_percent_differences_from_simple_calc)
         if running_average_margin_to_assets_ratios is None:
             running_average_margin_to_assets_ratios = copy.copy(margin_to_assets_ratios)
         else:
@@ -467,10 +519,13 @@ def run_samples(investor,market,num_samples,outfilepath,output_queue=None,
         
         plots.graph_histograms(account_values, num_samples, outfilepath)
         plots.graph_expected_utility_vs_alpha(numpy_regular, numpy_margin, outfilepath)
+        plots.graph_expected_utility_vs_wealth_saturation_cutoff(numpy_regular, numpy_margin, outfilepath, 3, 7)
         plots.graph_historical_margin_to_assets_ratios(margin_to_assets_ratio_histories, 
                                                        avg_margin_to_assets_ratios, outfilepath)
         plots.graph_historical_wealth_trajectories(wealth_histories, outfilepath)
         plots.graph_carried_cap_gains_trajectories(carried_cap_gains_histories, outfilepath)
+        plots.graph_percent_differences_from_simple_calc(
+            margin_percent_differences_from_simple_calc_list, outfilepath)
     
     print "randgenerator called %i times. Check that this is equal across variants!" % \
         num_times_randgenerator_was_called
@@ -716,10 +771,10 @@ def optimal_leverage_for_all_scenarios(num_trials, use_timestamped_dirs, cur_wor
     finish running!"""
     scenarios_not_to_sweep = ["closetotheoryminus%i" % i for i in [2,3,4,5,6]]
     scenarios_not_to_sweep.append("sig0")
-    #scenarios_not_to_sweep.append("default")# comment out later
-    #scenarios_not_to_sweep.append("closetotheory")# comment out later
-    #scenarios_not_to_sweep.append("closetotheoryminus7")# comment out later
-    #scenarios_not_to_sweep.append("emergsav1m")# comment out later
+    scenarios_not_to_sweep.append("default")# comment out later
+    scenarios_not_to_sweep.append("closetotheory")# comment out later
+    scenarios_not_to_sweep.append("closetotheoryminus7")# comment out later
+    scenarios_not_to_sweep.append("emergsav1m")# comment out later
     for scenario_name in SCENARIOS.keys():
         if SCENARIOS[scenario_name] in scenarios_not_to_sweep: # skip them to speed up computing
             """In this case, only get results for the default margin-to-assets setting
@@ -738,14 +793,15 @@ def optimal_leverage_for_all_scenarios(num_trials, use_timestamped_dirs, cur_wor
 
 def run_one_variant(num_trials):
     outdir_name = util.create_timestamped_dir("one") # concise way of writing "one variant"
-    scenario = "Default"
+    #scenario = "Default"
     #scenario = "No unemployment or inflation or taxes or black swans, only paid in first month, don't taper off leverage toward end, voluntary max leverage equals broker max leverage, no emergency savings"
+    scenario = "No unemployment or inflation or taxes or black swans, don't taper off leverage toward end, no emergency savings"
     args = args_for_this_scenario(scenario, num_trials, outdir_name)
     run_samples(*args)
 
 if __name__ == "__main__":
     #sweep_scenarios(1,1)
-    run_one_variant(750)
+    run_one_variant(5)
 """
 Things that need to be checked because I sometimes set them to run faster:
 - years (15 vs. .1)

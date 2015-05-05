@@ -54,6 +54,11 @@ def utility(wealth, alpha):
     else:
         return wealth**alpha
 
+def saturation_utility(wealth, saturation):
+    """utility(wealth) = min(wealth, cutoff), i.e., wealth stops being able to be
+    donated well after some point."""
+    return min(wealth, saturation)
+
 def format_as_dollar_string(float_or_int_amount):
     return "${:,}".format(int(round(float_or_int_amount,0)))
 
@@ -113,7 +118,15 @@ def ratio_of_means_with_error_bars(numpy_array1, numpy_array2):
     return (ratio, error_in_ratio)
 
 def abs_fractional_difference(num1, num2):
-    return abs((float(num1) - num2)/num2)
+    return abs(fractional_difference(num1, num2))
+
+def fractional_difference(num1, num2):
+    if num1 == 0 and num2 == 0:
+        return 0
+    elif num1 == 0 or num2 == 0:
+        return float("inf")
+    else:
+        return (float(num1) - num2)/num2
 
 def round_decimal_to_given_num_of_sig_figs(decimal_less_than_1, sig_figs):
     """Inspired by http://stackoverflow.com/questions/3410976/how-to-round-a-number-to-significant-figures-in-python/3413529#3413529"""
