@@ -30,8 +30,8 @@ REPLACE_STR_END = "</REPLACE>"
 TIMESTAMP_FORMAT = '%Y%b%d_%Hh%Mm%Ss'
 OPTIMISTIC_MU = .08
 LEV_ETF_LEVERAGE_RATIO = 2.0
-LEV_ETF_NUM_SAMPLES = 1
-FUNDS_AND_EXPENSE_RATIOS = {"regular":.001, "lev":.01}
+LEV_ETF_NUM_SAMPLES = 10000
+NUM_LEV_ETF_TRAJECTORIES_TO_SAVE_AS_FIGURES = 10
 
 def write_essay(skeleton, outfile, cur_working_dir, num_trials, 
                 use_local_image_file_paths, approx_num_simultaneous_processes,
@@ -44,22 +44,24 @@ def write_essay(skeleton, outfile, cur_working_dir, num_trials,
 
     # Compute the results if they don't already exist.
     default_investor = Investor.Investor()
-    starting_balance_for_leveraged_ETF_sim = default_investor.initial_annual_income_for_investing/12
     if not data_already_exists:
         # run leveraged-ETF sim
-        leveraged_etf_returns.sweep_variations(FUNDS_AND_EXPENSE_RATIOS, default_investor.years_until_donate, 
-                                               LEV_ETF_LEVERAGE_RATIO, LEV_ETF_NUM_SAMPLES, 
-                                               starting_balance_for_leveraged_ETF_sim, cur_working_dir)
+        leveraged_etf_returns.sweep_variations(leveraged_etf_returns.FUNDS_AND_EXPENSE_RATIOS, 
+                                               LEV_ETF_LEVERAGE_RATIO, LEV_ETF_NUM_SAMPLES,
+                                               NUM_LEV_ETF_TRAJECTORIES_TO_SAVE_AS_FIGURES, 
+                                               cur_working_dir)
         # run margin sim
         margin_leverage.optimal_leverage_for_all_scenarios(num_trials, False, cur_working_dir, 
                                                            approx_num_simultaneous_processes=approx_num_simultaneous_processes)
 
     """Read and parse the results for leveraged ETFs."""
+    starting_balance_for_leveraged_ETF_sim = default_investor.initial_annual_income_for_investing / \
+        leveraged_etf_returns.MONTHS_PER_YEAR
     output_text = output_text.replace(REPLACE_STR_FRONT + "starting_balance_for_leveraged_ETF_sim" + REPLACE_STR_END, 
                                       str(starting_balance_for_leveraged_ETF_sim))
     output_text = output_text.replace(REPLACE_STR_FRONT + "LEV_ETF_LEVERAGE_RATIO" + REPLACE_STR_END, 
                                       str(LEV_ETF_LEVERAGE_RATIO))
-    for (key, val) in FUNDS_AND_EXPENSE_RATIOS.iteritems():
+    for (key, val) in leveraged_etf_returns.FUNDS_AND_EXPENSE_RATIOS.iteritems():
         output_text = output_text.replace(REPLACE_STR_FRONT + "%s_ETF_expense_ratio" % key + REPLACE_STR_END, str(val))
     for scenario in leveraged_etf_returns.LEV_ETF_SCENARIOS.keys():
         abbrev = leveraged_etf_returns.LEV_ETF_SCENARIOS[scenario]
@@ -78,7 +80,7 @@ def write_essay(skeleton, outfile, cur_working_dir, num_trials,
         output_text = add_figures(plots.EXPECTED_SATURATION_UTILITY_GRAPH_PREFIX, output_text, \
             os.path.join(folder,"_%s.png" % plots.EXPECTED_SATURATION_UTILITY_GRAPH_PREFIX), \
             cur_working_dir, use_local_image_file_paths, abbrev, timestamp)
-        for iter_num in xrange(leveraged_etf_returns.NUM_TRAJECTORIES_TO_SAVE_AS_FIGURES):
+        for iter_num in xrange(NUM_LEV_ETF_TRAJECTORIES_TO_SAVE_AS_FIGURES):
             output_text = add_figures("sample_traj%i" % iter_num, output_text, \
                 os.path.join(folder,"_regularvslev_iter%i.png" % iter_num), 
                 cur_working_dir, use_local_image_file_paths, abbrev, timestamp)
@@ -188,7 +190,7 @@ def leveraged_ETF_compare_against_theory(output_text, results_table_contents,sta
 
     # Theoretical vs. actual median regular ETF
     theoretical_median_regular_ETF = starting_balance_for_leveraged_ETF_sim * \
-        math.exp(-FUNDS_AND_EXPENSE_RATIOS["regular"] * \
+        math.exp(-leveraged_etf_returns.FUNDS_AND_EXPENSE_RATIOS["regular"] * \
         default_investor.years_until_donate - \
         default_market.annual_sigma**2 * default_investor.years_until_donate/2)
     output_text = output_text.replace(REPLACE_STR_FRONT + "theoretical_median_regular_ETF" + REPLACE_STR_END, 
@@ -199,7 +201,7 @@ def leveraged_ETF_compare_against_theory(output_text, results_table_contents,sta
 
     # Theoretical vs. actual mean regular ETF
     theoretical_mean_regular_ETF = starting_balance_for_leveraged_ETF_sim * \
-        math.exp(-FUNDS_AND_EXPENSE_RATIOS["regular"] * \
+        math.exp(-leveraged_etf_returns.FUNDS_AND_EXPENSE_RATIOS["regular"] * \
         default_investor.years_until_donate)
     output_text = output_text.replace(REPLACE_STR_FRONT + "theoretical_mean_regular_ETF" + REPLACE_STR_END, 
                                       util.format_as_dollar_string(theoretical_mean_regular_ETF))
@@ -208,7 +210,7 @@ def leveraged_ETF_compare_against_theory(output_text, results_table_contents,sta
                                       actual_mean_regular_ETF)
 
     # Theoretical vs. actual median lev ETF
-    theoretical_median_lev_ETF = starting_balance_for_leveraged_ETF_sim * math.exp( (default_market.annual_mu-default_market.annual_margin_interest_rate) * (LEV_ETF_LEVERAGE_RATIO-1.0) * default_investor.years_until_donate - FUNDS_AND_EXPENSE_RATIOS["lev"] * default_investor.years_until_donate - LEV_ETF_LEVERAGE_RATIO**2 * default_market.annual_sigma**2 * default_investor.years_until_donate/2.0)
+    theoretical_median_lev_ETF = starting_balance_for_leveraged_ETF_sim * math.exp( (default_market.annual_mu-default_market.annual_margin_interest_rate) * (LEV_ETF_LEVERAGE_RATIO-1.0) * default_investor.years_until_donate - leveraged_etf_returns.FUNDS_AND_EXPENSE_RATIOS["lev"] * default_investor.years_until_donate - LEV_ETF_LEVERAGE_RATIO**2 * default_market.annual_sigma**2 * default_investor.years_until_donate/2.0)
     output_text = output_text.replace(REPLACE_STR_FRONT + "theoretical_median_lev_ETF" + REPLACE_STR_END, 
                                       util.format_as_dollar_string(theoretical_median_lev_ETF))
     actual_median_lev_ETF = parse_value_from_results_table(results_table_contents, "Leveraged ETF","Median")
@@ -216,7 +218,7 @@ def leveraged_ETF_compare_against_theory(output_text, results_table_contents,sta
                                       actual_median_lev_ETF)
 
     # Theoretical vs. actual mean lev ETF
-    theoretical_mean_lev_ETF = starting_balance_for_leveraged_ETF_sim * math.exp( (default_market.annual_mu-default_market.annual_margin_interest_rate) * (LEV_ETF_LEVERAGE_RATIO-1.0) * default_investor.years_until_donate - FUNDS_AND_EXPENSE_RATIOS["lev"] * default_investor.years_until_donate)
+    theoretical_mean_lev_ETF = starting_balance_for_leveraged_ETF_sim * math.exp( (default_market.annual_mu-default_market.annual_margin_interest_rate) * (LEV_ETF_LEVERAGE_RATIO-1.0) * default_investor.years_until_donate - leveraged_etf_returns.FUNDS_AND_EXPENSE_RATIOS["lev"] * default_investor.years_until_donate)
     output_text = output_text.replace(REPLACE_STR_FRONT + "theoretical_mean_lev_ETF" + REPLACE_STR_END, 
                                       util.format_as_dollar_string(theoretical_mean_lev_ETF))
     actual_mean_lev_ETF = parse_value_from_results_table(results_table_contents, "Leveraged ETF","Mean &plusmn; stderr")
@@ -247,8 +249,11 @@ def add_investor_params_and_calculations(output_text):
         output_text = output_text.replace(REPLACE_STR_FRONT + param + REPLACE_STR_END, 
                                           str(getattr(default_investor,param)))
     
-    initial_annual_income_properly_formatted = "${:,}".format(default_investor.initial_annual_income_for_investing)
+    initial_annual_income_properly_formatted = util.format_as_dollar_string(default_investor.initial_annual_income_for_investing)
     output_text = output_text.replace(REPLACE_STR_FRONT + "initial_annual_income_for_investing" + REPLACE_STR_END, initial_annual_income_properly_formatted)
+
+    output_text = output_text.replace(REPLACE_STR_FRONT + "initial_emergency_savings" + REPLACE_STR_END, \
+        util.format_as_dollar_string(default_investor.initial_emergency_savings))
 
     broker_max_margin_to_assets_ratio_as_percent = int(round(default_investor.broker_max_margin_to_assets_ratio * 100.0,0))
     output_text = output_text.replace(REPLACE_STR_FRONT + "broker_max_margin_to_assets_ratio_as_percent" + REPLACE_STR_END, str(broker_max_margin_to_assets_ratio_as_percent))
@@ -791,7 +796,7 @@ _the same as when you ran the results being pointed to_
 or else the params filled in to the output HTMl file will be wrong!
 ============
 """
-            NUM_TRIALS = 100
+            NUM_TRIALS = 1
             APPROX_NUM_SIMULTANEOUS_PROCESSES = 1
             #APPROX_NUM_SIMULTANEOUS_PROCESSES = 3
             write_essay(skeleton, outfile, cur_folder, NUM_TRIALS, LOCAL_FILE_PATHS_IN_HTML, 

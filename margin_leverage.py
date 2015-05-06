@@ -17,14 +17,15 @@ from random import Random
 
 USE_SMALL_SCENARIO_SET_FOR_QUICK_TEST = True
 if USE_SMALL_SCENARIO_SET_FOR_QUICK_TEST:
-    SCENARIOS = {"No unemployment or inflation or taxes or black swans, only paid in first month, don't taper off leverage toward end, voluntary max leverage equals broker max leverage, no emergency savings":"closetotheory",
+    SCENARIOS = {"No unemployment or inflation or taxes or black swans, only paid in first month, don't taper off leverage toward end, voluntary max leverage equals broker max leverage, no emergency savings":"closetotheory"}
+    """
                 "No unemployment or inflation or taxes or black swans, don't taper off leverage toward end, voluntary max leverage equals broker max leverage, no emergency savings":"closetotheoryminus1",
                  "No unemployment or inflation or taxes or black swans, don't taper off leverage toward end, no emergency savings":"closetotheoryminus2",
                  "No unemployment or inflation or taxes or black swans, no emergency savings":"closetotheoryminus3",
                  "No unemployment or inflation or taxes, no emergency savings":"closetotheoryminus4",
                  "No unemployment or inflation, no emergency savings":"closetotheoryminus5",
                  "No unemployment, no emergency savings":"closetotheoryminus6",
-                 "No emergency savings":"closetotheoryminus7"}
+                 "No emergency savings":"closetotheoryminus7"}"""
 else:
     SCENARIOS = {"No unemployment or inflation or taxes or black swans, only paid in first month, don't taper off leverage toward end, voluntary max leverage equals broker max leverage, no emergency savings":"closetotheory",
                  "Default":"default",
@@ -61,6 +62,7 @@ THRESHOLD_FOR_TAX_CONVERGENCE = 50
 DIFFERENCE_THRESHOLD_FOR_WARNING_ABOUT_DIFF_FROM_SIMPLE_COMPUTATION_PER_YEAR = .015
 TYPES = ["regular", "margin", "matched401k"]
 NUM_PERCENT_DIFFS_TO_PLOT = 10
+INTEREST_AND_SALARY_EVERY_NUM_DAYS = 30
 
 def one_run(investor,market,verbosity,outfilepath,iter_num,
             num_margin_trajectories_to_save_as_figures, randgenerator):
@@ -87,8 +89,7 @@ def one_run(investor,market,verbosity,outfilepath,iter_num,
         taxes[type] = Taxes.Taxes(investor.tax_rates)
         emergency_savings[type] = investor.initial_emergency_savings
         simple_approx_account_values[type] = 0
-    interest_and_salary_every_num_days = 30
-    interest_and_salary_every_fraction_of_year = float(interest_and_salary_every_num_days) / DAYS_PER_YEAR
+    interest_and_salary_every_fraction_of_year = float(INTEREST_AND_SALARY_EVERY_NUM_DAYS) / DAYS_PER_YEAR
 
     # Record history over lifetime of investment
     historical_margin_to_assets_ratios = numpy.zeros(days_from_start_to_donation_date)
@@ -187,9 +188,9 @@ def one_run(investor,market,verbosity,outfilepath,iter_num,
             accounts["matched401k"].update_asset_prices(random_daily_return)
 
         # check if we should get paid and defray interest
-        if day % interest_and_salary_every_num_days == 0:
+        if day % INTEREST_AND_SALARY_EVERY_NUM_DAYS == 0:
             pay = investor.current_annual_income(years_elapsed, day, market.inflation_rate) * \
-                (float(interest_and_salary_every_num_days) / DAYS_PER_YEAR)
+                (float(INTEREST_AND_SALARY_EVERY_NUM_DAYS) / DAYS_PER_YEAR)
             
             if verbosity > 1:
                 if day % 1000 == 0:
@@ -240,7 +241,7 @@ def one_run(investor,market,verbosity,outfilepath,iter_num,
                     # if this happens, no money left to 2. pay principal, 3. pay down margin if it's over limit, or 4. buy ETF
                 else:
                     # 2. pay some principal, if we're dong that
-                    number_of_pay_periods_until_donation_date = (days_from_start_to_donation_date - day) / interest_and_salary_every_num_days
+                    number_of_pay_periods_until_donation_date = (days_from_start_to_donation_date - day) / INTEREST_AND_SALARY_EVERY_NUM_DAYS
                     amount_of_principal_to_repay = util.per_period_annuity_payment_of_principal(accounts["margin"].margin, number_of_pay_periods_until_donation_date,market.annual_margin_interest_rate, investor.pay_principal_throughout)
                     if amount_of_principal_to_repay > pay_after_interest:
                         accounts["margin"].margin -= pay_after_interest
@@ -519,7 +520,7 @@ def run_samples(investor,market,num_samples,outfilepath,output_queue=None,
         
         plots.graph_histograms(account_values, num_samples, outfilepath)
         plots.graph_expected_utility_vs_alpha(numpy_regular, numpy_margin, outfilepath)
-        plots.graph_expected_utility_vs_wealth_saturation_cutoff(numpy_regular, numpy_margin, outfilepath, 3, 7)
+        plots.graph_expected_utility_vs_wealth_saturation_cutoff(numpy_regular, numpy_margin, outfilepath, 4, 7)
         plots.graph_historical_margin_to_assets_ratios(margin_to_assets_ratio_histories, 
                                                        avg_margin_to_assets_ratios, outfilepath)
         plots.graph_historical_wealth_trajectories(wealth_histories, outfilepath)
