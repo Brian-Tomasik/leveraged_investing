@@ -40,7 +40,9 @@ def write_winner_for_each_percentile(account_values, outfile):
 
 def write_file_table(account_values, account_types, 
                      fraction_times_margin_strategy_went_bankrupt, outfile,
-                     fraction_times_margin_ended_with_emergency_savings_gap=None):
+                     fraction_times_margin_ended_with_emergency_savings_gap=None,
+                     avg_percent_diff_from_simple_calc=None,
+                     avg_simple_calc_value=None):
     REGULAR_INDEX = 0
     LEVERAGE_INDEX = 1
     assert account_types[REGULAR_INDEX] == "regular", "Regular account has to go in the 0th index"
@@ -63,12 +65,16 @@ def write_file_table(account_values, account_types,
     emergency_savings_gap = ""
     if fraction_times_margin_ended_with_emergency_savings_gap is not None:
         emergency_savings_gap = " Margin investor ended with no assets and a deficit in emergency savings {}% of the time.".format(round(100 * fraction_times_margin_ended_with_emergency_savings_gap,1))
-    outfile.write("\nMargin is better than regular {}% of the time.{} Margin account went fully bankrupt {}% of the time.".format(
+    avg_simple_calc_string = ""
+    if avg_simple_calc_value is not None:
+        avg_simple_calc_string = " Average simple-calculation margin ending balance was {}.".format(util.format_as_dollar_string(avg_simple_calc_value))
+    outfile.write("\nMargin is better than regular {}% of the time.{} Margin account went fully bankrupt {}% of the time.{}".format(
         int(round(100 * util.probability_x_better_than_y(
             account_values[account_types[LEVERAGE_INDEX]],
             account_values[account_types[REGULAR_INDEX]]),1)), 
         emergency_savings_gap,
-        round(100 * fraction_times_margin_strategy_went_bankrupt,1)))
+        round(100 * fraction_times_margin_strategy_went_bankrupt,1),
+        avg_simple_calc_string))
 
 def return_pretty_name_for_type(type):
     if type == "regular":

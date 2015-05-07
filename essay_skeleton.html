@@ -339,7 +339,7 @@ mean(V<sub>t</sub>) / mean(S<sub>t</sub>) = [K exp{(r + (&mu;-r)c) t}] / [K exp(
 </blockquote>
 Since &mu;-r > 0 and c-1 > 0, this ratio is greater than 1 and increases with t. Here's one sample calculation of this ratio with particular parameter choices:
 <blockquote>
-mean(V<sub>t</sub>) / mean(S<sub>t</sub>) = exp{(&mu;-r)(c-1)t} = exp{(<REPLACE>annual_mu</REPLACE>-<REPLACE>annual_margin_interest_rate</REPLACE>)(<REPLACE>broker_imposed_leverage_limit</REPLACE>-1) * <REPLACE>years_until_donate</REPLACE>} = <REPLACE>mean_margin_over_mean_regular</REPLACE>.
+mean(V<sub>t</sub>) / mean(S<sub>t</sub>) = exp{(&mu;-r)(c-1)t} = exp{(<REPLACE>annual_mu</REPLACE>-<REPLACE>annual_margin_interest_rate</REPLACE>)(<REPLACE>broker_imposed_leverage_limit</REPLACE>-1) * <REPLACE>years_until_donate</REPLACE>} = <REPLACE>mean_margin_over_mean_regular</REPLACE>. &nbsp;&nbsp;&nbsp;  (call this the "<span id="mean_margin_over_mean_regular" style="color:green">mean(margin)/mean(regular) equation</span>")
 </blockquote>
 For instance, if you can make an expected $100K with normal investments, you'd make (in expectation, not median) <REPLACE>$100K * mean(V_t)/mean(S_t)</REPLACE>K with <REPLACE>broker_imposed_leverage_limit</REPLACE>X leverage.
 
@@ -557,9 +557,11 @@ The Mean, Median, Min, and Max columns of the following table are distributional
 
 Since these results scale linearly with the amount of money being invested, the most relevant number is just the percent by which margin investing beats regular: The mean for margin is <REPLACE>margin_better_than_regular_percent</REPLACE>% higher, and the median is <REPLACE>margin_better_than_regular_median_percent</REPLACE>% higher.
 
+The <a href="#mean_margin_over_mean_regular">mean(margin)/mean(regular) equation</a> suggested that margin investing should have a <REPLACE>mean_margin_over_mean_regular_percent_advantage</REPLACE>% higher expected value. So why is the actual advantage only <REPLACE>margin_better_than_regular_percent</REPLACE>%? One reason is that both investing strategies presented here are assumed maintain a non-leveraged emergency fund of <REPLACE>initial_emergency_savings</REPLACE>, which counts toward their totals. Another reason is that because the investor earns salary each month, the actual average number of years for which funds are invested is roughly half the full <REPLACE>years_until_donate</REPLACE>-year time period of the simulation (ignoring time value of money and employee raises). Note that (<REPLACE>margin_mean_for_default_configuration</REPLACE>-<REPLACE>initial_emergency_savings</REPLACE>)/(<REPLACE>regular_mean_for_default_configuration</REPLACE>-<REPLACE>initial_emergency_savings</REPLACE>) = <REPLACE>(margin_mean-initial_emergency_savings)/(regular_mean-initial_emergency_savings)</REPLACE>, which is pretty close to<span style="color:orange">CHECK MANUALLY</span>the <a href="#mean_margin_over_mean_regular">mean(margin)/mean(regular) equation</a> at t = <REPLACE>years_until_donate</REPLACE>/2 years: exp{(<REPLACE>annual_mu</REPLACE>-<REPLACE>annual_margin_interest_rate</REPLACE>)*(<REPLACE>broker_imposed_leverage_limit</REPLACE>-1) * <REPLACE>years_until_donate</REPLACE>/2} = <REPLACE>mean_margin_over_mean_regular_t_is_half</REPLACE>.
+
 If your altruistic utility(wealth) = &radic;<span style="text-decoration: overline">wealth</span>, then margin gives <REPLACE>margin_better_than_regular_expsqrtwealth_percent</REPLACE>% higher expected utility. To get a sense of how this expected-utility increase translates to real dollars, note that when utility(wealth) = &radic;<span style="text-decoration: overline">wealth</span>, a <REPLACE>margin_better_than_regular_expsqrtwealth_percent</REPLACE>% increase in expected utility is like a guaranteed <REPLACE>equiv_percent_increase_in_savings</REPLACE>% increase in invested savings because &radic;<span style="text-decoration: overline"><REPLACE>equiv_fractional_increase_in_savings_plus_1</REPLACE></span> = <REPLACE>fractional_increase_in_expsqrtwealth_plus_1</REPLACE>. The investor in this scenario starts out saving <REPLACE>initial_annual_income_for_investing</REPLACE>/year, so a <REPLACE>equiv_percent_increase_in_savings</REPLACE>% increase is as if you saved an extra <REPLACE>equiv_increase_in_savings</REPLACE>/year.
 
-It's not clear that the extra hassle of margin investing is worth this increase in the expected utility of your donations. Margin investing requires rebalancing your account each month. Say this takes 20 hours/year, with your time valued at $50/hour. That's a cost of $1000/year for maintainence. There's also a one-time learning curve to understand margin investing in the first place and set up an Interactive Brokers account. Finally, the additional uncertainty of margin-invested returns may make planning more difficult for the charities to which you intend to donate, assuming they're counting on your future donations to some extent ahead of time.
+It's not clear that the extra hassle of margin investing is worth this increase in the expected utility of your donations. Margin investing requires rebalancing your account each month. Say this takes 20 hours/year, with your time valued at a present value of $50/hour. That's a cost of $1000/year for maintainence. There's also a one-time learning curve to understand margin investing in the first place and set up an Interactive Brokers account. Finally, the additional uncertainty of margin-invested returns may make planning more difficult for the charities to which you intend to donate, assuming they're counting on your future donations to some extent ahead of time.
 
 Note that this analysis would be more favorable to margin investing if your utility was linear in wealth, such that you took the mean wealth numbers at face value. In this case, over the <REPLACE>years_until_donate</REPLACE> years of investing, using margin gave you <REPLACE>margin_better_than_regular</REPLACE> more expected donated wealth, or <REPLACE>margin_better_than_regular</REPLACE>/<REPLACE>years_until_donate</REPLACE> = <REPLACE>margin_better_than_regular_per_year</REPLACE> more per year. This seems more likely to be worth the cost of margin investing.<span style="color:orange">CHECK THIS MANUALLY</span>
 
@@ -1736,7 +1738,7 @@ Wt < K exp{(&mu;-r)(c-1)t} exp(-0.001t) - K exp{(&mu;-r)(c-1)t} exp(-0.01t)<br /
 Wt < K exp{(&mu;-r)(c-1)t} [ exp(-0.001t) - exp(-0.01t) ]<br />
 Wt / ( exp{(&mu;-r)(c-1)t} [ exp(-0.001t) - exp(-0.01t) ] ) < K.<br />
 </blockquote>
-Suppose that managing the margin account takes 3 hours per month. On most months it would probably take far less time once you got the hang of things, but on some months you might run into problems, need technical support, etc. Also, doing taxes might be annoying.((Tax records for Interactive Brokers currently <a href="https://ttlc.intuit.com/questions/2478576-tt-doesn-t-support-interactive-brokers" title="'TT doesn't support Interactive Brokers?'">can't be imported</a> to TurboTax Online, only to the desktop version with <a href="https://ibkb.interactivebrokers.com/article/2030" title="'Steps for Importing Worksheet for Form 8949 to TurboTax'">more hassle</a>.)) Say your time is worth $50 donated per hour. Then W = (3 hours/month)($50/hour)(12 months/year) = $1800/year. Plugging in this and our other standard parameter values to the above inequality:
+Suppose that managing the margin account takes 3 hours per month. On most months it would probably take far less time once you got the hang of things, but on some months you might run into problems, need technical support, etc. Also, doing taxes might be annoying.((Tax records for Interactive Brokers currently <a href="https://ttlc.intuit.com/questions/2478576-tt-doesn-t-support-interactive-brokers" title="'TT doesn't support Interactive Brokers?'">can't be imported</a> to TurboTax Online, only to the desktop version with <a href="https://ibkb.interactivebrokers.com/article/2030" title="'Steps for Importing Worksheet for Form 8949 to TurboTax'">more hassle</a>.)) Say your time is worth a present value of $50 donated per hour. Then W = (3 hours/month)($50/hour)(12 months/year) = $1800/year. Plugging in this and our other standard parameter values to the above inequality:
 <blockquote>
 K > 1800 * <REPLACE>years_until_donate</REPLACE> / ( exp{(<REPLACE>annual_mu</REPLACE>-<REPLACE>annual_margin_interest_rate</REPLACE>)(<REPLACE>broker_imposed_leverage_limit</REPLACE>-1) * <REPLACE>years_until_donate</REPLACE>} [ exp(-0.001 * <REPLACE>years_until_donate</REPLACE>) - exp(-0.01 * <REPLACE>years_until_donate</REPLACE>) ] ) = <REPLACE>default_K_threshold</REPLACE>.
 </blockquote>
@@ -1798,6 +1800,36 @@ Here are some values of the threshold for various param combinations, with defau
 </table>
 
 Interestingly, taxes make a much smaller difference than the expense ratio. To see this, note that the expense ratio for a leveraged ETF subtracts 0.01t from the quantity in the exponent. In contrast, taxes subtract FR&mu;t + FR(&mu;-r)(c-1)t = FR(&mu;+(&mu;-r)(c-1))t. Assuming low c, this is like FR * (something around .1 or .2) * t. Since F is also around .1 or .3, the result is F * (something around .01 to .06) * t. As long as F isn't close to 1 (which it's not in most years for most leveraged ETFs), taxes end up mattering less than expense ratios. Even if leveraged-ETF interest isn't tax-deductible (which means we'd ignore the -r parts of these calculations), the conclusion continues to hold. Hence, taxes may not be as much as a big bad wolf as one might have feared.
+
+<h3>Comparison of empirical results</h3>
+
+In order to correctly compare margin vs. leveraged ETFs, I ran a variant of margin investing where the investor tries to maintain exactly 2X leverage throughout (rather than <REPLACE>initial_personal_max_margin_to_assets_relative_to_broker_max_as_percent</REPLACE>% of 2X leverage as was the case in most of the results presented in this piece):
+
+<REPLACE>persmaxbrokermax_results_table</REPLACE>
+
+Here's a version of the leveraged-ETF simulation without expense ratios. It serves to show the differences between the margin vs. leveraged-ETF simulations (monthly vs. continuous rebalancing, taxes, etc.).
+
+<REPLACE>ETF_default_no_exp_ratios_results_table</REPLACE>
+
+Note how close<span style="color:orange">CHECK THIS</span> the average ending balance of the "simple calculation" for checking the margin simulation is to the average leveraged-ETF ending balance. This is because they represent the same calculations. If I run each simulation for equal numbers of trials using the same initial random seed, the numbers come out identical.
+
+Now here are the leveraged-ETF results if we add in expense ratios. These are just the "Default" leveraged-ETF results from above:
+
+<REPLACE>ETF_default_results_table</REPLACE>
+
+The difference between this table and the no-expense-ratios table shows the impact of the ~1% expense ratios of leveraged ETFs.
+
+<h4>3X leverage</h4>
+
+Here are the same two leveraged-ETF results tables for 3X leverage.
+
+Here's without expense ratios:
+
+<REPLACE>ETF_default_no_exp_ratios_3X_results_table</REPLACE>
+
+And here's with them:
+
+<REPLACE>ETF_default_3X_results_table</REPLACE>
 
 <h2>My plan for using leverage</h2>
 

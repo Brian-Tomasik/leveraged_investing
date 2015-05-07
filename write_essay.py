@@ -30,7 +30,7 @@ REPLACE_STR_END = "</REPLACE>"
 TIMESTAMP_FORMAT = '%Y%b%d_%Hh%Mm%Ss'
 OPTIMISTIC_MU = .08
 LEV_ETF_LEVERAGE_RATIO = 2.0
-LEV_ETF_NUM_SAMPLES = 10000
+LEV_ETF_NUM_SAMPLES = 25
 NUM_LEV_ETF_TRAJECTORIES_TO_SAVE_AS_FIGURES = 10
 
 def write_essay(skeleton, outfile, cur_working_dir, num_trials, 
@@ -134,7 +134,13 @@ def write_essay(skeleton, outfile, cur_working_dir, num_trials,
 
         """Now scenario-specific content: Default scenario"""
         if scenario == "Default":
-            (amount_better_mean, percent_better_mean) = how_much_better_is_margin(results_table_contents, "Mean &plusmn; stderr")
+            (amount_better_mean, percent_better_mean, margin_mean, regular_mean) = how_much_better_is_margin(results_table_contents, "Mean &plusmn; stderr")
+            output_text = output_text.replace(REPLACE_STR_FRONT + "margin_mean_for_default_configuration" + REPLACE_STR_END, 
+                                              util.format_as_dollar_string(margin_mean))
+            output_text = output_text.replace(REPLACE_STR_FRONT + "regular_mean_for_default_configuration" + REPLACE_STR_END, 
+                                              util.format_as_dollar_string(regular_mean))
+            output_text = output_text.replace(REPLACE_STR_FRONT + "(margin_mean-initial_emergency_savings)/(regular_mean-initial_emergency_savings)" + REPLACE_STR_END, 
+                                              str(round((margin_mean-default_investor.initial_emergency_savings)/(regular_mean-default_investor.initial_emergency_savings),2)))
             output_text = output_text.replace(REPLACE_STR_FRONT + "margin_better_than_regular" + REPLACE_STR_END, 
                                               util.format_as_dollar_string(amount_better_mean))
             output_text = output_text.replace(REPLACE_STR_FRONT + "margin_better_than_regular_per_year" + REPLACE_STR_END, 
@@ -143,10 +149,10 @@ def write_essay(skeleton, outfile, cur_working_dir, num_trials,
                                               str(percent_better_mean))
             output_text = output_text.replace(REPLACE_STR_FRONT + "(1+margin_advantage)(1-long_term_cap_gains)" + REPLACE_STR_END, 
                                               str(round(margin_advantage_less_long_term_cap_gains(percent_better_mean),2)))
-            (amount_better_median, percent_better_median) = how_much_better_is_margin(results_table_contents, "Median")
+            (amount_better_median, percent_better_median, margin_median, regular_median) = how_much_better_is_margin(results_table_contents, "Median")
             output_text = output_text.replace(REPLACE_STR_FRONT + "margin_better_than_regular_median_percent" + REPLACE_STR_END, str(percent_better_median))
             # calculations for better expected sqrt_wealth
-            (amount_better_expsqrtwealth, percent_better_expsqrtwealth) = how_much_better_is_margin(results_table_contents, 'E[&radic;<span style="text-decoration: overline">wealth</span>] &plusmn; stderr')
+            (amount_better_expsqrtwealth, percent_better_expsqrtwealth, margin_expsqrt, regular_expsqrt) = how_much_better_is_margin(results_table_contents, 'E[&radic;<span style="text-decoration: overline">wealth</span>] &plusmn; stderr')
             output_text = output_text.replace(REPLACE_STR_FRONT + "margin_better_than_regular_expsqrtwealth_percent" + REPLACE_STR_END, 
                                               str(percent_better_expsqrtwealth))
             equiv_percent_increase_in_savings = round(((1+percent_better_expsqrtwealth/100.0)**2-1)*100.0,2)
@@ -345,8 +351,14 @@ def add_general_theoretical_calculations(output_text, cur_working_dir, timestamp
         * (broker_imposed_leverage_limit-1) * default_investor.years_until_donate )
     output_text = output_text.replace(REPLACE_STR_FRONT + "mean_margin_over_mean_regular" + REPLACE_STR_END, 
                                       str(round(mean_margin_over_mean_regular,2)))
+    output_text = output_text.replace(REPLACE_STR_FRONT + "mean_margin_over_mean_regular_percent_advantage" + REPLACE_STR_END, 
+                                      str(round(100*(mean_margin_over_mean_regular-1),0)))
     output_text = output_text.replace(REPLACE_STR_FRONT + "$100K * mean(V_t)/mean(S_t)" + REPLACE_STR_END, 
                                       util.format_as_dollar_string(100*mean_margin_over_mean_regular))
+    mean_margin_over_mean_regular_t_is_half = math.exp( (default_market.annual_mu - default_market.annual_margin_interest_rate) \
+        * (broker_imposed_leverage_limit-1) * default_investor.years_until_donate/2 )
+    output_text = output_text.replace(REPLACE_STR_FRONT + "mean_margin_over_mean_regular_t_is_half" + REPLACE_STR_END, 
+                                      str(round(mean_margin_over_mean_regular_t_is_half,2)))
 
     # Daily mu and sigma
     output_text = output_text.replace(REPLACE_STR_FRONT + "annual_mu/trading_days_per_year" + REPLACE_STR_END, 
@@ -716,7 +728,7 @@ def how_much_better_is_margin(results_table_contents, column_name):
     regular_val = get_mean_as_int_from_mean_plus_or_minus_stderr(parse_value_from_results_table(results_table_contents, "Regular", column_name))
     diff = margin_val-regular_val
     percent_better = round( 100.0*diff/regular_val ,1)
-    return (diff, percent_better)
+    return (diff, percent_better, float(margin_val), float(regular_val))
 
 def get_mean_as_int_from_mean_plus_or_minus_stderr(input_string):
     """Convert something like '$37,343 &plusmn; $250' to 37343
@@ -796,7 +808,7 @@ _the same as when you ran the results being pointed to_
 or else the params filled in to the output HTMl file will be wrong!
 ============
 """
-            NUM_TRIALS = 1
+            NUM_TRIALS = 25
             APPROX_NUM_SIMULTANEOUS_PROCESSES = 1
             #APPROX_NUM_SIMULTANEOUS_PROCESSES = 3
             write_essay(skeleton, outfile, cur_folder, NUM_TRIALS, LOCAL_FILE_PATHS_IN_HTML, 

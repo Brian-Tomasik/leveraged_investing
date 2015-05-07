@@ -17,7 +17,8 @@ from random import Random
 
 USE_SMALL_SCENARIO_SET_FOR_QUICK_TEST = True
 if USE_SMALL_SCENARIO_SET_FOR_QUICK_TEST:
-    SCENARIOS = {"No unemployment or inflation or taxes or black swans, only paid in first month, don't taper off leverage toward end, voluntary max leverage equals broker max leverage, no emergency savings":"closetotheory"}
+    SCENARIOS = {"Personal max margin is broker max":"persmaxbrokermax"}
+    #"No unemployment or inflation or taxes or black swans, only paid in first month, don't taper off leverage toward end, voluntary max leverage equals broker max leverage, no emergency savings":"closetotheory"}
     """
                 "No unemployment or inflation or taxes or black swans, don't taper off leverage toward end, voluntary max leverage equals broker max leverage, no emergency savings":"closetotheoryminus1",
                  "No unemployment or inflation or taxes or black swans, don't taper off leverage toward end, no emergency savings":"closetotheoryminus2",
@@ -52,14 +53,15 @@ else:
                  "Donate after 5 years":"yrs5",
                  "Donate after 30 years":"yrs30",
                  "Don't taper off leverage toward end":"donttaper",
-                 "Don't rebalance monthly and don't taper off leverage toward end":"dontrebtaper"}
+                 "Don't rebalance monthly and don't taper off leverage toward end":"dontrebtaper",
+                 "Personal max margin is broker max":"persmaxbrokermax"}
 
 DAYS_PER_YEAR = 365
 TAX_LOSS_HARVEST_DAY = 360 # day number 360 in late Dec
 TAX_DAY = 60 # day of tax payments/refund assuming you get your refund around March 1; ignoring payments during the year...
 TINY_NUMBER = .000001
 THRESHOLD_FOR_TAX_CONVERGENCE = 50
-DIFFERENCE_THRESHOLD_FOR_WARNING_ABOUT_DIFF_FROM_SIMPLE_COMPUTATION_PER_YEAR = .015
+DIFFERENCE_THRESHOLD_FOR_WARNING_ABOUT_DIFF_FROM_SIMPLE_COMPUTATION_PER_YEAR = .05
 TYPES = ["regular", "margin", "matched401k"]
 NUM_PERCENT_DIFFS_TO_PLOT = 10
 INTEREST_AND_SALARY_EVERY_NUM_DAYS = 30
@@ -81,6 +83,7 @@ def one_run(investor,market,verbosity,outfilepath,iter_num,
     that you need to pay off over time by replenishing your emergency fund."""
     margin_strategy_went_bankrupt = False
     num_times_randgenerator_was_called = 0
+    PRINT_DEBUG_STUFF = False
 
     taxes = dict()
     emergency_savings = dict()
@@ -99,7 +102,7 @@ def one_run(investor,market,verbosity,outfilepath,iter_num,
     historical_margin_percent_differences_from_simple_calc = numpy.zeros(days_from_start_to_donation_date)
 
     for day in xrange(days_from_start_to_donation_date):
-        years_elapsed = day/DAYS_PER_YEAR
+        years_elapsed = day/DAYS_PER_YEAR # intentional int division
         years_remaining = (days_from_start_to_donation_date-day)/DAYS_PER_YEAR
 
         # Record historical info for future reference
@@ -116,12 +119,16 @@ def one_run(investor,market,verbosity,outfilepath,iter_num,
             if type is not "margin":
                 assert abs(difference) < TINY_NUMBER, "Non-margin simple calculations should match the real things."
             else:
-                percent_difference = 100*difference
-                historical_margin_percent_differences_from_simple_calc[day] = percent_difference
+                historical_margin_percent_differences_from_simple_calc[day] = \
+                    100*difference if difference is not float("inf") else 100 # just turn infinity into 100% difference
                 if abs(difference) > DIFFERENCE_THRESHOLD_FOR_WARNING_ABOUT_DIFF_FROM_SIMPLE_COMPUTATION_PER_YEAR * \
                     investor.years_until_donate:
-                    print "WARNING: Actual account value (%s) differs by %i percent from simple approximate value (%s)." % \
-                        (util.format_as_dollar_string(actual_value), int(round(percent_difference,0)), \
+                    if difference == float("inf"):
+                        percent_diff_string = "infinity"
+                    else:
+                        percent_diff_string = str(int(round(100*difference,0)))
+                    print "WARNING: Actual account value (%s) differs by %s percent from simple approximate value (%s)." % \
+                        (util.format_as_dollar_string(actual_value), percent_diff_string, \
                         util.format_as_dollar_string(simple_approx_account_values[type]))
 
         """ Stock market changes on non-holiday weekdays.
@@ -134,6 +141,8 @@ def one_run(investor,market,verbosity,outfilepath,iter_num,
         if not util.day_is_weekend(day % DAYS_PER_YEAR) and not util.day_is_holiday(day % DAYS_PER_YEAR):
             (random_daily_return, num_times_randgenerator_was_called) = \
                 market.random_daily_return(day, randgenerator, num_times_randgenerator_was_called)
+            if PRINT_DEBUG_STUFF and iter_num == 1:
+                print "today return = %f" % random_daily_return
 
             for type in TYPES:
                 # Update emergency savings
@@ -293,8 +302,9 @@ def one_run(investor,market,verbosity,outfilepath,iter_num,
                     """The above operation to pay taxes by selling securities works
                     for any account type because for the non-margin accounts, the max
                     margin-to-assets ratio is zero, so the margin we add should be 
-                    removed by rebalancing. To confirm that, I add the following assertion."""
-                    assert deficit_still_not_paid == 0, "Non-margin accounts aren't supposed to go into debt!"
+                    removed by rebalancing."""
+                    if deficit_still_not_paid > 0:
+                        print "WARNING: %s account is using %s of emergency funds to pay taxes. This is rare." % (type, util.format_as_dollar_string(deficit_still_not_paid))
                     """Note that capital-gains taxes alone shouldn't put you in debt for
                     a non-margin account. Why not? Say you had a net gain. Then you have enough
                     to pay the taxes. Say you had a net loss. Then you don't pay taxes. I suppose
@@ -304,6 +314,7 @@ def one_run(investor,market,verbosity,outfilepath,iter_num,
                     Actually, I think the same reasoning applies to margin accounts: They
                     also shouldn't go into debt from capital-gains taxes."""
                     if type is not "margin":
+                        assert deficit_still_not_paid == 0, "Non-margin accounts don't pay taxes much less dig into emergency fund to pay them."
                         assert accounts[type].margin < TINY_NUMBER, \
                             "Margin wasn't all eliminated from non-margin accounts. :("
                     else:
@@ -337,6 +348,12 @@ def one_run(investor,market,verbosity,outfilepath,iter_num,
             when using random seed."""
             print "On day %i, the market returned %f, and investor_unemployed = %s" % \
                 (day, random_daily_return, investor.laid_off)
+
+        if PRINT_DEBUG_STUFF and iter_num == 1:
+            print "Day %i, regular = %s, lev = %s, emerg_lev = %s" % (day, \
+            util.format_as_dollar_string(simple_approx_account_values["regular"]), \
+            util.format_as_dollar_string(simple_approx_account_values["margin"]), \
+            util.format_as_dollar_string(emergency_savings["margin"]))
 
     # Make sure our variables are in order.
     have_assets_and_no_savings_gap = accounts["margin"].assets > 0 and margin_strategy_gap_in_emergency_funds(emergency_savings) == 0
@@ -389,11 +406,15 @@ def one_run(investor,market,verbosity,outfilepath,iter_num,
     # Ending balances
     ending_balances = [accounts[type].assets_minus_margin() + emergency_savings[type] for type in TYPES]
     real_present_value_of_ending_balances = map(real_present_value_function,ending_balances)
+    real_present_value_of_simple_calc_ending_margin_balance = \
+        market.real_present_value(simple_approx_account_values["margin"] + \
+        emergency_savings["margin"],investor.years_until_donate)
 
     return tuple(real_present_value_of_ending_balances) + (historical_margin_to_assets_ratios, \
         historical_margin_wealth, historical_carried_cap_gains, \
         historical_margin_percent_differences_from_simple_calc, have_savings_gap_and_no_assets, \
-        margin_strategy_went_bankrupt, num_times_randgenerator_was_called, )
+        margin_strategy_went_bankrupt, num_times_randgenerator_was_called, \
+        real_present_value_of_simple_calc_ending_margin_balance, )
 
 def margin_strategy_gap_in_emergency_funds(emergency_savings):
     return emergency_savings["regular"] - emergency_savings["margin"]
@@ -437,6 +458,7 @@ def run_samples(investor,market,num_samples,outfilepath,output_queue=None,
     num_times_margin_ended_with_emergency_savings_gap = 0
     num_times_margin_strategy_went_bankrupt = 0
     prev_num_times_randgenerator_was_called = -9999 # junk
+    running_sum_simple_calc_ending_balance = 0
     for type in account_types:
         account_values[type] = []
     num_margin_trajectories_to_save_as_figures = min(num_margin_trajectories_to_save_as_figures, 
@@ -447,13 +469,19 @@ def run_samples(investor,market,num_samples,outfilepath,output_queue=None,
         (regular_val, margin_val, matched_401k_val, margin_to_assets_ratios, 
          margin_wealth, carried_cap_gains, margin_percent_differences_from_simple_calc, 
          margin_account_has_emergency_savings_gap,
-         margin_strategy_went_bankrupt, num_times_randgenerator_was_called) = \
+         margin_strategy_went_bankrupt, num_times_randgenerator_was_called,
+         simple_calc_ending_balance) = \
              one_run(investor,market,verbosity,outfilepath,sample, \
              num_margin_trajectories_to_save_as_figures,randgenerator)
         if sample > 0:
             assert prev_num_times_randgenerator_was_called == num_times_randgenerator_was_called, \
                 "All iterations should call randgenerator equal numbers of times."
         prev_num_times_randgenerator_was_called = num_times_randgenerator_was_called
+
+        """
+        print "simple_calc_ending_balance = %s" % util.format_as_dollar_string(simple_calc_ending_balance)
+        print "margin_val = %s" % util.format_as_dollar_string(margin_val)
+        """
 
         account_values["regular"].append(regular_val)
         account_values["margin"].append(margin_val)
@@ -467,6 +495,7 @@ def run_samples(investor,market,num_samples,outfilepath,output_queue=None,
             carried_cap_gains_histories.append(carried_cap_gains)
         if len(margin_percent_differences_from_simple_calc_list) < NUM_PERCENT_DIFFS_TO_PLOT:
             margin_percent_differences_from_simple_calc_list.append(margin_percent_differences_from_simple_calc)
+        running_sum_simple_calc_ending_balance += simple_calc_ending_balance
         if running_average_margin_to_assets_ratios is None:
             running_average_margin_to_assets_ratios = copy.copy(margin_to_assets_ratios)
         else:
@@ -512,7 +541,8 @@ def run_samples(investor,market,num_samples,outfilepath,output_queue=None,
         with open(write_results.results_table_file_name(outfilepath), "w") as outfile:
             write_results.write_file_table(account_values, account_types, \
                 float(num_times_margin_strategy_went_bankrupt)/num_samples, outfile, \
-                fraction_times_margin_ended_with_emergency_savings_gap=float(num_times_margin_ended_with_emergency_savings_gap)/num_samples)
+                fraction_times_margin_ended_with_emergency_savings_gap=float(num_times_margin_ended_with_emergency_savings_gap)/num_samples, \
+                avg_simple_calc_value=running_sum_simple_calc_ending_balance/num_samples)
         with open(write_results.other_results_file_name(outfilepath), "w") as outfile:
             write_results.write_means(account_values, investor.years_until_donate, outfile)
             write_results.write_percentiles(account_values, outfile)
@@ -543,6 +573,9 @@ def args_for_this_scenario(scenario_name, num_trials, outdir_name):
 
     if scenario_name == "Default":
         return (default_investor,default_market,num_trials,outpath)
+    if scenario_name == "Personal max margin is broker max":
+        investor = Investor.Investor(initial_personal_max_margin_to_assets_relative_to_broker_max=1.0)
+        return (investor,default_market,num_trials,outpath)
     elif scenario_name == "No unemployment or inflation or taxes or black swans, only paid in first month, don't taper off leverage toward end, voluntary max leverage equals broker max leverage, no emergency savings":
         tax_rates = TaxRates.TaxRates(short_term_cap_gains_rate=0,
                                       long_term_cap_gains_rate=0,
@@ -772,6 +805,7 @@ def optimal_leverage_for_all_scenarios(num_trials, use_timestamped_dirs, cur_wor
     finish running!"""
     scenarios_not_to_sweep = ["closetotheoryminus%i" % i for i in [2,3,4,5,6]]
     scenarios_not_to_sweep.append("sig0")
+    scenarios_not_to_sweep.append("persmaxbrokermax")
     scenarios_not_to_sweep.append("default")# comment out later
     scenarios_not_to_sweep.append("closetotheory")# comment out later
     scenarios_not_to_sweep.append("closetotheoryminus7")# comment out later
@@ -795,14 +829,15 @@ def optimal_leverage_for_all_scenarios(num_trials, use_timestamped_dirs, cur_wor
 def run_one_variant(num_trials):
     outdir_name = util.create_timestamped_dir("one") # concise way of writing "one variant"
     #scenario = "Default"
+    scenario = "Personal max margin is broker max"
     #scenario = "No unemployment or inflation or taxes or black swans, only paid in first month, don't taper off leverage toward end, voluntary max leverage equals broker max leverage, no emergency savings"
-    scenario = "No unemployment or inflation or taxes or black swans, don't taper off leverage toward end, no emergency savings"
+    #scenario = "No unemployment or inflation or taxes or black swans, don't taper off leverage toward end, no emergency savings"
     args = args_for_this_scenario(scenario, num_trials, outdir_name)
     run_samples(*args)
 
 if __name__ == "__main__":
     #sweep_scenarios(1,1)
-    run_one_variant(5)
+    run_one_variant(1)
 """
 Things that need to be checked because I sometimes set them to run faster:
 - years (15 vs. .1)

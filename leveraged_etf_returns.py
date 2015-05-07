@@ -4,6 +4,7 @@ import math
 import Market
 import Investor
 import TaxRates
+import BrokerageAccount
 import plots
 from scipy.optimize import fsolve
 import os
@@ -20,8 +21,10 @@ MONTHS_PER_YEAR = 12
 
 QUICK = True
 if QUICK:
-    LEV_ETF_SCENARIOS = {"Default, 3X leverage":"ETF_default_3X",
-                         "Default":"ETF_default"}
+    LEV_ETF_SCENARIOS = {"Default":"ETF_default",
+                         "Default, no expense ratios":"ETF_default_no_exp_ratios",
+                         "Default, 3X leverage":"ETF_default_3X",
+                         "Default, 3X leverage, no expense ratios":"ETF_default_no_exp_ratios_3X"}
 else:
     LEV_ETF_SCENARIOS = {"Match theory":"ETF_match_theory",
                          "Default":"ETF_default",
@@ -29,17 +32,19 @@ else:
                          "Default, no expense ratios":"ETF_default_no_exp_ratios",
                          "Default, moderate taxes":"ETF_default_moderate_taxes",
                          "Default, high taxes":"ETF_default_high_taxes",
-                         "Default, 3X leverage":"ETF_default_3X"}
+                         "Default, 3X leverage":"ETF_default_3X",
+                         "Default, 3X leverage, no expense ratios":"ETF_default_no_exp_ratios_3X"}
 
 def one_run_daily_rebalancing(funds_and_expense_ratios, tax_rate, 
                               leverage_ratio, investor, market, iter_num,
                               outfilepath, randgenerator, num_trajectories_to_save_as_figures):
+    investor.reset_employment_for_next_round()
+
     emergency_savings = dict()
     for type in funds_and_expense_ratios.keys():
         emergency_savings[type] = investor.initial_emergency_savings
 
-    """We're pretending the year is only 252 days long, since we only count trading days."""
-    num_days = int(round(market.trading_days_per_year * investor.years_until_donate,0))
+    num_days = int(round(margin_leverage.DAYS_PER_YEAR * investor.years_until_donate,0))
 
     regular_val = 0
     lev_fund_val = 0
@@ -52,38 +57,47 @@ def one_run_daily_rebalancing(funds_and_expense_ratios, tax_rate,
     historical_lev_values = []
     num_times_randgenerator_was_called = 0
 
-    for day in xrange(num_days):
-        paid_every_this_many_days = market.trading_days_per_year / MONTHS_PER_YEAR
+    PRINT_DEBUG_STUFF = False
 
-        if day % paid_every_this_many_days == 0:
-            years_elapsed = float(day)/market.trading_days_per_year
-            pay = investor.current_annual_income(years_elapsed, day, market.inflation_rate) / \
-                MONTHS_PER_YEAR
-            regular_val += pay
-            lev_fund_val += pay
+    for day in xrange(num_days):
+        if not util.day_is_weekend(day % margin_leverage.DAYS_PER_YEAR) and not util.day_is_holiday(day % margin_leverage.DAYS_PER_YEAR):
+            # Update accounts to new daily return
+            (today_return, num_times_randgenerator_was_called) = market.random_daily_return(
+                day, randgenerator, num_times_randgenerator_was_called)
+            if PRINT_DEBUG_STUFF and iter_num == 1:
+                print "today return = %f" % today_return
+            after_tax_today_return_for_lev_ETF_only = today_return * (1-tax_rate)
+            # dS = S (mu * delta_t + sigma * sqrt(delta_t) * random_Z - exp_ratio * delta_t)
+            # (new S) = (old S) + dS
+            regular_val += regular_val * (today_return-regular_daily_exp_ratio)
+            if regular_val < 0:
+                regular_val = 0 # can't have negative return
+            historical_regular_values.append(regular_val)
+            lev_fund_val += lev_fund_val * (leverage_ratio * after_tax_today_return_for_lev_ETF_only \
+                - (leverage_ratio-1)*daily_interest_rate - \
+                lev_fund_daily_exp_ratio)
+            if lev_fund_val < 0:
+                lev_fund_val = 0 # go bankrupt
+            historical_lev_values.append(lev_fund_val)
+
+            # Update emergency savings
+            for type in funds_and_expense_ratios.keys():
+                emergency_savings[type] = max(0, emergency_savings[type] * (1+today_return))
+
+        if day % margin_leverage.INTEREST_AND_SALARY_EVERY_NUM_DAYS == 0:
+            years_elapsed = day/margin_leverage.DAYS_PER_YEAR # intentional int division
+            pay = investor.current_annual_income(years_elapsed, day, market.inflation_rate) * \
+                (float(margin_leverage.INTEREST_AND_SALARY_EVERY_NUM_DAYS) / margin_leverage.DAYS_PER_YEAR)
+            regular_val += pay * (1-BrokerageAccount.FEE_PER_DOLLAR_TRADED)
+            lev_fund_val += pay * (1-BrokerageAccount.FEE_PER_DOLLAR_TRADED)
             num_times_randgenerator_was_called = investor.randomly_update_employment_status_this_month(
                 randgenerator, num_times_randgenerator_was_called)
 
-        # Update accounts to new daily return
-        (today_return, num_times_randgenerator_was_called) = market.random_daily_return(
-            day, randgenerator, num_times_randgenerator_was_called)
-        after_tax_today_return_for_lev_ETF_only = today_return * (1-tax_rate)
-        # dS = S (mu * delta_t + sigma * sqrt(delta_t) * random_Z - exp_ratio * delta_t)
-        # (new S) = (old S) + dS
-        regular_val += regular_val * (today_return-regular_daily_exp_ratio)
-        if regular_val < 0:
-            regular_val = 0 # can't have negative return
-        historical_regular_values.append(regular_val)
-        lev_fund_val += lev_fund_val * (leverage_ratio * after_tax_today_return_for_lev_ETF_only \
-            - (leverage_ratio-1)*daily_interest_rate - \
-            lev_fund_daily_exp_ratio)
-        if lev_fund_val < 0:
-            lev_fund_val = 0 # go bankrupt
-        historical_lev_values.append(lev_fund_val)
-
-        # Update emergency savings
-        for type in funds_and_expense_ratios.keys():
-            emergency_savings[type] = max(0, emergency_savings[type] * (1+today_return))
+        if PRINT_DEBUG_STUFF and iter_num == 1:
+            print "Day %i, regular = %s, lev = %s, emerg_lev = %s" % (day, \
+            util.format_as_dollar_string(regular_val), \
+            util.format_as_dollar_string(lev_fund_val), \
+            util.format_as_dollar_string(emergency_savings["lev"]))
 
     if iter_num < num_trajectories_to_save_as_figures:
         """
@@ -98,20 +112,17 @@ def one_run_daily_rebalancing(funds_and_expense_ratios, tax_rate,
         plots.graph_lev_ETF_and_underlying_trajectories(historical_regular_values, \
             historical_lev_values, outfilepath, iter_num)
 
-    return (present_value(regular_val+emergency_savings["regular"], market.annual_mu, 
-                          investor.years_until_donate), 
-            present_value(lev_fund_val+emergency_savings["lev"], market.annual_mu, 
-                          investor.years_until_donate),
+    return (market.real_present_value(regular_val+emergency_savings["regular"],
+                                      investor.years_until_donate), 
+            market.real_present_value(lev_fund_val+emergency_savings["lev"],
+                                      investor.years_until_donate),
             num_times_randgenerator_was_called)
-
-def present_value(wealth, discount_rate, years):
-    return wealth * math.exp(-discount_rate * years)
 
 def many_runs(funds_and_expense_ratios, tax_rate, leverage_ratio, num_samples,
               investor, market, outfilepath, num_trajectories_to_save_as_figures,
               use_seed_for_randomness=True):
     if use_seed_for_randomness:
-        randgenerator = Random("seedy character?")
+        randgenerator = Random("seedy character")
     else:
         randgenerator = None
 
@@ -231,7 +242,7 @@ def sweep_variations(funds_and_expense_ratios, leverage_ratio, num_samples,
 
 if __name__ == "__main__":
     leverage_ratio = 2.0
-    num_samples = 1
+    num_samples = 2
     num_trajectories_to_save_as_figures = 1
     outfilepath = ""
     sweep_variations(FUNDS_AND_EXPENSE_RATIOS, leverage_ratio, num_samples,
