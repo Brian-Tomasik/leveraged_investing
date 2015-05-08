@@ -17,8 +17,8 @@ from random import Random
 
 USE_SMALL_SCENARIO_SET_FOR_QUICK_TEST = True
 if USE_SMALL_SCENARIO_SET_FOR_QUICK_TEST:
-    SCENARIOS = {"Personal max margin is broker max":"persmaxbrokermax"}
-    #"No unemployment or inflation or taxes or black swans, only paid in first month, don't taper off leverage toward end, voluntary max leverage equals broker max leverage, no emergency savings":"closetotheory"}
+    SCENARIOS = {"Default":"default",
+                 "No unemployment or inflation or taxes or black swans, only paid in first month, don't taper off leverage toward end, voluntary max leverage equals broker max leverage, no emergency savings":"closetotheory"}
     """
                 "No unemployment or inflation or taxes or black swans, don't taper off leverage toward end, voluntary max leverage equals broker max leverage, no emergency savings":"closetotheoryminus1",
                  "No unemployment or inflation or taxes or black swans, don't taper off leverage toward end, no emergency savings":"closetotheoryminus2",
@@ -214,7 +214,10 @@ def one_run(investor,market,verbosity,outfilepath,iter_num,
             accounts["matched401k"].buy_ETF_at_fixed_ratio(matched_pay_amount, day, years_remaining)
             simple_approx_account_values["matched401k"] += matched_pay_amount * (1-BrokerageAccount.FEE_PER_DOLLAR_TRADED)
 
-            simple_approx_account_values["margin"] += pay * (1-BrokerageAccount.FEE_PER_DOLLAR_TRADED)
+            simple_approx_account_values["margin"] += pay * (1-cur_leverage_multiple*BrokerageAccount.FEE_PER_DOLLAR_TRADED)
+            """A 2X margin account pays double the brokerage fees because it buys double the
+            amount of assets."""
+
             if margin_strategy_gap_in_emergency_funds(emergency_savings) > pay:
                 # restore emergency savings with pay
                 emergency_savings["margin"] += pay

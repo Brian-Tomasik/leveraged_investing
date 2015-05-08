@@ -30,7 +30,7 @@ REPLACE_STR_END = "</REPLACE>"
 TIMESTAMP_FORMAT = '%Y%b%d_%Hh%Mm%Ss'
 OPTIMISTIC_MU = .08
 LEV_ETF_LEVERAGE_RATIO = 2.0
-LEV_ETF_NUM_SAMPLES = 25
+LEV_ETF_NUM_SAMPLES = 1
 NUM_LEV_ETF_TRAJECTORIES_TO_SAVE_AS_FIGURES = 10
 
 def write_essay(skeleton, outfile, cur_working_dir, num_trials, 
@@ -768,7 +768,7 @@ def parse_percent_times_margin_is_better(results_table_contents):
 if __name__ == "__main__":
     start_time = time.time()
     DATA_ALREADY_EXISTS_AND_HAS_THIS_TIMESTAMP = None
-    #DATA_ALREADY_EXISTS_AND_HAS_THIS_TIMESTAMP = "2015May03_00h12m36s" # 
+    #DATA_ALREADY_EXISTS_AND_HAS_THIS_TIMESTAMP = "2015May07_01h33m27s" # 100 trials of everything
     """if the above variable is non-None, it saves lots of computation and just computes the HTML 
     and copies the required figures from saved data"""
     data_already_exists = DATA_ALREADY_EXISTS_AND_HAS_THIS_TIMESTAMP is not None
@@ -808,7 +808,7 @@ _the same as when you ran the results being pointed to_
 or else the params filled in to the output HTMl file will be wrong!
 ============
 """
-            NUM_TRIALS = 25
+            NUM_TRIALS = 1
             APPROX_NUM_SIMULTANEOUS_PROCESSES = 1
             #APPROX_NUM_SIMULTANEOUS_PROCESSES = 3
             write_essay(skeleton, outfile, cur_folder, NUM_TRIALS, LOCAL_FILE_PATHS_IN_HTML, 

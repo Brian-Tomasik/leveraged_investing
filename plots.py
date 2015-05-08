@@ -76,9 +76,9 @@ def graph_expected_utility_vs_wealth_saturation_cutoff(numpy_regular, numpy_marg
     ax.plot(saturation_values,ratio_of_expected_utilities)
     ax.set_xscale('log')
     pyplot.title("Ratio of margin/regular expected saturation-utility vs. saturation cutoff")
-    pyplot.xlabel("saturation cutoff: after what amount of $ does the value of more level off?")
+    pyplot.xlabel("saturation cutoff: after what amount of $ does the value of more $ level off?")
     pyplot.ylabel("exp_sat_utility(margin) / exp_sat_utility(regular)")
-    pyplot.savefig("%s_%s" % (outdir_name, EXPECTED_SATURATION_UTILITY_GRAPH_PREFIX))
+    pyplot.savefig("%s_%s" % (outdir_name, EXPECTED_SATURATION_UTILITY_GRAPH_PREFIX),bbox_inches='tight')
     pyplot.close()
 
 def graph_historical_margin_to_assets_ratios(collection_of_ratios, avg_ratios, outfilepath):
@@ -208,7 +208,7 @@ def graph_trends_vs_leverage_amount(output_queue, outdir_name):
     
     pyplot.title("Margin performance vs. amount of leverage")
     pyplot.xlabel("Amount of leverage (e.g., 2 means 2X leverage)")
-    pyplot.ylabel("Ratios of margin account's value over regular account's value")
+    pyplot.ylabel("Ratio of margin account's value over regular account's value")
     pyplot.legend()
     pyplot.savefig(path.join(outdir_name,OPTIMAL_LEVERAGE_GRAPH_PREFIX))
     pyplot.close()

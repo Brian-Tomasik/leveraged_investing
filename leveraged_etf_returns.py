@@ -19,7 +19,7 @@ MODERATE_ANNUAL_FRACTION_OF_SHORT_TERM_CAP_GAINS = .1
 HIGH_ANNUAL_FRACTION_OF_SHORT_TERM_CAP_GAINS = .5
 MONTHS_PER_YEAR = 12
 
-QUICK = True
+QUICK = False
 if QUICK:
     LEV_ETF_SCENARIOS = {"Default":"ETF_default",
                          "Default, no expense ratios":"ETF_default_no_exp_ratios",
@@ -89,7 +89,7 @@ def one_run_daily_rebalancing(funds_and_expense_ratios, tax_rate,
             pay = investor.current_annual_income(years_elapsed, day, market.inflation_rate) * \
                 (float(margin_leverage.INTEREST_AND_SALARY_EVERY_NUM_DAYS) / margin_leverage.DAYS_PER_YEAR)
             regular_val += pay * (1-BrokerageAccount.FEE_PER_DOLLAR_TRADED)
-            lev_fund_val += pay * (1-BrokerageAccount.FEE_PER_DOLLAR_TRADED)
+            lev_fund_val += pay * (1-leverage_ratio*BrokerageAccount.FEE_PER_DOLLAR_TRADED)
             num_times_randgenerator_was_called = investor.randomly_update_employment_status_this_month(
                 randgenerator, num_times_randgenerator_was_called)
 
