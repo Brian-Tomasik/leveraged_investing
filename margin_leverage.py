@@ -17,8 +17,7 @@ from random import Random
 
 USE_SMALL_SCENARIO_SET_FOR_QUICK_TEST = True
 if USE_SMALL_SCENARIO_SET_FOR_QUICK_TEST:
-    SCENARIOS = {"Default":"default",
-                 "No unemployment or inflation or taxes or black swans, only paid in first month, don't taper off leverage toward end, voluntary max leverage equals broker max leverage, no emergency savings":"closetotheory"}
+    SCENARIOS = {"Annual sigma = 0":"sig0"}
     """
                 "No unemployment or inflation or taxes or black swans, don't taper off leverage toward end, voluntary max leverage equals broker max leverage, no emergency savings":"closetotheoryminus1",
                  "No unemployment or inflation or taxes or black swans, don't taper off leverage toward end, no emergency savings":"closetotheoryminus2",
@@ -84,6 +83,7 @@ def one_run(investor,market,verbosity,outfilepath,iter_num,
     margin_strategy_went_bankrupt = False
     num_times_randgenerator_was_called = 0
     PRINT_DEBUG_STUFF = False
+    already_gave_warning_about_account_deviating = False
 
     taxes = dict()
     emergency_savings = dict()
@@ -122,7 +122,7 @@ def one_run(investor,market,verbosity,outfilepath,iter_num,
                 historical_margin_percent_differences_from_simple_calc[day] = \
                     100*difference if difference is not float("inf") else 100 # just turn infinity into 100% difference
                 if abs(difference) > DIFFERENCE_THRESHOLD_FOR_WARNING_ABOUT_DIFF_FROM_SIMPLE_COMPUTATION_PER_YEAR * \
-                    investor.years_until_donate:
+                    investor.years_until_donate and not already_gave_warning_about_account_deviating:
                     if difference == float("inf"):
                         percent_diff_string = "infinity"
                     else:
@@ -130,6 +130,7 @@ def one_run(investor,market,verbosity,outfilepath,iter_num,
                     print "WARNING: Actual account value (%s) differs by %s percent from simple approximate value (%s)." % \
                         (util.format_as_dollar_string(actual_value), percent_diff_string, \
                         util.format_as_dollar_string(simple_approx_account_values[type]))
+                    already_gave_warning_about_account_deviating = True
 
         """ Stock market changes on non-holiday weekdays.
         The functions to check if it's a weekend and a holiday are based on the year
@@ -149,11 +150,8 @@ def one_run(investor,market,verbosity,outfilepath,iter_num,
                 (emergency_savings[type], price_went_to_zero) = \
                     util.update_price(emergency_savings[type], random_daily_return)
                 # Update simple approximations to account values
-                cur_leverage_multiple = util.max_margin_to_assets_ratio_to_N_to_1_leverage( \
-                    accounts[type].personal_max_margin_to_assets_ratio(years_remaining)) if \
-                    investor.rebalance_monthly_to_increase_leverage else \
-                    util.max_margin_to_assets_ratio_to_N_to_1_leverage( \
-                    accounts[type].margin_to_assets())
+                cur_leverage_multiple = leverage_multiple(accounts[type], years_remaining, 
+                                                          investor)
                 """The above if/else thing is because if we're rebalancing up towards a desired
                 leverage ratio, we want to check that future account values are consistent with that
                 desired leverage ratio. If we're not tracking a given leverage ratio because we're
@@ -214,7 +212,9 @@ def one_run(investor,market,verbosity,outfilepath,iter_num,
             accounts["matched401k"].buy_ETF_at_fixed_ratio(matched_pay_amount, day, years_remaining)
             simple_approx_account_values["matched401k"] += matched_pay_amount * (1-BrokerageAccount.FEE_PER_DOLLAR_TRADED)
 
-            simple_approx_account_values["margin"] += pay * (1-cur_leverage_multiple*BrokerageAccount.FEE_PER_DOLLAR_TRADED)
+            simple_approx_account_values["margin"] += pay * (1-leverage_multiple( \
+                accounts["margin"], years_remaining, investor) * \
+                BrokerageAccount.FEE_PER_DOLLAR_TRADED)
             """A 2X margin account pays double the brokerage fees because it buys double the
             amount of assets."""
 
@@ -403,21 +403,28 @@ def one_run(investor,market,verbosity,outfilepath,iter_num,
             historical_margin_wealth, outfilepath, iter_num)
 
     # Return present values of the account balances
-    real_present_value_function = lambda wealth: market.real_present_value(wealth,investor.years_until_donate)
-    historical_margin_wealth = map(real_present_value_function, historical_margin_wealth)
+    present_value_function = lambda wealth: market.present_value(wealth,investor.years_until_donate)
+    historical_margin_wealth = map(present_value_function, historical_margin_wealth)
 
     # Ending balances
     ending_balances = [accounts[type].assets_minus_margin() + emergency_savings[type] for type in TYPES]
-    real_present_value_of_ending_balances = map(real_present_value_function,ending_balances)
-    real_present_value_of_simple_calc_ending_margin_balance = \
-        market.real_present_value(simple_approx_account_values["margin"] + \
+    present_value_of_ending_balances = map(present_value_function,ending_balances)
+    present_value_of_simple_calc_ending_margin_balance = \
+        market.present_value(simple_approx_account_values["margin"] + \
         emergency_savings["margin"],investor.years_until_donate)
 
-    return tuple(real_present_value_of_ending_balances) + (historical_margin_to_assets_ratios, \
+    return tuple(present_value_of_ending_balances) + (historical_margin_to_assets_ratios, \
         historical_margin_wealth, historical_carried_cap_gains, \
         historical_margin_percent_differences_from_simple_calc, have_savings_gap_and_no_assets, \
         margin_strategy_went_bankrupt, num_times_randgenerator_was_called, \
-        real_present_value_of_simple_calc_ending_margin_balance, )
+        present_value_of_simple_calc_ending_margin_balance, )
+
+def leverage_multiple(account, years_remaining, investor):
+    return util.max_margin_to_assets_ratio_to_N_to_1_leverage( \
+            account.personal_max_margin_to_assets_ratio(years_remaining)) if \
+            investor.rebalance_monthly_to_increase_leverage else \
+            util.max_margin_to_assets_ratio_to_N_to_1_leverage( \
+            account.margin_to_assets())
 
 def margin_strategy_gap_in_emergency_funds(emergency_savings):
     return emergency_savings["regular"] - emergency_savings["margin"]
@@ -813,6 +820,7 @@ def optimal_leverage_for_all_scenarios(num_trials, use_timestamped_dirs, cur_wor
     scenarios_not_to_sweep.append("closetotheory")# comment out later
     scenarios_not_to_sweep.append("closetotheoryminus7")# comment out later
     scenarios_not_to_sweep.append("emergsav1m")# comment out later
+    scenarios_not_to_sweep.append("yrs5")# comment out later
     for scenario_name in SCENARIOS.keys():
         if SCENARIOS[scenario_name] in scenarios_not_to_sweep: # skip them to speed up computing
             """In this case, only get results for the default margin-to-assets setting
@@ -832,7 +840,8 @@ def optimal_leverage_for_all_scenarios(num_trials, use_timestamped_dirs, cur_wor
 def run_one_variant(num_trials):
     outdir_name = util.create_timestamped_dir("one") # concise way of writing "one variant"
     #scenario = "Default"
-    scenario = "Personal max margin is broker max"
+    #scenario = "Personal max margin is broker max"
+    scenario = "Annual sigma = 0"
     #scenario = "No unemployment or inflation or taxes or black swans, only paid in first month, don't taper off leverage toward end, voluntary max leverage equals broker max leverage, no emergency savings"
     #scenario = "No unemployment or inflation or taxes or black swans, don't taper off leverage toward end, no emergency savings"
     args = args_for_this_scenario(scenario, num_trials, outdir_name)

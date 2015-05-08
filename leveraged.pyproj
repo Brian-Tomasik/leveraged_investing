@@ -5,7 +5,7 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>{e79e0767-973b-46c9-99c6-1cb3727d4ad3}</ProjectGuid>
     <ProjectHome />
-    <StartupFile>leveraged_etf_returns.py</StartupFile>
+    <StartupFile>margin_leverage.py</StartupFile>
     <SearchPath />
     <WorkingDirectory>.</WorkingDirectory>
     <OutputPath>.</OutputPath>

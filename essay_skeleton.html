@@ -1136,11 +1136,11 @@ if f = A/B then &sigma;<sub>f</sub> is roughly |f| &radic;[ (&sigma;<sub>A</sub>
 </blockquote>
 For simplicity, I omitted the correlation component of the equation (the -2&sigma;<sub>AB</sub>/AB part), which only makes my error bars conservatively big given that the sample-mean margin investment performance has a high correlation with the sample-mean regular investment performance, since the sample means for both quantities will be too high when particularly good stock returns are sampled and too low when particularly bad returns are sampled.
 
-Unfortunately, it looks like the error bars in this graph are actually too small. This is because the averages for some leverage amounts clearly deviate from the trend of the curve, and their error bars don't even overlap with the error bars of neighboring points on the curve. But the curve should be continuous in theory. Hence, the error bars must be too small.)) shows how well leverage does compared with non-leveraged investing as a function of the leverage amount. As in the tables above, I took utility(wealth) = &radic;<span style="text-decoration: overline">wealth</span>. Each data point came from <REPLACE>num_trials</REPLACE><span style="color:orange">This often gets messed up</span> trials.
+Unfortunately, it looks like the error bars in this graph are actually too small. This is because the averages for some leverage amounts clearly deviate from the trend of the curve, and their error bars don't even overlap with the error bars of neighboring points on the curve. But the curve should be continuous in theory. Hence, the error bars must be too small.)) shows how well leverage does compared with non-leveraged investing as a function of the leverage amount. As in the tables above, I took utility(wealth) = &radic;<span style="text-decoration: overline">wealth</span>. Each data point came from <REPLACE>num_trials</REPLACE><span style="color:orange">This often gets messed upTODO</span> trials.
 
 <span class="fullwidthimage"><img src="<REPLACE>closetotheory_optimal_leverage_graph</REPLACE>" title="I release this image into the public domain worldwide." /></span>
 
-<span style="color:red">HOW DOES optimum COMPARE TO THEORY? optimal lev should be ~1 for sqrt() utility or max val for linear utility</span>
+<span style="color:red">TODO HOW DOES optimum COMPARE TO THEORY? optimal lev should be ~1 for sqrt() utility or max val for linear utility</span>
 
 The sharp drop in the median with higher leverage underscores why commentators typically warn against constant-leverage investments like leveraged ETFs: Most of the time, the result is terrible, and it's only on rare occasions that you hit the jackpot.
 
@@ -1286,7 +1286,7 @@ We can see from the results table for this method that it's more certain to outp
 
 <h3>Best policy?</h3>
 
-look at graphs...
+TODO look at graphs...
 
 <h2>Parameter sensitivity analysis</h2>
 
@@ -1328,6 +1328,8 @@ The default simulation assumes a constant annualized volatility of &sigma; = <RE
 
 <REPLACE>yrs5_results_table</REPLACE>
 
+A main reason why these numbers aren't as low as one might think compared with <REPLACE>years_until_donate</REPLACE>-year results is that both 5-year and <REPLACE>years_until_donate</REPLACE> results have the same initial emergency savings of <REPLACE>initial_emergency_savings</REPLACE> added to their totals.
+
 <span class="fullwidthimage"><img src="<REPLACE>yrs5_optimal_leverage_graph</REPLACE>" title="I release this image into the public domain worldwide." /></span>
 
 <span class="fullwidthimage"><img src="<REPLACE>yrs5_exp_util</REPLACE>" title="I release this image into the public domain worldwide." /></span>
@@ -1346,9 +1348,9 @@ The default simulation assumes a constant annualized volatility of &sigma; = <RE
 
 <REPLACE>mu10_results_table</REPLACE>
 
-<span class="fullwidthimage"><img src="<REPLACE>mu10_optimal_leverage_graph</REPLACE>" title="I release this image into the public domain worldwide." /></span>
+These results are lower than you might expect because I'm discounting by exp(-&mu;t), so a higher &mu; implies more discounting. The undiscounted values should be higher than for other variants because of higher &mu;.
 
-These results are lower than normal because I'm discounting by exp(-&mu; t), so a higher &mu; implies more discounting. The undiscounted values should actually be higher than for other variants because of higher &mu;.
+<span class="fullwidthimage"><img src="<REPLACE>mu10_optimal_leverage_graph</REPLACE>" title="I release this image into the public domain worldwide." /></span>
 
 <span class="fullwidthimage"><img src="<REPLACE>mu10_exp_util</REPLACE>" title="I release this image into the public domain worldwide." /></span>
 <span class="fullwidthimage"><img src="<REPLACE>mu10_exp_sat_util</REPLACE>" title="I release this image into the public domain worldwide." /></span>
@@ -1551,7 +1553,7 @@ The return of the leveraged ETF is
 <blockquote>
 2 * daily_return - daily_interest_rate - leveraged_ETF_daily_expense_ratio.
 </blockquote>
-WHAT SHOULD I USE FOR INTEREST RATE??? I took leveraged_ETF_daily_expense_ratio = 1%/(252 trading days per year), since as discussed above, the expense ratio of the 2X fund SSO <a href="http://www.proshares.com/funds/sso.html" title="'ProShares ETFs: Ultra S&amp;P500 - Overview'">is</a> 0.89%.
+I took leveraged_ETF_daily_expense_ratio = 1%/(252 trading days per year), since as discussed above, the expense ratio of the 2X fund SSO <a href="http://www.proshares.com/funds/sso.html" title="'ProShares ETFs: Ultra S&amp;P500 - Overview'">is</a> 0.89%. I used the same interest rate for leveraged ETFs as for my margin calculations in order to make the results comparable between the two and because, as noted when looking at actual fund data above, implied interest rates for some leveraged ETFs seem to be about the same as current margin interest rates. Leveraged ETFs with lower implied interest rates will in practice be better than the default simulation suggests.
 
 Following are some graphs showing, on a single run of the simulation, how the leveraged ETF compared with a regular ETF on the same underlying asset. These graphs look a lot like those you'll find online comparing actual leveraged ETFs against their underlying indices.
 

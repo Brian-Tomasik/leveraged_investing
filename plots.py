@@ -29,7 +29,7 @@ def graph_histograms(account_values, num_samples, outfilepath):
             margin_bins = graph_bins
         pyplot.hist(numpy_array, bins=graph_bins, alpha=alpha_for_pyplot)
         pyplot.title("Distribution of results for " + type + " investing")
-        pyplot.xlabel("Real present value of donated $")
+        pyplot.xlabel("Present value of donated $")
         pyplot.ylabel("Frequency out of " + str(num_samples) + " runs")
         pyplot.savefig(outfilepath + "_hist_" + type)
         pyplot.close()
@@ -38,7 +38,7 @@ def graph_histograms(account_values, num_samples, outfilepath):
     pyplot.hist(regular_array, bins=regular_bins, alpha=alpha_for_pyplot, label="regular")
     pyplot.hist(margin_array, bins=margin_bins, alpha=alpha_for_pyplot, label="margin")
     pyplot.title("Distribution of results: regular vs. margin")
-    pyplot.xlabel("Real present value of donated $")
+    pyplot.xlabel("Present value of donated $")
     pyplot.ylabel("Frequency out of " + str(num_samples) + " runs")
     pyplot.legend()
     pyplot.savefig(outfilepath + "_bothhist")
@@ -113,7 +113,7 @@ def graph_historical_wealth_trajectories(wealth_histories, outfilepath):
         pyplot.plot(x_axis, individual)
     pyplot.title("Wealth trajectories vs. year of simulation")
     pyplot.xlabel("Years since beginning")
-    pyplot.ylabel("Real present value of donated $")
+    pyplot.ylabel("Present value of donated $")
     pyplot.savefig(outfilepath + "_wealthtraj")
     pyplot.close()
 

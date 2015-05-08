@@ -19,12 +19,9 @@ MODERATE_ANNUAL_FRACTION_OF_SHORT_TERM_CAP_GAINS = .1
 HIGH_ANNUAL_FRACTION_OF_SHORT_TERM_CAP_GAINS = .5
 MONTHS_PER_YEAR = 12
 
-QUICK = False
+QUICK = True
 if QUICK:
-    LEV_ETF_SCENARIOS = {"Default":"ETF_default",
-                         "Default, no expense ratios":"ETF_default_no_exp_ratios",
-                         "Default, 3X leverage":"ETF_default_3X",
-                         "Default, 3X leverage, no expense ratios":"ETF_default_no_exp_ratios_3X"}
+    LEV_ETF_SCENARIOS = {"Default":"ETF_default"}
 else:
     LEV_ETF_SCENARIOS = {"Match theory":"ETF_match_theory",
                          "Default":"ETF_default",
@@ -112,9 +109,9 @@ def one_run_daily_rebalancing(funds_and_expense_ratios, tax_rate,
         plots.graph_lev_ETF_and_underlying_trajectories(historical_regular_values, \
             historical_lev_values, outfilepath, iter_num)
 
-    return (market.real_present_value(regular_val+emergency_savings["regular"],
+    return (market.present_value(regular_val+emergency_savings["regular"],
                                       investor.years_until_donate), 
-            market.real_present_value(lev_fund_val+emergency_savings["lev"],
+            market.present_value(lev_fund_val+emergency_savings["lev"],
                                       investor.years_until_donate),
             num_times_randgenerator_was_called)
 

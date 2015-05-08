@@ -129,6 +129,11 @@ class Market(object):
         delta_t = 1/252, then daily_sigma = yearly_sigma * sqrt(delta_t)
         """
 
-    def real_present_value(self, amount, years_in_future):
+    def present_value(self, amount, years_in_future):
         #return amount / (1+self.annual_mu)**years_in_future
-        return amount * math.exp(- self.annual_mu * years_in_future) / (1+self.__inflation_rate)**years_in_future # use continuous interest for discounting like GBM model does
+        #return amount * math.exp(- self.annual_mu * years_in_future) / (1+self.__inflation_rate)**years_in_future # use continuous interest for discounting like GBM model does
+        """Don't discount by inflation if you're also discounting by a nominal market rate of return! That's
+        because the present value already gives the value in the present, and hence there's no inflation.
+        If we were looking at _future_ values, then we should discount (1+mu)^t by (1+inflation_rate)^(-t)
+        to get a real future value. But not for present values."""
+        return amount * math.exp(- self.annual_mu * years_in_future) # use continuous interest for discounting like GBM model does
