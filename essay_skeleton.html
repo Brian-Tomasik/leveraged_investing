@@ -4,8 +4,6 @@ First written: Apr. 2015; last update: <REPLACE>date_of_last_update</REPLACE>
 <span style="color:red">The sample size for the results in this piece is tiny because it's still in test mode. Hence, the results aren't especially useful! Note to self: search for all TODO in the text and CHECK THIS MANUALLY</span>
 <span style="color:red">This piece is still a draft. Please give feedback. :) </span>
 
-<span style="color:orange">TODO REMINDER to self: if I ever switch the default to not rebalancing monthly, I'd need to change the "results vs. theory" configurations to force monthly rebalancing to make the numbers comparable</span>
-
 <h2>Summary</h2>
 
 Investing with leverage means borrowing money to buy stocks/ETFs/etc. In theory, leverage offers higher <i>expected</i> ending wealth but also higher risk and usually even lower <i>median</i> ending wealth. Leverage is not for everyone, even all altruists, but if you have money you want to donate down the road that you can afford to lose without major consequences, then investing it with leverage may be a reasonable choice.
@@ -87,6 +85,7 @@ In other words, the cost of insurance against price drops below the strike price
 
 <ul>
 <li>Implied margin interest rates might be competitive for highly liquid options markets, though a friend reports that implied interest rates are unfavorable for thinner markets.</li>
+<li>Unlike with margin investing and futures, you can't lose more money than you invested. The worst case is that you lose everything you put in.</li>
 <li>(Not sure if this is true.) A minor consideration is that because options don't pay dividends, you don't have to pay income tax on dividends in a taxable account. (But this is more than counteracted by needing to pay capital-gains taxes when you sell the options themselves. For example, say you have $100 to invest. You could buy $200 of stocks using 2X margin leverage. If the stocks paid 2% dividends in the year, you'd have to pay taxes on $4 of dividends. In contrast, if you bought $100 of options and they went up, say, 7% by next year, you'd pay taxes on $7 of capital gains. Capital gains if you own stocks directly can be ignored if you continue holding the stocks until you donate them to a tax-qualified charity, whereas you can't hold an option for many years.)</li>
 </ul>
 
@@ -120,6 +119,7 @@ Buying futures on, say, the S&P 500 index can multiply your market exposure poss
 
 <ul>
 <li>By far the easiest way to get leverage, since you can buy them in a normal brokerage account without setting up margin or options/futures trading. If you buy and hold, you can also just leave them alone until you want to dispose of them.</li>
+<li>Unlike with margin investing and futures, you can't lose more money than you invested. The worst case is that you lose everything you put in.</li>
 <li>(Not sure if this is true for all leveraged ETFs.) Since leveraged ETFs use non-dividend-paying derivatives to achieve leverage, they tend not to have distributions, which is good if you're in a taxable account.((This point is explained in a <a href="http://www.proshares.com/media/fact_sheet/ProSharesFactSheetEET.pdf" title="'Fact Sheet as of 3/31/15 ProShares Ultra MSCI Emerging Markets'">ProShares fact sheet</a>, and you can see that the fund historically <a href="http://www.proshares.com/funds/eet_distributions.html">has had almost no distributions</a>.)) However, this point may be small compared with the higher taxes that leveraged ETFs may pay on average compared with regular ETFs.</li>
 </ul>
 
@@ -165,6 +165,14 @@ Whether to get a home mortgage depends crucially on whether you want to buy a ho
 <li>Real estate is plausibly a worse investment than stocks because people buy real estate partly as a consumption good, i.e., houses have positive "convenience yield". And historically, houses <a href="http://www.cbsnews.com/news/history-says-home-real-estate-is-a-bad-investment/" title="'History says home real estate is a bad investment'">have probably</a> underperformed stocks, though the difference in performance is much smaller when one considers savings from not paying rent.</li>
 </ul>
 
+<h2>IRA to avoid taxes?</h2>
+
+The tax disadvantages of options and futures can be avoided if you're trading in an IRA. However, note that if you can't get a tax deduction for a traditional IRA, then a <a href="http://reducing-suffering.org/advanced-tips-on-personal-finance/#Could_you_also_use_IRAs_for_this_purpose">non-deductible traditional IRA is a bad deal</a> because you pay income-tax rates both before adding money and when withdrawing it, while investing in a regular brokerage account involves paying income tax on the way in but only long-term capital-gains rates on the way out, assuming you buy and hold until retirement.
+
+If you're ineligible for deductible IRAs because your income is too high, you can still get a <a href="http://www.bogleheads.org/wiki/Backdoor_Roth_IRA">backdoor Roth IRA</a>, but it's <a href="http://www.forbes.com/sites/ashleaebeling/2015/02/02/obama-budget-would-prohibit-backdoor-roth-iras/" title="&quot;Obama Budget Would Prohibit Backdoor Roth IRAs&quot;">not clear</a> that this will continue to work forever, and managing one requires nontrivial effort for only ~$5500 of contributions per year. Assuming you save well over ~$5500 per year, you'd still need another leverage method for your other investments.
+
+Another risk with margin investing in IRAs is that if you get a margin call and deposit more funds into the account, you might exceed the IRS limits for the maximum amount you can add to the account per year. The Interactive Brokers Margin Disclosure <a href="https://www.interactivebrokers.com/en/?f=%2Fen%2Faccounts%2FlegalDocuments%2FsemiAnnualDisclosures.php" title="&quot;Semi-Annual Disclosures&quot;">says</a>: "Deposits to the account in excess of [IRS] limits may cause adverse tax consequences, including but not limited to, forfeiture of the tax-advantaged status of the IRA account and/or penalties." That said, this may not be a problem if you always pay margin calls by selling equity rather than depositing more funds.
+
 <h2>Warnings</h2>
 
 <h3>General</h3>
@@ -200,11 +208,30 @@ I would conjecture that more people investing in stocks pushes down long-run (if
 
 In addition to relatively risk-neutral altruists, leverage might also appeal to many ordinary investors when it comes to retirement. <i>Lifecycle Investing</i> makes the case that most young people should leverage their investments. Here's a summary of the argument: "<a href="http://content.time.com/time/business/article/0,8599,1982327,00.html">Why Young People Should Buy Stocks on Margin</a>". See also "<a href="http://gosset.wharton.upenn.edu/research/retirement.pdf">Early Retirement Using Leveraged Investments</a>". I'm not focusing on retirement in this piece, but that is another plausible reason to be interested in leverage.
 
-<h3>IRA to avoid taxes?</h3>
+The simulations I present later in this essay aren't targeted toward retirement, because the hypothetical investors in those simulations maintain constant leverage throughout the investing period, whereas <i>Lifecycle Investing</i> advocates reducing leverage over time to maintain a constant allocation between stocks and bonds when one's future earnings are considered a bond.
 
-The tax disadvantages of options and futures can be avoided if you're trading in an IRA. However, note that if you can't get a tax deduction for a traditional IRA, then a <a href="http://reducing-suffering.org/advanced-tips-on-personal-finance/#Could_you_also_use_IRAs_for_this_purpose">traditional IRA is a bad deal</a> because you pay income-tax rates both before adding money and when withdrawing it. You can currently avoid this problem using a <a href="http://www.bogleheads.org/wiki/Backdoor_Roth_IRA">backdoor Roth IRA</a>, but it's <a href="http://www.forbes.com/sites/ashleaebeling/2015/02/02/obama-budget-would-prohibit-backdoor-roth-iras/" title="&quot;Obama Budget Would Prohibit Backdoor Roth IRAs&quot;">not clear</a> that this will continue to work forever, and managing one requires nontrivial effort for only ~$5500 of contributions per year. Assuming you save well over ~$5500 per year, you'd still need another leverage method for your other investments.
+<h3>Personal retirement thoughts</h3>
 
-Another risk with margin investing in IRAs is that if you get a margin call and deposit more funds into the account, you might exceed the IRS limits for the maximum amount you can add to the account per year. The Interactive Brokers Margin Disclosure <a href="https://www.interactivebrokers.com/en/?f=%2Fen%2Faccounts%2FlegalDocuments%2FsemiAnnualDisclosures.php" title="&quot;Semi-Annual Disclosures&quot;">says</a>: "Deposits to the account in excess of [IRS] limits may cause adverse tax consequences, including but not limited to, forfeiture of the tax-advantaged status of the IRA account and/or penalties." That said, this may not be a problem if you always pay margin calls by selling equity rather than depositing more funds.
+Personally I'm not that interested in using leverage for retirement because <a href="#matching-beats-leverage">401k matching is better than leverage</a>, and I expect that matched 401k savings would go a decent way toward supporting me in retirement. In particular, make the following assumptions:
+<ul>
+<li>My employer matches 50% of 401k contributions up to $6K/year. So I would contribute $6K and my employer would contribute $3K for a total of $9K/year.</li>
+<li>These contributions continue for 35 years, and the matching-contributions limit keeps pace with a 3% annual inflation rate.</li>
+<li>401k investments return a constant 5% nominal return per year.</li>
+<li>Suppose that if I retired now, I'd need $20K/year during retirement. (That's higher than my current costs of living, but maybe I'd have more medical expenses and such.)</li>
+<li>In retirement I'd pay a constant 15% income-tax rate on 401k withdrawals.</li>
+</ul>
+<a href="https://docs.google.com/spreadsheets/d/1enhnxTl6Ky9g-q3qAKcVRZvrxMfuj40jQ85_NMyO6Wg/edit#gid=0">This spreadsheet</a> suggests that these 401k contributions would last for ~22 years of retirement.
+
+So maybe these contributions alone wouldn't keep me afloat during retirement, but I could make up for this in various ways:
+<ol>
+<li>Contribute a bit more to my 401k</li>
+<li>Earn some income during retirement, perhaps by continuing to produce writings that others find valuable</li>
+<li><a href="https://80000hours.org/2014/09/should-you-move-to-thailand/" title="'Should you move to Thailand?'">Move</a> to a place with extremely low costs of living</li>
+<li>Go broke and rely on poverty assistance.</li>
+</ol>
+Social Security might also help, but I'm not counting on it being around.
+
+In any event, I expect major changes in the world in the coming decades, so these calculations probably ignore substantial factors that will transform the retirement landscape.
 
 <h2>Theoretical leverage performance</h2>
 
@@ -220,7 +247,7 @@ Let's start with a simple case. Something like this is commonly used when discus
 
 <h4>Regular investing</h4>
 
-Suppose you have $100 in an index ETF. There are only two possible returns for the ETF in a given period: up 10% or down 10%. Each has equal probability. Let R<sub>i</sub> be a random variable for the return of the ETF in period i. R<sub>i</sub> is either .1 or -.1.
+Suppose you have $100 in an index ETF. Imagine there are only two possible returns for the ETF in a given period: up 10% or down 10%. Each has equal probability. Let R<sub>i</sub> be a random variable for the return of the ETF in period i. R<sub>i</sub> is either .1 or -.1.
 
 There are four possible outcomes, each equally likely:
 <ul>
@@ -267,7 +294,7 @@ The <a href="https://en.wikipedia.org/wiki/Log-normal_distribution#Mode_and_medi
 median(S<sub>t</sub>/S<sub>0</sub>) = exp(&mu;t - &sigma;<sup>2</sup>t/2), &nbsp;&nbsp;&nbsp;which implies<br />
 median(S<sub>t</sub>) = S<sub>0</sub> exp(&mu;t - &sigma;<sup>2</sup>t/2) &nbsp;&nbsp;&nbsp;  (call this the "<span id="regular_median" style="color:green">regular median equation</span>")
 </blockquote>
-because S<sub>0</sub> is constant and so doesn't affect the sorted ranking of S<sub>t</sub> values. Here we can see the same volatility drag discussed before, in the &#8209;&sigma;<sup>2</sup>t/2. See <a href="https://en.wikipedia.org/wiki/It%C5%8D%27s_lemma#Geometric_Brownian_motion">here</a> for more discussion of this "convexity correction" term.
+because S<sub>0</sub> is constant and so doesn't affect the sorted ranking of S<sub>t</sub> values. We can see the same volatility drag discussed before, in the &#8209;&sigma;<sup>2</sup>t/2. See <a href="https://en.wikipedia.org/wiki/It%C5%8D%27s_lemma#Geometric_Brownian_motion">here</a> for more discussion of this "convexity correction" term.
 
 The mean of a lognormal distribution is exp(location_parameter + scale_parameter<sup>2</sup>/2). Hence
 <blockquote>
@@ -282,7 +309,7 @@ Let V<sub>t</sub> denote the net wealth of a leveraged portfolio at year t. (V<s
 <blockquote>
 dV<sub>t</sub>/V<sub>t</sub> = (r + (&mu;-r)c) dt + c &sigma; dW<sub>t</sub>.
 </blockquote>
-This makes sense because the infinitesimal expected return should be c&mu; dt, the infinitesimal standard deviation should be c&sigma;, and the infinitesimal borrowing cost should be (c-1)r dt (since only c-1 of the purchased units are borrowed).
+This makes sense because the infinitesimal expected return should be c&mu; dt, the infinitesimal standard deviation should be c&sigma; &radic;<span style="text-decoration: overline">dt</span>, and the infinitesimal borrowing cost should be (c-1)r dt (since only c-1 of the purchased units are borrowed).
 
 <a href="http://www.fsa.ulaval.ca/nfa2003/papiers/Craig%20Wilson.pdf" title="'Leveraged Stock Portfolios over Long Holding Periods: A Continuous Time Model' (2003)">Domian et al. (2003)</a> solve this equation (p. 5, eqn. 14) in the same way we solved the <a href="#regular_S_t">regular S<sub>t</sub> equation</a>. The result is
 <blockquote>
@@ -292,13 +319,13 @@ V<sub>t</sub>/V<sub>0</sub> is lognormal with location parameter (r + (&mu;-r)c)
 
 In analogy with before, we have
 <blockquote>
-median(V<sub>t</sub>) = V<sub>0</sub> exp{location_parameter} = V<sub>0</sub> exp{(r + (&mu;-r)c) t - c<sup>2</sup>&sigma;<sup>2</sup>t/2} &nbsp;&nbsp;&nbsp;  (call this the "<span id="leveraged_median" style="color:green">leveraged median equation</span>")
+median(V<sub>t</sub>) = V<sub>0</sub> exp{location_parameter} = V<sub>0</sub> exp{(r + (&mu;-r)c) t - c<sup>2</sup>&sigma;<sup>2</sup>t/2}. &nbsp;&nbsp;&nbsp;  (call this the "<span id="leveraged_median" style="color:green">leveraged median equation</span>")
 </blockquote>
 We can see that the volatility drag is quadratic in the leverage amount (c<sup>2</sup>).
 
 Likewise:
 <blockquote>
-mean(V<sub>t</sub>) = V<sub>0</sub> exp(location_parameter + scale_parameter<sup>2</sup>/2) = V<sub>0</sub> exp{(r + (&mu;-r)c) t - c<sup>2</sup>&sigma;<sup>2</sup>t/2 + c<sup>2</sup>&sigma;<sup>2</sup>t/2} = V<sub>0</sub> exp{(r + (&mu;-r)c) t} &nbsp;&nbsp;&nbsp;  (call this the "<span id="leveraged_mean" style="color:green">leveraged mean equation</span>")
+mean(V<sub>t</sub>) = V<sub>0</sub> exp(location_parameter + scale_parameter<sup>2</sup>/2) = V<sub>0</sub> exp{(r + (&mu;-r)c) t - c<sup>2</sup>&sigma;<sup>2</sup>t/2 + c<sup>2</sup>&sigma;<sup>2</sup>t/2} = V<sub>0</sub> exp{(r + (&mu;-r)c) t}. &nbsp;&nbsp;&nbsp;  (call this the "<span id="leveraged_mean" style="color:green">leveraged mean equation</span>")
 </blockquote>
 This result can also be written as V<sub>0</sub> exp{[&mu;c-r(c-1)] t}. This is exactly what we would have thought naively: The performance of leveraged investing is c times the underlying asset performance, minus (c-1) times loan interest (since we only take out a loan for c-1 of the total investment amount).
 
@@ -310,8 +337,8 @@ Using the median equations just derived:
 <blockquote>
 median(V<sub>t</sub>) / median(S<sub>t</sub>) = [ K exp{(r + (&mu;-r)c) t - c<sup>2</sup>&sigma;<sup>2</sup>t/2} ] / [ K exp(&mu;t - &sigma;<sup>2</sup>t/2) ]<br />
 = exp{(r + (&mu;-r)c) t - c<sup>2</sup>&sigma;<sup>2</sup>t/2 - &mu;t + &sigma;<sup>2</sup>t/2 }<br />
-= exp{rt + &mu;ct - rct (1 - c<sup>2</sup>)&sigma;<sup>2</sup>t/2 - &mu;t }<br />
-= exp{ &mu;(c-1)t - r(c-1)t (1 - c<sup>2</sup>)&sigma;<sup>2</sup>t/2 }<br />
+= exp{rt + &mu;ct - rct + (1 - c<sup>2</sup>)&sigma;<sup>2</sup>t/2 - &mu;t }<br />
+= exp{ &mu;(c-1)t - r(c-1)t + (1 - c<sup>2</sup>)&sigma;<sup>2</sup>t/2 }<br />
 = exp{ (&mu;-r)(c-1)t + (1 - c<sup>2</sup>)&sigma;<sup>2</sup>t/2 }.
 </blockquote>
 The exact appearance of this curve depends on the input parameters. <a href="https://www.wolframalpha.com/input/?i=plot%5B++exp%28+%28.054-.03%29*%28c-1%29*15+%2B+%281+-+c%5E2%29*.22%5E2+*+15%2F2+%29%2C+c%2C+0%2C+5%5D">Here</a>'s what it looks like with one reasonable set of parameters (including &mu; = 0.054) and <a href="https://www.wolframalpha.com/input/?i=plot%5B++exp%28+%28.09-.03%29*%28c-1%29*15+%2B+%281+-+c%5E2%29*.22%5E2+*+15%2F2+%29%2C+c%2C+0%2C+5%5D">here</a>'s with a more optimistic &mu;=0.09. Most of the time, the curve is less than 1, i.e., using leverage implies a <i>lower</i> median return. Presumably this is a main reason why the SEC warns against leveraged ETFs: They typically do underperform regular ETFs.
@@ -328,7 +355,7 @@ For instance, if you can make an expected $100K with normal investments, you'd m
 
 So (at least in this simplified theoretical model), leverage does indeed offer higher expected ending wealth than non-leveraged investing. The catch, of course, is that most investors -- even most altruists -- shouldn't be risk-neutral with respect to wealth. The next section discusses what levels of risk aversion might be reasonable when it comes to wealth that will be donated.
 
-Also note that this continuous-time model doesn't allow margin accounts to go bankrupt. Because a continuous-time margin account maintains constant leverage, if its assets fall, it rebalances immediately by selling some securities. In the real world, margin accounts can go bankrupt. This could, with low probability, even happen if the account rebalances daily. For instance, a 5X-leveraged margin account that rebalanced once per day might have been wiped out by <a href="https://en.wikipedia.org/wiki/Black_Monday_(1987)">1987's Black Monday</a>. By not allowing for bankruptcy (and by ignoring <a href="https://en.wikipedia.org/wiki/Black_swan_theory">black swans</a> in general), continuous-time equations like those above may slightly overstate the expected value of leverage.
+Also note that this continuous-time model doesn't allow margin accounts to go bankrupt. Because a continuous-time margin account maintains constant leverage, if its assets fall, it rebalances immediately by selling some securities. In the real world, margin accounts can go bankrupt. This could, with low probability, even happen if the account rebalances daily. For instance, a 5X-leveraged margin account that rebalanced once per day might have been wiped out by <a href="https://en.wikipedia.org/wiki/Black_Monday_(1987)">1987's Black Monday</a>. By not allowing for bankruptcy (and by ignoring <a href="https://en.wikipedia.org/wiki/Black_swan_theory">black swans</a> in general), continuous-time equations like those above may slightly overstate the expected value of leverage. In the extreme case, taking t = &infin;, a margin investor who doesn't rebalance continuously would go bankrupt with probability 1 (since eventually there would be a huge, near-instantaneous market downturn that destroys the account), while the <a href="#leveraged_mean">leveraged mean equation</a> concludes that the margin investor ends up with infinite expected wealth.
 
 <h2>What's your altruistic risk tolerance?</h2>
 
@@ -354,8 +381,6 @@ utility(wealth) = g(m+o) - g(o) = (m+o)<sup>&gamma;</sup> - o<sup>&gamma;</sup>.
 </blockquote>
 As an example, suppose o = 10<sup>7</sup> and m ranges between 0 and 10<sup>6</sup>. Basically regardless of &gamma;, utility(wealth) is almost linear in wealth, i.e., &alpha; &asymp; 1. For instance, <a href="https://www.wolframalpha.com/input/?i=plot%5B+%28m+%2B+10%5E7%29%5E.5+-+%2810%5E7%29%5E.5%2C+m%2C+0%2C+1000000%5D">here</a>'s the curve for &gamma;=0.5.
 
-This is consistent with the naive intuition that if an organization is big, then small amounts of additional donations should have roughly linear impact, since the marginal utility of donations shouldn't level off that much. In particular, if g(d) = d<sup>&gamma;</sup>, the derivative at o (i.e., you donate nothing) is g'(o) = &gamma; o<sup>&gamma;-1</sup>, while the derivative at m+o (i.e., you do donate m) is g'(m+o) = &gamma; (m+o)<sup>&gamma;-1</sup>. The ratio is
-This is consistent with the naive intuition that if an organization is big, then small amounts of additional donations should have roughly linear impact, since the marginal utility of donations shouldn't level off that much. In particular, if g(d) = d<sup>&gamma;</sup>, the derivative at o (i.e., you donate nothing) is g'(o) = &gamma; o<sup>&gamma;-1</sup>, while the derivative at m+o (i.e., you do donate m) is g'(m+o) = &gamma; (m+o)<sup>&gamma;-1</sup>. The ratio is
 This is consistent with the naive intuition that if an organization is big, then small amounts of additional donations should have roughly linear impact, since the marginal utility of donations shouldn't level off that much. In particular, if g(d) = d<sup>&gamma;</sup>, the derivative at o (i.e., you donate nothing) is g'(o) = &gamma; o<sup>&gamma;-1</sup>, while the derivative at m+o (i.e., you do donate m) is g'(m+o) = &gamma; (m+o)<sup>&gamma;-1</sup>. The ratio is
 <blockquote>
 g'(m+o) / g'(o) = [ &gamma; (m+o)<sup>&gamma;-1</sup> ] / [ &gamma; o<sup>&gamma;-1</sup> ] = [(m+o)/o]<sup>&gamma;-1</sup> = [o/(m+o)]<sup>1-&gamma;</sup>.
@@ -532,7 +557,7 @@ I created a <a href="https://github.com/Brian-Tomasik/leveraged_investing">Pytho
 
 <h3>Results</h3>
 
-The Mean, Median, Min, and Max columns of the following table are distributional statistics for the present value of wealth for the different strategies. The E[&radic;<span style="text-decoration: overline">wealth</span>] column represents expected utility if your utility is &radic;<span style="text-decoration: overline">wealth</span>; this helps incorporate <a href="http://reducing-suffering.org/when-should-altruists-be-financially-risk-averse/" title="&quot;When Should Altruists Be Financially Risk-Averse?&quot;">risk aversion</a>. Lastly, because the final wealth distribution is approximately lognormal, &sigma;<sub>ln(wealth)</sub> represents roughly the &sigma; parameter of the lognormal distribution.
+The Mean, Median, Min, and Max columns of the following table are distributional statistics for the present value of wealth for the different strategies. The E[&radic;<span style="text-decoration: overline">wealth</span>] column represents expected utility if your utility is &radic;<span style="text-decoration: overline">wealth</span>; this helps incorporate <a href="http://reducing-suffering.org/when-should-altruists-be-financially-risk-averse/" title="&quot;When Should Altruists Be Financially Risk-Averse?&quot;">risk aversion</a>. Lastly, because the final wealth distribution is approximately lognormal, &sigma;<sub>ln(wealth)</sub> represents roughly the scale parameter of the lognormal distribution.
 
 <REPLACE>default_results_table</REPLACE>
 
@@ -540,15 +565,14 @@ The Mean, Median, Min, and Max columns of the following table are distributional
 
 Since these results scale linearly with the amount of money being invested, the most relevant number is just the percent by which margin investing beats regular: The mean for margin is <REPLACE>margin_better_than_regular_percent</REPLACE>% higher, and the median is <REPLACE>margin_better_than_regular_median_percent</REPLACE>% higher.
 
-The <a href="#mean_margin_over_mean_regular">mean(margin)/mean(regular) equation</a> suggested that margin investing should have a <REPLACE>mean_margin_over_mean_regular_percent_advantage</REPLACE>% higher expected value. So why is the actual advantage only <REPLACE>margin_better_than_regular_percent</REPLACE>%? One reason is that both investing strategies presented here are assumed maintain a non-leveraged emergency fund of <REPLACE>initial_emergency_savings</REPLACE>, which counts toward their totals. Another reason is that because the investor earns salary each month, the actual average number of years for which funds are invested is roughly half the full <REPLACE>years_until_donate</REPLACE>-year time period of the simulation (ignoring time value of money and employee raises). Note that (<REPLACE>margin_mean_for_default_configuration</REPLACE>-<REPLACE>initial_emergency_savings</REPLACE>)/(<REPLACE>regular_mean_for_default_configuration</REPLACE>-<REPLACE>initial_emergency_savings</REPLACE>) = <REPLACE>(margin_mean-initial_emergency_savings)/(regular_mean-initial_emergency_savings)</REPLACE>, which is pretty close to<span style="color:orange">CHECK MANUALLY</span>the <a href="#mean_margin_over_mean_regular">mean(margin)/mean(regular) equation</a> at t = <REPLACE>years_until_donate</REPLACE>/2 years: exp{(<REPLACE>annual_mu</REPLACE>-<REPLACE>annual_margin_interest_rate</REPLACE>)*(<REPLACE>broker_imposed_leverage_limit</REPLACE>-1) * <REPLACE>years_until_donate</REPLACE>/2} = <REPLACE>mean_margin_over_mean_regular_t_is_half</REPLACE>.
+The <a href="#mean_margin_over_mean_regular">mean(margin)/mean(regular) equation</a> suggested that margin investing should have a <REPLACE>mean_margin_over_mean_regular_percent_advantage</REPLACE>% higher expected value. So why is the actual advantage only <REPLACE>margin_better_than_regular_percent</REPLACE>%? One reason is that both investing strategies presented here are assumed maintain a non-leveraged emergency fund of <REPLACE>initial_emergency_savings</REPLACE>, which counts toward their totals. Another reason is that because the investor earns salary each month, the actual average number of years for which funds are invested is roughly half the full <REPLACE>years_until_donate</REPLACE>-year time period of the simulation (ignoring time value of money and employee raises). Note that (<REPLACE>margin_mean_for_default_configuration</REPLACE>-<REPLACE>initial_emergency_savings</REPLACE>)/(<REPLACE>regular_mean_for_default_configuration</REPLACE>-<REPLACE>initial_emergency_savings</REPLACE>) = <REPLACE>(margin_mean-initial_emergency_savings)/(regular_mean-initial_emergency_savings)</REPLACE>, which is pretty close to<span style="color:orange">TODO check manually</span>the <a href="#mean_margin_over_mean_regular">mean(margin)/mean(regular) equation</a> at t = <REPLACE>years_until_donate</REPLACE>/2 years: exp{(<REPLACE>annual_mu</REPLACE>-<REPLACE>annual_margin_interest_rate</REPLACE>)*(<REPLACE>broker_imposed_leverage_limit</REPLACE>-1) * <REPLACE>years_until_donate</REPLACE>/2} = <REPLACE>mean_margin_over_mean_regular_t_is_half</REPLACE>.
 
+<!--
 If your altruistic utility(wealth) = &radic;<span style="text-decoration: overline">wealth</span>, then margin gives <REPLACE>margin_better_than_regular_expsqrtwealth_percent</REPLACE>% higher expected utility. To get a sense of how this expected-utility increase translates to real dollars, note that when utility(wealth) = &radic;<span style="text-decoration: overline">wealth</span>, a <REPLACE>margin_better_than_regular_expsqrtwealth_percent</REPLACE>% increase in expected utility is like a guaranteed <REPLACE>equiv_percent_increase_in_savings</REPLACE>% increase in invested savings because &radic;<span style="text-decoration: overline"><REPLACE>equiv_fractional_increase_in_savings_plus_1</REPLACE></span> = <REPLACE>fractional_increase_in_expsqrtwealth_plus_1</REPLACE>. The investor in this scenario starts out saving <REPLACE>initial_annual_income_for_investing</REPLACE>/year, so a <REPLACE>equiv_percent_increase_in_savings</REPLACE>% increase is as if you saved an extra <REPLACE>equiv_increase_in_savings</REPLACE>/year.
 
-It's not clear that the extra hassle of margin investing is worth this increase in the expected utility of your donations. Margin investing requires rebalancing your account each month. Say this takes 20 hours/year, with your time valued at a present value of $50/hour. That's a cost of $1000/year for maintenance. There's also a one-time learning curve to understand margin investing in the first place and set up an Interactive Brokers account. Finally, the additional uncertainty of margin-invested returns may make planning more difficult for the charities to which you intend to donate, assuming they're counting on your future donations to some extent ahead of time.
+It's not clear that the extra hassle of margin investing is worth this increase in the expected utility of your donations. 
 
-Note that this analysis would be more favorable to margin investing if your utility was linear in wealth, such that you took the mean wealth numbers at face value. In this case, over the <REPLACE>years_until_donate</REPLACE> years of investing, using margin gave you <REPLACE>margin_better_than_regular</REPLACE> more expected donated wealth, or <REPLACE>margin_better_than_regular</REPLACE>/<REPLACE>years_until_donate</REPLACE> = <REPLACE>margin_better_than_regular_per_year</REPLACE> more per year. This seems more likely to be worth the cost of margin investing.<span style="color:orange">CHECK THIS MANUALLY</span>
-
-So the basic conclusion is that margin investing is probably worthwhile only if the utility of additional donated dollars doesn't decline that much in possible worlds where you (and hence probably the market as a whole) make large returns compared with possible worlds where you (and hence probably the market as a whole) make smaller returns.
+Note that this analysis would be more favorable to margin investing if your utility was linear in wealth, such that you took the mean wealth numbers at face value.--> Over the <REPLACE>years_until_donate</REPLACE> years of investing, using margin gave you <REPLACE>margin_better_than_regular</REPLACE> more expected donated wealth, or <REPLACE>margin_better_than_regular</REPLACE>/<REPLACE>years_until_donate</REPLACE> = <REPLACE>margin_better_than_regular_per_year</REPLACE> more per year. This has to be weighed against the extra costs of margin investing. Margin investing requires rebalancing your account each month. Say this takes 20 hours/year, with your time valued at a present value of $50/hour. That's a cost of $1000/year for maintenance. There's also a one-time learning curve to understand margin investing in the first place and set up an Interactive Brokers account. Finally, the additional uncertainty of margin-invested returns may make planning more difficult for the charities to which you intend to donate, assuming they're counting on your future donations to some extent ahead of time.
 
 Here's how the expected utility of regular vs. margin investing compare if utility(wealth) = (wealth)<sup>&alpha;</sup> for 0 &leq; &alpha; &leq; 1:
 
@@ -694,7 +718,7 @@ When you're ready to donate your securities, you use your investments to pay off
 
 The final comparison among the strategies as presented in the results is the real present value of accumulated savings, i.e., the value after <REPLACE>years_until_donate</REPLACE> years times (1 + inflation_rate)<sup>-<REPLACE>years_until_donate</REPLACE></sup> to adjust for inflation and then times exp(-avg_ETF_returns * <REPLACE>years_until_donate</REPLACE>)</sup> to make it a present value. Looking at real present values is more informative than nominal future values because we have a better sense of what the value of a dollar is right now than what the value of a dollar will be in <REPLACE>years_until_donate</REPLACE> years.
 
-<h3>Results vs. theory</h3>
+<h3 id="margin_results_vs_theory">Results vs. theory</h3>
 
 The simulation discussed above has many real-world complexities. Theoretical academic formulas for margin returns are much simpler. As a way to check that my complicated simulation was roughly on the right track, I ran a version of the simulation in which lots of complicating factors were ignored. In particular:
 <ul>
@@ -740,7 +764,7 @@ This seems to be what I'm using in my simulation (modulo the fact that my simula
 
 The theoretical median outcome for regular investing is shown in the <a href="#regular_median">regular median equation</a>. However, when I reported my numbers in this simulation, I discounted final wealth using <a href="https://en.wikipedia.org/wiki/Compound_interest#Continuous_compounding">continuous compounding</a> at a discount rate of &mu; = <REPLACE>annual_mu</REPLACE> per year over a time of t = <REPLACE>years_until_donate</REPLACE> years. That is, I multiplied the final amounts by exp(- <REPLACE>annual_mu</REPLACE> * <REPLACE>years_until_donate</REPLACE>). Multiplying the <a href="#regular_median">regular median equation</a> by this factor gives S<sub>0</sub> exp(&mu;t - &sigma;<sup>2</sup>t/2) exp(-&mu;t) = S<sub>0</sub> exp(-&sigma;<sup>2</sup>t/2). This is what we predict the median simulation outcome will be.
 
-In the simulation, I used t = <REPLACE>years_until_donate</REPLACE> years, &mu; = <REPLACE>annual_mu</REPLACE> per year, &sigma; = <REPLACE>annual_sigma</REPLACE>, and S<sub>0</sub> = <REPLACE>one_month_pay</REPLACE>.<!-- There's not actually a single initial price S<sub>0</sub> because the securities are bought over time. However, we can pretend that the investor buys just one big initial security whose price equals the present value of purchases discounted at an interest rate of <REPLACE>annual_mu_as_percent</REPLACE>. An analytic formula for this discounted sum is messy, so I just computed it <a href="https://docs.google.com/spreadsheets/d/1STH-QEMwybDKrouTnNEWeXQXU9VK1SEmq_qNxPCdUTc/edit?usp=sharing">in a spreadsheet</a>. If we ignore periods of unemployment and inflation, the result is that S<sub>0</sub> = <REPLACE>one_month_pay</REPLACE>.--> The empirical median from the above table, <REPLACE>actual_median_ignoring_complications</REPLACE>, is very close to<span style="color:orange">CHECK THIS MANUALLY</span> the theoretical value, <REPLACE>one_month_pay</REPLACE> exp(-<REPLACE>annual_sigma</REPLACE><sup>2</sup> * <REPLACE>years_until_donate</REPLACE>/2) = <REPLACE>theoretical_median_PV_ignoring_complications</REPLACE>.
+In the simulation, I used t = <REPLACE>years_until_donate</REPLACE> years, &mu; = <REPLACE>annual_mu</REPLACE> per year, &sigma; = <REPLACE>annual_sigma</REPLACE>, and S<sub>0</sub> = <REPLACE>one_month_pay</REPLACE>.<!-- There's not actually a single initial price S<sub>0</sub> because the securities are bought over time. However, we can pretend that the investor buys just one big initial security whose price equals the present value of purchases discounted at an interest rate of <REPLACE>annual_mu_as_percent</REPLACE>. An analytic formula for this discounted sum is messy, so I just computed it <a href="https://docs.google.com/spreadsheets/d/1STH-QEMwybDKrouTnNEWeXQXU9VK1SEmq_qNxPCdUTc/edit?usp=sharing">in a spreadsheet</a>. If we ignore periods of unemployment and inflation, the result is that S<sub>0</sub> = <REPLACE>one_month_pay</REPLACE>.--> The empirical median from the above table, <REPLACE>actual_median_ignoring_complications</REPLACE>, is very close to<span style="color:orange">TODO check manually</span> the theoretical value, <REPLACE>one_month_pay</REPLACE> exp(-<REPLACE>annual_sigma</REPLACE><sup>2</sup> * <REPLACE>years_until_donate</REPLACE>/2) = <REPLACE>theoretical_median_PV_ignoring_complications</REPLACE>.
 
 <h5>Mean wealth</h5>
 
@@ -756,7 +780,7 @@ The only randomness here is in W<sub>t</sub>, so
 <blockquote>
 StdDev[ln(S<sub>t</sub>)] = StdDev[&sigma;W<sub>t</sub>] = &sigma;StdDev[W<sub>t</sub>] = &sigma;&radic;<span style="text-decoration: overline">t</span> = <REPLACE>annual_sigma</REPLACE> * &radic;<span style="text-decoration: overline"><REPLACE>years_until_donate</REPLACE></span> = <REPLACE>annual_sigma * sqrt(years_until_donate)</REPLACE>.
 </blockquote>
-In the simulations, I found StdDev[ln(S<sub>t</sub>)] = &sigma;<sub>ln(wealth)</sub> = <REPLACE>actual_sigma_of_log_wealth</REPLACE> for regular investing, which is again pretty close.<span style="color:orange">CHECK THIS MANUALLY</span>
+In the simulations, I found StdDev[ln(S<sub>t</sub>)] = &sigma;<sub>ln(wealth)</sub> = <REPLACE>actual_sigma_of_log_wealth</REPLACE> for regular investing, which is again pretty close.<span style="color:orange">TODO check manually</span>
 
 <h4>Validating the results of margin investing</h4>
 
@@ -814,7 +838,7 @@ Prob[V<sub>t</sub> > S<sub>t</sub>] = Prob[Z/&radic;<span style="text-decoration
 <a href="https://surfstat.anu.edu.au/surfstat-home/tables/normal.php" title="&quot;SurfStat standard normal calculator&quot;">= 1 - <REPLACE>prob_Z_leq_threshold</REPLACE></a><br />
 = <REPLACE>prob_Z_gt_threshold</REPLACE>.
 </blockquote>
-The empirical probability of margin outperforming regular investing in the above table is <REPLACE>actual_percent_times_margin_is_better</REPLACE>%.
+The empirical probability of margin outperforming regular investing in the above table is <REPLACE>actual_percent_times_leverage_is_better</REPLACE>%.
 
 <h4>Relaxing the simplifying assumptions</h4>
 
@@ -896,35 +920,42 @@ Prob[&nbsp;margin beats regular&nbsp;] &asymp; Prob[&nbsp;investments exceed bre
 </blockquote>
 -->
 
-<h2>401k matching beats leverage</h2>
+<h2 id="matching-beats-leverage">401k matching beats leverage</h2>
 
-<i>Lifecycle Investing</i> points out that most 401k plans don't allow leverage. But many employers match 401k contributions at a 2X or 1.5X rate. The book says you should always max out matching 401k contributions before investing with leverage on your own.
+<i>Lifecycle Investing</i> points out that most 401k plans don't allow leverage. IRAs in general <a href="http://wiki.fool.com/Can_You_Trade_on_Margin_in_an_IRA%3F">don't allow</a> margin debt for the most part. But many employers match 401k contributions at a 2X or 1.5X rate. <i>Lifecycle Investing</i> says you should always max out matching 401k contributions before investing with leverage on your own.
 
 To test this out, I added to my simulation an investor who just contributed to a regular, non-margin brokerage account but was able to put in <REPLACE>match_percent_from_401k</REPLACE>% more than normal. For instance, if regular investors contributed $2500/month, this investor contributed $3750/month. In practice, employers typically cap the amount of 401k contributions that can be matched per pay period at a relatively low level, but I ignored that point so that I could compare the 401k investor on equal footing with the other investors, and then if I saw the 401k investor beating the others, it would follow that any given dollar of employer-matched 401k investing would beat any given dollar of non-employer-matched margin investing, which would imply that you should max out employer matching first and only then use margin investing for the remaining income.
 
-I did indeed find that a <REPLACE>match_percent_from_401k</REPLACE>%-matched 401k beat either other type of investing. This was shown in the results table in the previous section. Before I added tax logic to my simulation, the 401k-matching strategy returned <i>exactly</i> 1.5 times the regular investing strategy, which it should given that I compared the investments with respect to the same random stock-market returns.
+I did indeed find that a <REPLACE>match_percent_from_401k</REPLACE>%-matched 401k beat either other type of investing. In fact, in the <a href="#margin_results_vs_theory">results vs. theory</a> section, the 401k-matching strategy returned <i>exactly</i> 1.5 times<span style="color:orange">TODO check this</span> the regular investing strategy, which it should have given that I compared the investments with respect to the same random stock-market returns. Because a 401k is tax-exempt, it might actually return more than 1.5 times a non-401k account if you sell investments and thereby incur extra capital-gains taxes in the non-401k account, but the non-401k account in this simulation had no capital-gains taxes because the wealth was donated at the end. (Note that 401k and non-401k investments can both be donated to charity tax-free.)
 
 In reality, the amount you can contribute to a <REPLACE>match_percent_from_401k</REPLACE>% matched 401k is more than <REPLACE>match_percent_from_401k</REPLACE>% of what you can invest on margin on your own because a 401k is pre-tax, while margin investing uses post-tax dollars. However, you'll later have to pay taxes on your 401k withdrawals, so if your tax rate is the same now vs. in retirement, the tax-deferred nature of 401k contributions doesn't matter, since the amount at the end is (1-income_tax_rate) times (the pre-tax income that you put in plus equity appreciation). That said, if (as is common) you expect to have a lower marginal tax rate in retirement, this makes 401k contributing look even more favorable.
 
 <h3>What about non-matched 401k?</h3>
 
-The annual contribution limit for a 401k <a href="http://www.irs.gov/uac/Newsroom/IRS-Announces-2015-Pension-Plan-Limitations-1" title="&quot;IRS Announces 2015 Pension Plan Limitations; Taxpayers May Contribute up to $18,000 to their 401(k) plans in 2015&quot;">is $18K</a>, which is probably higher than the amount that your employer matches. Should you only contribute to your 401k the amount your employer matches and invest the remainder in an after-tax margin account using leverage? Or should you contribute all $18K to the 401k and let the money grow tax-free there? The choice isn't obvious, and following are some considerations in favor of each option.
+The annual contribution limit for a 401k <a href="http://www.irs.gov/uac/Newsroom/IRS-Announces-2015-Pension-Plan-Limitations-1" title="&quot;IRS Announces 2015 Pension Plan Limitations; Taxpayers May Contribute up to $18,000 to their 401(k) plans in 2015&quot;">is $18K</a>, which is probably higher than the amount that your employer matches. Should you only contribute to your 401k the amount your employer matches and invest the remainder in an after-tax margin account using leverage? Or should you contribute all $18K to the 401k and let the money grow tax-free there?
 
-<h4>Reasons favoring 401k:</h4>
+<h4 id="reasons_favoring_401k">Reasons favoring 401k:</h4>
 
 <ul>
-<li>If you expect to have a lot of income during retirement, you'd presumably pay at least 15% taxes on capital gains outside a 401k. In the default margin-investing scenario above, margin investing beat regular investing by ~<REPLACE>margin_better_than_regular_percent</REPLACE>% in expectation <i>with higher risk</i>. So if you plan to spend the savings on yourself, if you use a margin account, your savings would be only (1 + .<REPLACE>margin_better_than_regular_percent</REPLACE>)(1 - <REPLACE>long_term_cap_gains_rate</REPLACE>) = <REPLACE>(1+margin_advantage)(1-long_term_cap_gains)</REPLACE> as much as if you had put them in a non-leveraged 401k account that doesn't incur capital-gains taxes.</li>
-<li>If you expect to be in a lower income bracket during retirement (say 15% instead of 28%), then contributing to a 401k allows you to pay less income tax in addition to no capital-gains tax.</li>
+<li>If you expect to have enough income during retirement such that your capital-gains tax rate isn't 0%, you'd presumably pay ~15% taxes on capital gains outside a 401k, as well as possibly state income taxes on those capital gains, all of which would be avoided with a 401k.</li>
+<li>If you expect to be in a lower income bracket during retirement than your current income bracket (say 15% instead of 28%), then contributing to a 401k allows you to pay less income tax in addition to no capital-gains tax.</li>
+<li>Having some additional investments in a non-leveraged 401k could reduce your risk of a financial blow-up from using margin.</li>
 </ul>
+These factors combined seem pretty strong to me.
 
 <h4>Reasons favoring margin investing:</h4>
 
 <ul>
-<li>Plausibly you can get enough retirement savings just by the amount you contribute to your 401k for employer matching. In this case, you could donate your margin-invested securities and not pay capital-gains tax on them. If so, the only advantage of a 401k is that you might be in a lower income bracket during retirement.</li>
+<li>Perhaps you can get enough retirement savings just by the amount you contribute to your 401k for employer matching. In this case, you could donate your margin-invested securities and not pay capital-gains tax on them. If so, the only advantage of a 401k is that you might be in a lower income bracket during retirement.</li>
+<li>Currently, people in the 15% income bracket or below pay no capital-gains tax. So if your income during retirement was low enough, you might be able to spend your margin-invested savings on yourself without paying capital-gains tax. However, it might be hard to keep your income during retirement low enough to avoid paying capital-gains taxes, although you could presumably(?) donate excess 401k savings to ensure this. Likewise, it's quite possible that Congress will change capital-gains rates by the time of your retirement, so that even people in the 15% income bracket will pay capital-gains taxes.</li>
 <li>Contributing to a 401k locks the money in your retirement account for several decades. What if you want to donate it sooner? What if the financial system as a whole changes radically during those years, such that your 401k money becomes less valuable?</li>
-<li>Currently, people in the 15% income bracket or below pay no capital-gains tax. So if your income during retirement was low enough, you might be able to spend your margin-invested savings on yourself without paying capital-gains tax. However, it might be hard to keep your income during retirement low enough to be sure you won't pay capital-gains taxes. Likewise, it's quite possible that Congress will change capital-gains rates by the time of your retirement, so that even people in the 15% income bracket will pay capital-gains taxes.</li>
-<li>As we saw above, margin investing returns an expected <REPLACE>margin_better_than_regular_percent</REPLACE>% more than regular investing, according to the default simulation parameters. On the other hand, having some additional investments in a non-leveraged 401k could reduce your risk of a financial blow-up.</li>
 </ul>
+
+<h3>Leveraged ETFs in an IRA?</h3>
+
+My impression is that it may be possible to buy leveraged ETFs in an IRA.(?) If so, if you have a 401k from a previous employer, you could convert it to an IRA and then buy leveraged ETFs in it. In this way, you'd get the benefits of employer matching and leverage combined.
+
+Personally I probably won't leverage my 401k at this point because my future income stream is unclear, so I don't know for sure that I could replace the losses that might result from using leverage. If I were certain I'd be contributing to the 401k in a steady fashion for the next several decades, it would be more plausible that I should use leverage during my 20s and 30s in the manner that <i>Lifecycle Investing</i> suggests.
 
 <h2>Donor-advised fund vs. leverage</h2>
 
@@ -936,21 +967,21 @@ The advantage of a DAF is that you can deduct a donation from your income taxes 
 
 <h4>If you donate small amounts</h4>
 
-For small-time donors, deducting a donation now vs. later may not be crucial. Because of the time value of money, a given amount of tax deduction now is worth more than the same amount taken later. But if you wait until later, your funds to donate should in general have grown in value, so the value of deduction later will actually be larger, which roughly cancels the argument from time value of money for donating sooner. So the value of DAF donating is roughly zero for these donors, ignoring other confounding factors such as that donating to a DAF may help maintain your commitment to donating but may also lock you in to donating to just US-based 501(c)(3)'s rather than other organizations.
+For small-time donors, deducting a donation now vs. later may not be crucial. Because of the time value of money, a given amount of tax deduction now is worth more than the same amount taken later. But if you wait until later, your funds to donate should in general have grown in value, so the value of deduction later will actually be larger, which roughly cancels the argument from time value of money for donating sooner.((The cancellation isn't exact because of capital-gains taxes. In particular, suppose the market returns 5% in a year. You're deciding whether to donate $1000 now or invest it and donate $1000*1.05 = $1050 next year. If you donate now, you get a $1000 tax deduction now. Say that gets you a tax refund of $1000 * 0.28 = $280, which you invest. In contrast, if you donated $1050 next year, you'd get a $1050 * 0.28 = $294 tax refund. Even though 1.05 * $280 = $294, getting $294 one year later is slightly better because then the cost basis of your investment of the tax refund is $294 instead of $280, which means you'll pay slightly lower capital-gains taxes when you sell.)) So the value of DAF donating is roughly zero for these donors, ignoring other confounding factors such as that donating to a DAF may help maintain your commitment to donating but may also lock you in to donating to just US-based 501(c)(3)'s rather than other organizations or projects.
 
 <h4>If you donate a lot</h4>
 
-In contrast, donating to a DAF is quite important for big-time donors who plan to give at least 50% of adjusted gross (AGI) income each year. This is because donating every year helps these donors take full advantage of deductions given that at most 50% of a person's AGI can be deducted for charity contributions in a single year. Charitable deductions above 50% carry forward to future years, but if you consistently donate above 50% <i>every year</i>, you'll never get a chance to take all your accumulated charity deductions. Hence, deducting charity donations each year that you earn becomes important.
+In contrast, donating to a DAF is quite important for big-time donors who plan to give at least 50% of adjusted gross income (AGI) each year. This is because donating every year helps these donors take full advantage of deductions, given that at most 50% of a person's AGI can be deducted for charity contributions in a single year. Charitable deductions above 50% carry forward to future years, but if you consistently donate above 50% <i>every year</i>, you'll never get a chance to take all your accumulated charity deductions. Hence, deducting charity donations each year that you earn becomes important.
 
 If a donor in this situation doesn't have a charity picked out yet and would lose the year's charitable deductions if she didn't donate to a DAF, then donating to a DAF saves taxes. Say the donor is deep in the 28% marginal income bracket. By donating some amount $X (assume $X is below the 50%-of-AGI limit), she gets $.28X back on taxes (and that refund is untaxed), so it's as if she multiplied her money by 1.28. In other words, donating to a DAF is similar to donating to a 401k that matches 28% rather than <REPLACE>match_percent_from_401k</REPLACE>%.
 
-Whether this is better than leverage depends on the donor's risk tolerance and the advantage of leverage. For a risk-neutral investor, the DAF is better only if the expected wealth of using margin is less than 28% higher than not. For a risk-averse investor with utility(wealth) = &radic;<span style="text-decoration: overline">wealth</span>, the DAF is better unless the expected-utility value in the above table is more than &radic;<span style="text-decoration: overline">1.28</span> times better for margin than non-margin (which it isn't). The reason for the &radic;<span style="text-decoration: overline">1.28</span> threshold is that donating to a DAF multiplies wealth by 1.28 with certainty, which means it multiplies expected &radic;<span style="text-decoration: overline">wealth</span> by &radic;<span style="text-decoration: overline">1.28</span>.
+Whether this is better than leverage depends on the donor's risk tolerance and the advantage of leverage. For a risk-neutral investor, the DAF is better only if the expected wealth of using margin is less than 28% higher than not. For a risk-averse investor with utility(wealth) = &radic;<span style="text-decoration: overline">wealth</span>, the DAF is better unless the E[&radic;<span style="text-decoration: overline">wealth</span>] value in the above table is more than &radic;<span style="text-decoration: overline">1.28</span> times better for margin than non-margin (which it isn't). The reason for the &radic;<span style="text-decoration: overline">1.28</span> threshold is that donating to a DAF multiplies wealth by 1.28 with certainty, which means it multiplies expected &radic;<span style="text-decoration: overline">wealth</span> by &radic;<span style="text-decoration: overline">1.28</span>.
 
 <h2>ESPP plans</h2>
 
-A company's ESPP plan offers employees the opportunity to buy some amount of company stock at a discount (say, 10%). You should always participate in such programs, because if nothing else, you can just sell the stocks after you buy them (incurring taxes in the process). But it's better tax-wise to hold for at least 2 years before selling or donating.
+A company's ESPP plan offers employees the opportunity to buy some amount of company stock at a discount (say, 10%). You should always participate in such programs, because if nothing else, you can just sell the stocks after you buy them (incurring taxes in the process). But it's better tax-wise to hold the securities for at least 2 years before selling or donating.
 
-If you use margin investing, ESPP shares can (presumably?) just contribute to your assets, allowing you to borrow more. In contrast, if you use leveraged ETFs for leverage, then (non-leveraged) ESPP shares don't allow you to get leverage. In this case, you can trade off the tax penalty for selling the ESPP shares early (say, 14% or 28% income tax) against whatever percent benefit you see from investing that amount of money with leverage.
+If you use margin investing, ESPP shares can (presumably?) just contribute to your assets, allowing you to borrow more. In contrast, if you use leveraged ETFs for leverage, then (non-leveraged) ESPP shares don't allow you to get leverage. In this case, you can trade off the tax penalty for selling the ESPP shares early (say, 14% or 28% income tax) against whatever percent benefit you see from investing that amount of money with leverage. If you agree with the philosophy of the investor in the simulations of keeping some non-leveraged emergency money, then ESPP shares could contribute toward that and hence would be compatible even with the approach of using leveraged ETFs.
 
 <h2>Optimal leverage</h2>
 
@@ -983,7 +1014,7 @@ ln(1+&Rho;<sub>t</sub>) = ln[ (V<sub>t</sub>/V<sub>0</sub>)<sup>1/t</sup> ] = R<
 <blockquote>
 c<sup>*</sup> = (&mu; - r)/&sigma;<sup>2</sup>.
 </blockquote>
-Using the parameter values for my default simulation, this optimal fraction is (<REPLACE>annual_mu</REPLACE>-<REPLACE>annual_margin_interest_rate</REPLACE>)/<REPLACE>annual_sigma</REPLACE><sup>2</sup> = <REPLACE>Kelly_ratio_as_percent</REPLACE>%. Hence, this suggests using no leverage and splitting 50:50<span style="color:orange">CHECK THIS MANUALLY</span> between stocks and bonds! This isn't consistent with my results or with conventional wisdom. Of course, the parameters I used in this calculation were quite conservative. Based on historical US data, some people would set &mu; at more like .1, in which case the optimal betting fraction would be <REPLACE>Kelly_ratio_if_mu_is_10_percent</REPLACE>, i.e., almost 1.5X leverage.<span style="color:orange">CHECK THIS MANUALLY</span>
+Using the parameter values for my default simulation, this optimal fraction is (<REPLACE>annual_mu</REPLACE>-<REPLACE>annual_margin_interest_rate</REPLACE>)/<REPLACE>annual_sigma</REPLACE><sup>2</sup> = <REPLACE>Kelly_ratio_as_percent</REPLACE>%. Hence, this suggests using no leverage and splitting 50:50<span style="color:orange">TODO check manually</span> between stocks and bonds! This isn't consistent with my results or with conventional wisdom. Of course, the parameters I used in this calculation were quite conservative. Based on historical US data, some people would set &mu; at more like .1, in which case the optimal betting fraction would be <REPLACE>Kelly_ratio_if_mu_is_10_percent</REPLACE>, i.e., almost 1.5X leverage.<span style="color:orange">TODO check manually</span>
 
 The c<sup>*</sup> formula above corresponds to the <a href="https://en.wikipedia.org/wiki/Kelly_criterion">Kelly criterion</a>. <a href="https://www.math.washington.edu/~morrow/336_10/papers/jane.pdf" title="&quot;Betting with the Kelly Criterion&quot;">This summary</a> reviews how to derive the c<sup>*</sup> equation in a different way (p. 5). The Kelly criterion <a href="http://finance.martinsewell.com/money-management/Markowitz1976.pdf" title="see p. 1273 of 'Investment for the long run: New evidence for an old rule' by Harry Markowitz (1976)">optimizes</a> the growth rate of a portfolio with a single initial investment over the infinite future, i.e., R<sub>&infin;</sub> using the above notation. This is equivalent to optimizing E[R<sub>1</sub>] because, <a href="http://finance.martinsewell.com/money-management/Markowitz1976.pdf" title="see p. 1274, eqn. 4 of 'Investment for the long run: New evidence for an old rule' by Harry Markowitz (1976)">by</a> the strong law of large numbers, R<sub>&infin;</sub> = E[R<sub>1</sub>] with probability 1. Since E[R<sub>t</sub>] doesn't depend on t, what optimizes optimizes E[R<sub>t</sub>] in general also optimizes E[R<sub>1</sub>].
 
@@ -1156,7 +1187,6 @@ The default margin configuration involves an investor earning income each month.
 
 <span class="fullwidthimage"><img src="<REPLACE>default_optimal_leverage_graph</REPLACE>" title="I release this image into the public domain worldwide." /></span>
 
-The peaks of the curves seem to be around 2.5X leverage<span style="color:orange">CHECK THIS MANUALLY</span>, though sticking to 2X<span style="color:orange">CHECK THIS MANUALLY</span> leverage seems like a safe policy to avoid falling off the steep cliff. :)
 
 <!--
 TOO HARD TO DO THIS ANALYTICALLY :(
@@ -1212,10 +1242,11 @@ E[ 1/(S<sub>t</sub> + V<sub>t</sub>) * exp(ln(V<sub>0</sub>) + h(c)) * h'(c) ] =
 <span class="fullwidthimage"><img src="<REPLACE>closetotheoryminus7_optimal_leverage_graph</REPLACE>" title="I release this image into the public domain worldwide." /></span>
 
 <span class="fullwidthimage"><img src="<REPLACE>closetotheoryminus7_exp_util</REPLACE>" title="I release this image into the public domain worldwide." /></span>
+<span class="fullwidthimage"><img src="<REPLACE>closetotheoryminus7_exp_sat_util</REPLACE>" title="I release this image into the public domain worldwide." /></span>
 
 <h3>Emergency savings = $1 million</h3>
 
-(this is also roughly what you'd get if you split between margin and non-margin investing with mostly non-margin investing)
+(This policy is also roughly what you'd get if you split between margin and non-margin investing with mostly non-margin investing.)
 
 <REPLACE>emergsav1m_results_table</REPLACE>
 
@@ -1230,31 +1261,36 @@ E[ 1/(S<sub>t</sub> + V<sub>t</sub>) * exp(ln(V<sub>0</sub>) + h(c)) * h'(c) ] =
 
 <span class="fullwidthimage"><img src="<REPLACE>donttaper_optimal_leverage_graph</REPLACE>" title="I release this image into the public domain worldwide." /></span>
 
+The optimal-leverage graph above shows that when we don't taper off higher leverage amounts toward the end of the simulation period, the expected-value curve is able to be concave up instead of concave down the way it normally is. Of course, the median also shoots down more dramatically than usual.
+
 <span class="fullwidthimage"><img src="<REPLACE>donttaper_exp_util</REPLACE>" title="I release this image into the public domain worldwide." /></span>
 <span class="fullwidthimage"><img src="<REPLACE>donttaper_exp_sat_util</REPLACE>" title="I release this image into the public domain worldwide." /></span>
 
 <h3>Don't rebalance monthly</h3>
 
-In my default simulation configuration, the investor may become less leveraged over time because she only takes 2X leverage on new equity purchases. If the market rises, her leverage becomes less than 2X due to higher equity without correspondingly higher debt. By default I avoided rebalancing to increase leverage in these cases out of concern that too much rebalancing would be harmful, along the lines of what we see with leveraged ETFs. But I wanted to try a variant where this kind of rebalancing was done monthly if the margin-to-equity ratio fell below <REPLACE>volunary_max_margin_to_assets_as_percent</REPLACE>% (the investor's personal not-quite-2X leverage target). In order to avoid incurring transactions costs on trivially small equity purchases, the investor only buys new ETF shares for rebalancing if she can buy at least $<REPLACE>min_additional_purchase_amount</REPLACE> of such shares at once.
+In this configuration, the investor buys new shares at the standard leverage ratio but doesn't rebalance existing shares to increase leverage when asset prices rise. This tends to cause margin-to-assets ratios to fall over time as asset values appreciate without corresponding increases in debt.
 
 <REPLACE>dontreb_results_table</REPLACE>
 
 <span class="fullwidthimage"><img src="<REPLACE>dontreb_optimal_leverage_graph</REPLACE>" title="I release this image into the public domain worldwide." /></span>
 
+Remember that <b>"2.5X leverage" isn't really 2.5X</b> because in this setting, the investor only rebalances when asset prices fall, not when they rise, so the investor is actually not fully leveraged much of the time.
+
 <span class="fullwidthimage"><img src="<REPLACE>dontreb_exp_util</REPLACE>" title="I release this image into the public domain worldwide." /></span>
 <span class="fullwidthimage"><img src="<REPLACE>dontreb_exp_sat_util</REPLACE>" title="I release this image into the public domain worldwide." /></span>
 
-Remember that <span style="color:red">"2.5X leverage" isn't really 2.5X</span> because in this setting, the investor only rebalances when asset prices fall, not when they rise, so the investor is actually not fully leveraged much of the time. Therefore, don't conclude that you should use 2.5X leverage for a strategy that <i>does</i> rebalance!
+<!--
+NOT TRUE ANYMORE AS OF 9 MAY 2015:
 
-TEST THIS: Oddly, the results depend very sensitively on what might seem a trivial parameter: whether, when Interactive Brokers liquidates shares in the investor's account to stay within margin limits, they liquidate random shares or the shares with the biggest capital losses. If Interactive Brokers liquidates random shares, they may leave the investor with big capital gains that will be taxed. If Interactive Brokers liquidates the shares with the biggest losses, they typically leave the investor with net capital losses, of which $3K/year can be deducted from income taxes.
-
-The margin-to-assets ratios for this variation tend to decline more with time as asset prices grow, since the investor isn't actively rebalancing back up toward target leverage. Here's a graph of that for 2X leverage:
+TEST THIS: Oddly, the results depend very sensitively on what might seem a trivial parameter: whether, when Interactive Brokers liquidates shares in the investor's account to stay within margin limits, they liquidate random shares or the shares with the biggest capital losses. If Interactive Brokers liquidates random shares, they may leave the investor with big capital gains that will be taxed. If Interactive Brokers liquidates the shares with the biggest losses, they typically leave the investor with net capital losses, of which $3K/year can be deducted from income taxes.-->
 
 <span class="fullwidthimage"><img src="<REPLACE>dontreb_indMTA</REPLACE>" title="I release this image into the public domain worldwide." /></span>
 
-Also, there are many fewer accumulated capital losses because if leverage is less than 2X, there's much less selling of securities to meet margin requirements:
+There are many fewer accumulated capital losses than in the default configuration because if leverage is less than 2X, there's much less selling of securities to meet margin requirements:
 
 <span class="fullwidthimage"><img src="<REPLACE>dontreb_carrcg</REPLACE>" title="I release this image into the public domain worldwide." /></span>
+
+This variant still does annual tax-loss harvesting, but apparently the losses accumulated from yearly harvesting are much smaller than those that can be harvested when rebalancing in response to losses on a daily basis (which the default simulation does more than this version).
 
 <h3>Don't rebalance monthly and don't taper off leverage toward end</h3>
 
@@ -1284,9 +1320,9 @@ We can see from the results table for this method that it's more certain to outp
 
 <span class="fullwidthimage"><img src="<REPLACE>princthru_optimal_leverage_graph</REPLACE>" title="I release this image into the public domain worldwide." /></span>
 
-<h3>Best policy?</h3>
+<h3>Discussion</h3>
 
-TODO look at graphs...
+The summary of these graphs is what one would have expected: Policies that keep you more leveraged for longer have higher expected value but also lower median value.
 
 <h2>Parameter sensitivity analysis</h2>
 
@@ -1455,40 +1491,61 @@ If you do a web search for {<a href="https://www.google.com/search?q=leveraged%2
 I'd barely heard of leveraged funds until I read about them in their book, and when I looked into it, what I found was so disturbing that I think it was irresponsible of them to suggest this as a valid way of implement their plan, and if one of them is using this fund I have serious doubts about their competence. It seems clear that they are specifically endorsing the idea of buying and holding a kind of mutual fund whose providers say specifically that it is unsuitable for and should not be used by buy-and-hold investors.
 </blockquote>
 
-A <a href="http://dqydj.net/dont-use-leveraged-etfs-unless/" title="'Don’t Use Leveraged ETFs (Unless…)'">blog post</a> quotes another person as saying: "Levered ETFs can be great...for the short-term.  Otherwise, the decay eats investors alive."
+A <a href="http://dqydj.net/dont-use-leveraged-etfs-unless/" title="'Don’t Use Leveraged ETFs (Unless…)'">blog post</a> quotes another person as saying: "Levered ETFs can be great...for the short-term.  Otherwise, the decay eats investors alive." On another post, someone <a href="http://seekingalpha.com/article/1189121-worth-repeating-why-buy-and-hold-in-daily-leveraged-etfs-should-be-avoided#comment-15064631" title="'Worth Repeating: Why Buy-And-Hold In Daily Leveraged ETFs Should Be Avoided'">says</a>: "Never ever hold them [leveraged ETFs] for long term. It's a losing proposition."
 
 The Bogleheads wiki <a href="http://www.bogleheads.org/wiki/Inverse_and_leveraged_ETFs">entry</a> on leveraged ETFs warns:
 <blockquote>
 These ETFs are for single-day or very-short-term "trading," speculating, gambling only. They are no good for long-term investing. Regardless of what you might or might not think about the possible usefulness of a long-term leveraged position achieved by using margin, leveraged and inverse ETFs are a completely different thing and do not give even remotely comparable results.
 </blockquote>
+<a href="http://news.morningstar.com/articlenet/article.aspx?id=271892" title="'Warning: Leveraged and Inverse ETFs Kill Portfolios'">Another article</a> likewise draws a distinction between leveraged ETFs and margin:
+<blockquote>
+If you're hell-bent on using leverage for any period of time longer than a day, you'd be better off using a margin account in almost any real-world scenario. This is not an opinion--it's a highly likely statistical probability.
+</blockquote>
 
-<h3>Theoretical performance</h3>
+I think this statement is wrong. As is shown below, I think daily-rebalanced leveraged ETFs have comparable returns as constant-leverage margin investing (ignoring expense ratios and taxes). Maybe I'm wrong, and if so, please correct me! Or maybe the difference in conclusions comes from these authors interpreting "margin investing" as not rebalancing very often and so being less leveraged.
 
-The math of leveraged-ETF performance (ignoring taxes and expense ratios) is actually closer to the theory discussed in previous sections than margin investing is, because leveraged ETFs rebalance daily and so hold more true to the assumption of constant leverage. Moreover, within a few months, monthly rebalanced ETFs <a href="http://www.aabri.com/manuscripts/10676.pdf" title="'Daily vs. monthly rebalanced leveraged funds'">show similar trends</a> as daily-rebalanced ETFs do, so I don't think rebalancing frequency per se is a huge factor. My best guess is the rebalancing matters mainly through how leveraged it makes you: The more frequently you rebalance back up to 2X leverage, the higher your actual leverage amount is averaged over time.
+The math of leveraged-ETF performance (ignoring taxes and expense ratios) is actually closer to the theory discussed in previous sections than margin investing is, because leveraged ETFs rebalance daily and so hold more true to the assumption of constant leverage. Moreover, within a few months, monthly rebalanced ETFs <a href="http://www.aabri.com/manuscripts/10676.pdf" title="'Daily vs. monthly rebalanced leveraged funds'">show similar trends</a> as daily-rebalanced ETFs do, so I don't think rebalancing frequency per se is a huge factor. My best guess is that rebalancing matters mainly through how leveraged it makes you: The more frequently you rebalance back up to 2X leverage, the higher your actual leverage amount is averaged over time.
 
-Most academic studies seem to agree with this conclusion, though at least one may disagree: ``leveraged ETFs, on average, outperform the regular ETFs and the indexes but they are more hazardous." FIX THIS\cite{Rompotis}\footnote{This article is paywalled, so I haven't read more than its abstract.}
+<h3>Other legitimate risks of leveraged ETFs</h3>
+
+"<a href="http://seekingalpha.com/article/1189121-worth-repeating-why-buy-and-hold-in-daily-leveraged-etfs-should-be-avoided">Worth Repeating: Why Buy-And-Hold In Daily Leveraged ETFs Should Be Avoided</a>" notes some risks with leveraged ETFs that extend beyond their theoretical return performance. I'm curious to know how significant these risks are in practice:
+<blockquote>
+Several leveraged ETFs have in the last years ended up having a changed their strategic <a href="http://www.nyse.com/pdfs/TraderUpdateDirexion2x3xNameChanges10242011.pdf" rel="nofollow">objective</a> and/or <a href="http://www.direxionfunds.com/press-release/direxion-announces-modifications-to-eight-exchange-traded-funds" rel="nofollow">structure</a>. And some have abruptly been <a href="http://www.direxionfunds.com/press-release/rafferty-asset-management-closing-nine-direxion-daily-3x-shares-funds" rel="nofollow">shut down</a>, exposing longer term holders to yet another risk factor concerning these instrument's longer term return paths as a longer term exposure will involuntarily be closed down one way or the other.
+
+The holders of these instruments will in addition take on counter-party risk. In many cases these funds are structured around synthetic total return swaps where the ETF operator exposes the execution of the strategy and at least a substantial part of the clients' investment to the fate of individual international investment banks.
+</blockquote>
+
+That said, none of these seems terrible.
+
+I don't know much about the counterparty risk, but I assume it's priced in to the swaps and so perhaps doesn't affect expected returns?
+
+As far as liquidation: When ETFs shut down, they give investors <a href="http://www.fa-mag.com/news/what-happens-when-my-etf-closes-11599.html" title="'What Happens When My ETF Closes?'">3-4 weeks of advance notice</a>, which is enough time to sell or donate the securities. Donating would be better if you want to avoid paying capital-gains taxes, but it's hardly a tragedy if you have to donate shares earlier, since you were only investing in order to get higher returns from leverage anyway. If you contribute the ETF shares to a donor-advised fund, the money can continue to grow at unleveraged equity rates of return until you're ready to donate. ETF liquidation may involve some extra fees and losses, but the effects of these probably aren't huge.
+
+"<a href="http://www.investopedia.com/articles/exchangetradedfunds/09/etf-out-of-business.asp">A Guide To ETF Liquidation</a>" gives some advice on reducing the risk of liquidation, such as choosing broader funds with higher trading volume and assets under management. On the other hand, since narrower, lower-volume ETFs have higher liquidation risk, perhaps those funds also have higher expected returns to compensate?
+
+Margin investing also involves some "liquidation risk" of sorts. For instance, Interactive Brokers might close down or might significantly change its margin-investing policies. Since you can hold leveraged ETFs with more stable brokers like Fidelity or Vanguard, leveraged ETFs have a slight advantage over margin investing on this point.
 
 <h3>Looking at actual fund data</h3>
 
 <h4>2X fund: SSO</h4>
 
-With all these warnings, I wanted to check that my understanding of leveraged-ETF performance was accurate. In theory, a leveraged ETF's daily return should be 2X the daily return of the underlying ETF, minus daily fees and interest. Is this true in actual data, or are there other gotchas that contribute to poor long-run performance?
+With all the warnings against leveraged ETFs, I wanted to check that my understanding of leveraged-ETF performance was accurate. In theory, a leveraged ETF's daily return should be 2X the daily return of the underlying ETF, minus daily fees and interest. Is this true in actual data, or are there other gotchas that contribute to poor long-run performance?
 
-In this <a href="https://docs.google.com/spreadsheets/d/1g2B0vZwePiaJ0ypqTqe_jheLBF25qNRtb-H2eoDcNik/edit#gid=0">spreadsheet</a>, I gathered from Yahoo Finance historical data the adjusted closing prices for SPY (an S&P 500 ETF) and SSO (a 2X fund on top of the S&P 500). I calculated daily returns for SPY and then computed predicted daily returns for SSO as
+In this <a href="https://docs.google.com/spreadsheets/d/1g2B0vZwePiaJ0ypqTqe_jheLBF25qNRtb-H2eoDcNik/edit#gid=0">spreadsheet</a>, I gathered from Yahoo Finance the adjusted closing prices for SPY (an S&P 500 ETF) and SSO (a 2X fund on top of the S&P 500). I calculated daily returns for SPY and then computed predicted daily returns for SSO as
 <blockquote>
 2*(return of SPY) - (some constant for fees+interest).
 </blockquote>
-I normalized so that the starting prices on 3 Jan. 2007 were the same, and then I adjusted the fees+interest constant such that the ending prices on 2 Apr. 2015 were also the same. The average absolute percent error between the predicted SSO price and the actual SSO price on any given day was 3.3%, and the max error was 8.9%. The fitting constant turned out to be 2.26%. This made a lot of sense, because SSO's <a href="http://www.proshares.com/funds/sso.html" title="'ProShares ETFs: Ultra S&amp;P500 - Overview'">expense ratio is</a> 0.89%, and margin rates at Interactive Brokers are ~1% to 1.5%. So 2.26% seems about right for the combination of expense ratio and interest charges.
+I normalized so that the starting prices on 3 Jan. 2007 were the same, and then I adjusted the fees+interest constant such that the ending prices on 2 Apr. 2015 were also the same. The average absolute percent error between the predicted SSO price and the actual SSO price on any given day was 3.3%, and the max error was 8.9%. The fitting constant turned out to be 2.26%. This made a lot of sense, because SSO's <a href="http://www.proshares.com/funds/sso.html" title="'ProShares ETFs: Ultra S&amp;P500 - Overview'">expense ratio is</a> 0.89%, and margin rates at Interactive Brokers are ~1% to ~1.5%. So 2.26% seems about right for the combination of expense ratio and interest charges.
 
 To ensure that my prediction formula was actually good and that I wasn't just fitting any old formula by choosing the fees+interest constant properly, I added another dummy column to my spreadsheet that used the formula
 <blockquote>
-3*(return of SPY) minus (some other constant for fees+interest).
+3*(return of SPY) - (some other constant for fees+interest).
 </blockquote>
-Using the same procedure as before, I found that the fees+interest constant had to be -0.85% (which doesn't make sense). The average absolute error per day was 27%, and the max error was 64%. So it didn't appear that I could fit any formula well by choosing the constant appropriately.
+Using the same procedure as before, I found that the fees+interest constant had to be -0.85% (which doesn't make sense). The average absolute error per day was 27%, and the max error was 64%. So it didn't appear that I could fit just any old formula well by choosing the constant appropriately.
 
 <h4>2X fund: EET</h4>
 
-I <a href="https://docs.google.com/spreadsheets/d/1g2B0vZwePiaJ0ypqTqe_jheLBF25qNRtb-H2eoDcNik/edit#gid=1507917387">ran the same procedure</a> for a different 2X fund: ProShares Ultra MSCI Emerging Markets (EET). It targets 2X daily returns of the MSCI Emerging Markets index, which can be tracked with EEM. The implied fees+interest was only 0.013. Considering that EET <a href="http://www.proshares.com/media/fact_sheet/ProSharesFactSheetEET.pdf" title="'Fact Sheet as of 3/31/15 ProShares Ultra MSCI Emerging Markets'">has an expense ratio of</a> 0.0095, that translates to implied interest of 0.0035 (or 0.35%). If that's accurate, it would put the fees+interest for EET on par with the interest alone for margin investing at Interactive Brokers, in which case EET investors wouldn't be at a disadvantage relative to margin investors due to expenses.
+I <a href="https://docs.google.com/spreadsheets/d/1g2B0vZwePiaJ0ypqTqe_jheLBF25qNRtb-H2eoDcNik/edit#gid=1507917387">ran the same procedure</a> for a different 2X fund: ProShares Ultra MSCI Emerging Markets (EET). It targets 2X daily returns of the MSCI Emerging Markets index, which can be tracked using the EEM fund. The implied fees+interest was only 0.013. Considering that EET <a href="http://www.proshares.com/media/fact_sheet/ProSharesFactSheetEET.pdf" title="'Fact Sheet as of 3/31/15 ProShares Ultra MSCI Emerging Markets'">has an expense ratio of</a> 0.0095, that translates to implied interest of 0.0035 (or 0.35%). If that's accurate, it would put the fees+interest for EET on par with the interest alone for margin investing at Interactive Brokers, in which case EET investors wouldn't be at a disadvantage relative to margin investors due to expenses.
 
 When fitting predicted vs. actual EET prices, the average absolute daily error was only 0.5%, and the max was 2.7%. In contrast, trying to fit a 3X formula gave average daily error of 9.6% and max error of 33%.
 
@@ -1496,7 +1553,7 @@ EEM's empirical annual &sigma; between 4 Jun. 2009 and 1 May 2015 was 0.23, and 
 
 <h4>3X fund: EDC</h4>
 
-I <a href="https://docs.google.com/spreadsheets/d/1g2B0vZwePiaJ0ypqTqe_jheLBF25qNRtb-H2eoDcNik/edit#gid=2110833699">ran the same procedure</a> for a 3X fund: Direxion Daily Emrg Mkts Bull 3X ETF (EDC). It targets 3X daily returns of MSCI Emerging Markets index, which can be tracked with EEM. The implied fees+interest was weirdly low: 0.000094. Considering that EDC <a href="http://www.direxioninvestments.com/products/direxion-daily-emerging-markets-bull-3x-etf" title="'Direxion Daily Emerging Markets Bull & Bear 3x Shares'">has an expense ratio of</a> 0.0095, that translates to implied interest of -0.0094. Hmm.
+I <a href="https://docs.google.com/spreadsheets/d/1g2B0vZwePiaJ0ypqTqe_jheLBF25qNRtb-H2eoDcNik/edit#gid=2110833699">ran the same procedure</a> for a 3X fund: Direxion Daily Emrg Mkts Bull 3X ETF (EDC). It targets 3X daily returns of MSCI Emerging Markets index, which can be tracked using the EEM fund. The implied fees+interest was weirdly low: 0.000094. Considering that EDC <a href="http://www.direxioninvestments.com/products/direxion-daily-emerging-markets-bull-3x-etf" title="'Direxion Daily Emerging Markets Bull & Bear 3x Shares'">has an expense ratio of</a> 0.0095, that translates to implied interest of -0.0094. Hmm.
 
 When fitting predicted vs. actual EDC prices, the average absolute daily error was 1.2%, and the max was 8.8%. In contrast, trying to fit a 2X formula gave average daily error of 11% and max error of 32%.
 
@@ -1510,10 +1567,9 @@ The annual &sigma; for ^MID between 11 Feb. 2010 and 5 May 2015 was 0.19, and th
 
 <h3>Actual performance data for some leveraged funds</h3>
 
-The following tables use adjusted closing prices from Yahoo Finance historical data. Due to the overlap in time periods, the numbers are obviously correlated. Unfortunately most leveraged ETFs are new, so it's hard to find ones that extended back into to bear markets. Probably if I had more data from 2007-2008, the leveraged funds would look terrible.
+The following tables use adjusted closing prices from Yahoo Finance historical data. Due to the overlap in time periods, the numbers are obviously correlated. Unfortunately most leveraged ETFs are new, so it's hard to find ones that extended back into bear markets. Probably if I had more data from 2007-2008, the leveraged funds would look terrible.
 
 <h4>2X funds</h4>
-
 <table>
 <tr><td><i>Regular + leveraged funds</i></td> <td><i>Regular initial price (S<sub>0</sub>)</i></td> <td><i>Regular final price (S<sub>t</sub>)</i></td> <td><i>Regular final/initial (S<sub>t</sub>/S<sub>0</sub>)</i></td> <td><i>Leveraged initial price (V<sub>0</sub>)</i></td> <td><i>Leveraged final price (V<sub>t</sub>)</i></td> <td><i>Leveraged final/initial (V<sub>t</sub>/V<sub>0</sub>)</i></td> <td><i>(V<sub>t</sub>/V<sub>0</sub>)/(S<sub>t</sub>/S<sub>0</sub>)</i></td></tr>
 <tr><td>EEM vs. EET (4 Jun. 2009 to 1 May 2015)</td> <td>29.95</td> <td>43.14</td> <td>1.44</td> <td>57.93</td> <td>80.55</td> <td>1.39</td> <td><span style="color:red">0.97</span></td></tr>
@@ -1541,21 +1597,21 @@ If you had initially held $1 in each regular fund of this table, you would have 
 
 <h3>A simple simulation</h3>
 
-In contrast to the elaborate margin simulation described above, I created a barebones leveraged-ETF simulation. Part of the motivation for making it simple was to reduce the probability of errors. This simulation involves a regular ETF and a 2X leveraged-ETF, starting out at the same initial balance and updating in response to the same daily market returns. The market parameters are the same as for the margin simulation.
+In contrast to the elaborate margin simulation described above, I created a barebones leveraged-ETF simulation. Part of the motivation for making it simple was to reduce the probability of errors. This simulation involves a regular ETF and a 2X leveraged-ETF, updating in response to the same daily market returns. The investor adds money monthly based on employment in the same way as in the margin simulation. The market parameters are also the same as for the margin simulation.
 
 The daily return for the regular ETF is
 <blockquote>
-daily_return - regular_ETF_daily_expense_ratio,
+market_daily_return - regular_ETF_daily_expense_ratio,
 </blockquote>
 with regular_ETF_daily_expense_ratio = 0.1%/(252 trading days per year), since index ETFs tend to have expense ratios around 0.1%.
 
-The return of the leveraged ETF is
+The return of the 2X leveraged ETF is
 <blockquote>
-2 * daily_return - daily_interest_rate - leveraged_ETF_daily_expense_ratio.
+2 * market_daily_return - daily_interest_rate - leveraged_ETF_daily_expense_ratio.
 </blockquote>
-I took leveraged_ETF_daily_expense_ratio = 1%/(252 trading days per year), since as discussed above, the expense ratio of the 2X fund SSO <a href="http://www.proshares.com/funds/sso.html" title="'ProShares ETFs: Ultra S&amp;P500 - Overview'">is</a> 0.89%. I used the same interest rate for leveraged ETFs as for my margin calculations in order to make the results comparable between the two and because, as noted when looking at actual fund data above, implied interest rates for some leveraged ETFs seem to be about the same as current margin interest rates. Leveraged ETFs with lower implied interest rates will in practice be better than the default simulation suggests.
+I took leveraged_ETF_daily_expense_ratio = 1%/(252 trading days per year), since as discussed above, the expense ratios of leveraged ETFs tend to be around 0.9% to 0.95%. I used the same interest rate for leveraged ETFs as for my margin calculations in order to make the results comparable between the two and because, as noted when looking at actual fund data above, implied interest rates for some leveraged ETFs seem to be about the same as current margin interest rates. Leveraged ETFs with lower implied interest rates will in practice be better than the simulation suggests.
 
-Following are some graphs showing, on a single run of the simulation, how the leveraged ETF compared with a regular ETF on the same underlying asset. These graphs look a lot like those you'll find online comparing actual leveraged ETFs against their underlying indices.
+Following are some graphs showing, on a single run of the simulation, how the leveraged ETF compared with the corresponding regular ETF. These graphs look a lot like those you'll find online comparing actual leveraged ETFs against their underlying indices.
 
 <span class="fullwidthimage"><img src="<REPLACE>ETF_default_sample_traj0</REPLACE>" title="I release this image into the public domain worldwide." /></span>
 
@@ -1569,6 +1625,18 @@ Following are some graphs showing, on a single run of the simulation, how the le
 
 These graphs give excellent intuition for the performance of leveraged ETFs. Most of the time, even if the market goes up as a whole, the leveraged fund does worse. But every once in a while, the market goes up enough days in a row that the leveraged fund blows the regular fund out of the water. These lucky events account for a lot of the overall expected value of the leveraged fund.
 
+Leveraged funds benefit when successive daily returns have the same sign. We can see this from the following simple calculation. Let R<sub>1</sub> and R<sub>2</sub> be the returns on days 1 and 2, respectively. Then the multiplier on the regular fund is
+<blockquote>
+(1+R<sub>1</sub>)(1+R<sub>2</sub>) = 1 + R<sub>1</sub> + R<sub>2</sub> + R<sub>1</sub>R<sub>2</sub>,
+</blockquote>
+while the multiplier on the leveraged fund (ignoring expenses and interest) is
+<blockquote>
+(1+2R<sub>1</sub>)(1+2R<sub>2</sub>) = 1 + 2R<sub>1</sub> + 2R<sub>2</sub> + 4R<sub>1</sub>R<sub>2</sub>.
+</blockquote>
+When R<sub>1</sub>R<sub>2</sub> > 0, i.e., when the two returns have the same sign, the quadratic term R<sub>1</sub>R<sub>2</sub> term boosts leveraged-ETF performance 4 times as much as regular-ETF performance.
+
+Typically the articles that warn against volatility drag from leveraged ETFs (such as <a href="http://seekingalpha.com/article/1189121-worth-repeating-why-buy-and-hold-in-daily-leveraged-etfs-should-be-avoided" title="'Worth Repeating: Why Buy-And-Hold In Daily Leveraged ETFs Should Be Avoided'">this one</a>) rig their example returns to alternate from day to day in order to make the leveraged-ETF perform worse. But in practice, returns on successive days are (roughly) as likely to have the same sign as opposite signs.
+
 <h3>Results vs. theory</h3>
 
 To compare the results of my simple simulation against theory, I used basically the same leverage equations as for margin investing. The only difference is that because the expense ratio of the ETF is now significant (at least for the leveraged ETF), I include it in the equations, using the symbol f. In other words, for the regular ETF:
@@ -1579,13 +1647,15 @@ And for the leveraged ETF:
 <blockquote>
 dV<sub>t</sub>/V<sub>t</sub> = (r + (&mu;-r)c) dt - f dt + c &sigma; dW<sub>t</sub>.
 </blockquote>
-These equations assume the expense ratio is subtracted continuously, which presumably isn't true in practice.
+These equations assume the expense ratio is subtracted continuously, which presumably isn't true in practice?
 
-In order to help my simulation results match theory, I removed black swans. The following table shows the results when doing so:
+In order to help my simulation results match theory, I made the same adjustments as when I tried to get my margin simulation to match theory (removing inflation, black swans, unemployment, emergency savings, and salary beyond the first pay period). The following table shows the output:
 
 <REPLACE>ETF_match_theory_results_table</REPLACE>
 
-As you can see, leveraged ETFs usually lose! It's no wonder they're discouraged for most investors.
+<span class="fullwidthimage"><img src="<REPLACE>ETF_match_theory_bothhist</REPLACE>" title="I release this image into the public domain worldwide." /></span>
+
+As you can see, leveraged ETFs usually do worse! It's no wonder they're discouraged for most investors.
 
 Now to compare these numbers against theory:
 
@@ -1627,9 +1697,9 @@ empirical discounted mean (from above table) = <REPLACE>actual_mean_lev_ETF</REP
 
 This simple leveraged-ETF simulation doesn't record actual margin or asset amounts but merely relies on the principle that the leveraged fund's daily return is roughly 2 times that of the underlying index. The approximation that the daily return is 2X the underlying return should be roughly true if the fund rebalances daily.
 
-What if the fund rebalances monthly? In this case, the fund's return over the month isn't exactly 2X the underlying return that month because the leverage ratio doesn't remain constant at 2X during the whole month. For instance, if the fund gained in value, its leverage would have fallen below 2X, so that the monthly return of the leveraged fund should be somewhat less than 2X that of the underlying index.
+What if the fund rebalances monthly? In this case, the fund's return over the month isn't exactly 2X the underlying return for that month because the leverage ratio doesn't remain constant at 2X during the whole month. For instance, if the fund gained in value, its leverage would have fallen below 2X, so that the monthly return of the leveraged fund should be somewhat less than 2X that of the underlying index.
 
-My margin simulations did keep track of margin and asset totals given daily changes in prices, and they rebalanced monthly. So if we strip away the other complexities of the margin simulation, it should approximate the simple leveraged ETF simulation but with exact monthly rebalancing. I presented the results for the barebones version of the margin simulation previously, but for reference, here they are again:
+My margin simulations did keep track of margin and asset totals given daily changes in prices, and they rebalanced monthly. So if we strip away the other complexities of the margin simulation, it should approximate the simple leveraged ETF simulation but with monthly rebalancing. I presented the results for the barebones version of the margin simulation previously, but for reference, here they are again:
 
 <REPLACE>closetotheory_results_table</REPLACE>
 
@@ -1686,6 +1756,10 @@ Multiplying daily returns is suboptimal because if the year has a big capital lo
 <span class="fullwidthimage"><img src="<REPLACE>ETF_default_high_taxes_exp_util</REPLACE>" title="I release this image into the public domain worldwide." /></span>
 <span class="fullwidthimage"><img src="<REPLACE>ETF_default_high_taxes_exp_sat_util</REPLACE>" title="I release this image into the public domain worldwide." /></span>
 
+<h3 id="3X_funds_expense_ratio">Using 3X funds to reduce expense ratio?</h3>
+
+From what I've seen, it appears that 3X funds have roughly comparable expense ratios as 2X funds. This suggests an idea: Instead of holding 100% of a 2X fund, could you hold 50% of a 3X fund and 50% of an unleveraged ETF? This would achieve the same equity exposure for half the management fees. Maybe this is a bad idea for some reason, such as that the implied interest for 3X leverage is higher than for 2X leverage?
+
 <h2>Leveraged ETFs vs. margin investing</h2>
 
 It seems as though leveraged ETFs offer similar performance characteristics as ordinary constant-leverage margin investing. Leveraged ETFs are temptingly easy compared with do-it-yourself margin accounts.
@@ -1723,8 +1797,6 @@ Here are some other values of the K threshold with different parameter inputs:
 <tr><td>3X leveraged fund</td> <td><REPLACE>lev3X_K_threshold</REPLACE></td></tr>
 </table>
 One reason to set W high is that there's some small risk that you'll mess things up badly trying to manage the account on your own. For instance, say you have $300K invested, and there's a 1% chance that you make a mistake that costs you 10% of your assets ($30K), then this would increase W by $300 annually.
-
-<span style="color:red">check the above #s by hand once</span>
 
 On the other hand, these numbers ignore taxes from leveraged ETFs, which might be an important additional argument favoring manual margin investing, so we incorporate taxes in the next subsection.
 
@@ -1781,7 +1853,7 @@ Here's a version of the leveraged-ETF simulation without expense ratios. It serv
 
 <REPLACE>ETF_default_no_exp_ratios_results_table</REPLACE>
 
-Note how close<span style="color:orange">CHECK THIS</span> the average ending balance of the "simple calculation" for checking the margin simulation is to the average leveraged-ETF ending balance. This is because they represent the same calculations. If I run each simulation for equal numbers of trials using the same initial random seed, the numbers come out identical.
+Note how close<span style="color:orange">TODO CHECK THIS</span> the average ending balance of the "simple calculation" for checking the margin simulation is to the average leveraged-ETF ending balance. This is because they represent the same calculations. If I run each simulation for equal numbers of trials using the same initial random seed, the numbers come out identical.
 
 Now here are the leveraged-ETF results if we add in expense ratios. These are just the "Default" leveraged-ETF results from above:
 
@@ -1801,6 +1873,96 @@ And here's with them:
 
 <REPLACE>ETF_default_3X_results_table</REPLACE>
 
+<h2>Shorting leveraged ETFs?</h2>
+
+Because leveraged ETFs tend to decline in value, some investors like to short sell them, which usually results in a gain. This seems risky to me, since every once in a while, the funds will perform amazingly, and then you'll lose a huge amount of money. If you don't go bankrupt from shorting leveraged ETFs, then because long leveraged ETFs have big positive expected value, short leveraged ETFs have big negative expected value.
+
+I suppose that if, when leveraged ETFs perform amazingly, you declare bankruptcy, then you could get usual-case gains from shorting while not taking huge losses when the ETFs do really well. But setting yourself up for possible bankruptcy doesn't strike me as a good idea.
+
+<h2>Should you have both leveraged and unleveraged investments?</h2>
+
+So far I've been assuming that an investor using leverage would maintain some amount of emergency funds that are invested without leverage, to fall back on if/when the leveraged investments tank. Would it be better to instead invest everything but at a lower leverage rate?
+
+<h3>Framework</h3>
+
+I'll focus on the case of leverage using leveraged ETFs. It can be straightforwardly extended to constant-leverage margin investing by setting the ETF expense ratio to 0 or to a low number (say, the ~0.1% expense ratio paid for typical unleveraged index ETFs).
+
+Assume that V<sub>0</sub> = $1, and the investor allocates some fraction &theta; of this initial investment toward a c-times leveraged ETF, with the rest being invested in an unleveraged ETF on the same index. (In practice, you might want to hold leveraged and unleveraged ETFs on many indexes.) For example, maybe &theta; = 0.5 and c = 3, in which case the investor puts half of her starting money into a 3X leveraged ETF and the other half into a normal ETF. How does this compare to putting all her money into a 2X leveraged ETF?
+
+Let's call the final value of the mixed portfolio after t years M<sub>t</sub>. Based on the <a href="#leveraged_V_t">leveraged V<sub>t</sub> equation</a> and <a href="#regular_S_t">regular S<sub>t</sub> equation</a>, and adding in the leveraged ETF's expense ratio f, we have
+<blockquote>
+M<sub>t</sub> = &theta; exp{ (r + (&mu;-r)c) t - ft - c<sup>2</sup>&sigma;<sup>2</sup>t/2 + c&sigma;W<sub>t</sub> } + (1-&theta;) exp{ &mu;t - &sigma;<sup>2</sup>t/2 + &sigma;W<sub>t</sub> }. &nbsp;&nbsp;&nbsp;  (call this the "<span id="M_t_equation" style="color:green">M<sub>t</sub> equation</span>")
+</blockquote>
+
+<h3>Comparing expected values</h3>
+
+Using the <a href="#regular_mean">regular mean equation</a> and <a href="#leveraged_mean">leveraged mean equation</a>:
+<blockquote>
+E[ M<sub>t</sub> ] = &theta; E[ exp{ (r + (&mu;-r)c) t - ft - c<sup>2</sup>&sigma;<sup>2</sup>t/2 + c&sigma;W<sub>t</sub> } ] + (1-&theta;) E[ exp{ &mu;t - &sigma;<sup>2</sup>t/2 + &sigma;W<sub>t</sub> } ]<br />
+= &theta; exp{(r + (&mu;-r)c) t - ft} + (1-&theta;) exp(&mu;t)<br />
+= exp(&mu;t) [ &theta; exp{(&mu;-r)(c-1)t - ft} + (1-&theta;) ].
+</blockquote>
+As we already would have guessed, the &theta; value that maximizes this is &theta; = 1, but investing everything in the c-times leveraged ETF is also more risky.
+
+How does this expression compare with investing everything at an intermediate leverage amount, &theta;c + (1-&theta;)? Let the t-year value of this intermediate leveraged strategy be I<sub>t</sub>. Assume this leveraged ETF has the same expense ratio f as the c-times ETF does. (This seems to be a reasonable assumption in practice based on what I've seen.) Using the <a href="#leveraged_mean">leveraged mean equation</a> and adding in the expense ratio:
+<blockquote>
+E[ I<sub>t</sub> ] = exp{(r + (&mu;-r)[&theta;c + (1-&theta;)]) t - ft}.
+</blockquote>
+Let's simplify and look at the particular case &theta; = 0.5 and c = 3. Then 
+<blockquote>
+E[ M<sub>t</sub> ] = exp(&mu;t) [ exp{(&mu;-r)(2t) - ft} + 1 ]/2
+</blockquote>
+and
+<blockquote>
+E[ I<sub>t</sub> ] = exp{(r + (&mu;-r)(2)) t - ft}<br />
+= exp(rt) exp{(&mu;-r)(2t) - ft}.
+</blockquote>
+Define U := exp{(&mu;-r)(2t) - ft}. Then
+<blockquote>
+E[ M<sub>t</sub> ] = exp(&mu;t) (U + 1)/2
+</blockquote>
+and
+<blockquote>
+E[ I<sub>t</sub> ] = exp(rt) U.
+</blockquote>
+The ratio is
+<blockquote>
+E[ M<sub>t</sub> ] / E[ I<sub>t</sub> ] = [ exp(&mu;t) (U + 1)/2 ] / [ exp(rt) U ]<br />
+= exp((&mu;-r)t) (1 + 1/U)/2<br />
+</blockquote>
+As t approaches &infin;, 1/U approaches 0, but exp((&mu;-r)t) also approaches &infin;, which makes the ratio clearly bigger than 1. How about for smaller t? <a href="https://www.wolframalpha.com/input/?i=plot%5B+exp%28%28.054-.03%29*t%29+*+%28+1%2Bexp%28-%28.054-.03%29*%282*t%29%2B.01*t%29+%29+%2F+2%2C+t%2C+0%2C+15%5D">Here</a>'s the curve using &mu; = 0.054, r = 0.03, and f = 0.01. It starts at 1 for t = 0 and increases as t increases. So a mix of no leverage and 3X leverage has higher expected value than all 2X leverage! From this perspective, emergency savings don't optimize expected value, but they have better expected value than putting all money into a 2X fund.
+
+<h3>Comparing expected utilities</h3>
+
+Since most investors won't purely maximize expected value, we now examine the tradeoff for utility(wealth) = (wealth)<sup>&alpha;</sup> for some &alpha;. Analytic equations are difficult in this case, so I computed numbers empirically by drawing random samples from the relevant lognormal distributions. In particular, I sampled <REPLACE>num_samples_for_M_t_exp_util</REPLACE> points from the distribution of M<sub>t</sub> given by the <a href="#M_t_equation">M<sub>t</sub> equation</a> and then computed expected utility for a given &alpha;. I did a parameter sweep over &theta; and c, checking &theta; values of 0, .1, .25, .5, .75, .9, and 1, paired with c values of 1.5, 2, 2.5, and 3, assuming a constant expense ratio regardless of leverage. The other parameters were set to their standard values as in the rest of this piece.
+
+In the following analysis, assume that $100K was initially invested. This table shows the optimal values of &theta; and c, along with the expected utility for those parameters, for various values of &alpha;:
+
+<table>
+<tr><td><i>&alpha;</i></td> <td><i>optimal &theta;</i></td> <td><i>optimal c</i></td> <td><i>expected utility at optimum</i></td></tr>
+<tr><td>.01</td> <td><REPLACE>optimal_theta_for_alpha=.01</REPLACE></td> <td><REPLACE>optimal_c_for_alpha=.01</REPLACE></td> <td><REPLACE>exp_util_for_alpha=.01</REPLACE></td></tr>
+<tr><td>.25</td> <td><REPLACE>optimal_theta_for_alpha=.25</REPLACE></td> <td><REPLACE>optimal_c_for_alpha=.25</REPLACE></td> <td><REPLACE>exp_util_for_alpha=.25</REPLACE></td></tr>
+<tr><td>.5</td> <td><REPLACE>optimal_theta_for_alpha=.5</REPLACE></td> <td><REPLACE>optimal_c_for_alpha=.5</REPLACE></td> <td><REPLACE>exp_util_for_alpha=.5</REPLACE></td></tr>
+<tr><td>.75</td> <td><REPLACE>optimal_theta_for_alpha=.75</REPLACE></td> <td><REPLACE>optimal_c_for_alpha=.75</REPLACE></td> <td><REPLACE>exp_util_for_alpha=.75</REPLACE></td></tr>
+<tr><td>.9</td> <td><REPLACE>optimal_theta_for_alpha=.9</REPLACE></td> <td><REPLACE>optimal_c_for_alpha=.9</REPLACE></td> <td><REPLACE>exp_util_for_alpha=.9</REPLACE></td></tr>
+<tr><td>.99</td> <td><REPLACE>optimal_theta_for_alpha=.99</REPLACE></td> <td><REPLACE>optimal_c_for_alpha=.99</REPLACE></td> <td><REPLACE>exp_util_for_alpha=.99</REPLACE></td></tr>
+</table>
+It's interesting that even for &alpha;=.01, the optimal &theta; is more than 0 and likewise that for &alpha=.99, the optimal &theta; is less than 1. Assuming this doesn't reflect a bug in my code, this implies that even very different utility functions want some balance between leverage and emergency savings. We also see how &alpha;=.75 and &alpha;=.9 are naturally discovering that half unleveraged investing and half 3X leverage beats all 2X leverage.<span style="color:orange">TODO check that all of these statements remain accurate</span>
+
+
+We can also consider optimal saturation-utility for various saturation cutoffs after which money stops being valuable. Remember that the initial investment was $100K.
+
+<table>
+<tr><td><i>saturation cutoff ($)</i></td> <td><i>optimal &theta;</i></td> <td><i>optimal c</i></td> <td><i>expected utility at optimum</i></td></tr>
+<tr><td>$500K</td> <td><REPLACE>optimal_theta_for_cutoff=$500K</REPLACE></td> <td><REPLACE>optimal_c_for_cutoff=$500K</REPLACE></td> <td><REPLACE>exp_util_for_cutoff=$500K</REPLACE></td></tr>
+<tr><td>$2 million</sup></td> <td><REPLACE>optimal_theta_for_cutoff=$2 million</REPLACE></td> <td><REPLACE>optimal_c_for_cutoff=$2 million</REPLACE></td> <td><REPLACE>exp_util_for_cutoff=$2 million</REPLACE></td></tr>
+<tr><td>$20 million</td> <td><REPLACE>optimal_theta_for_cutoff=$20 million</REPLACE></td> <td><REPLACE>optimal_c_for_cutoff=$20 million</REPLACE></td> <td><REPLACE>exp_util_for_cutoff=$20 million</REPLACE></td></tr>
+</table>
+
+
+way to save expenses
+
+
 <h2>My plan for using leverage</h2>
 
 The following was written in May 2015. It may have changed by the time you read it.
@@ -1809,12 +1971,14 @@ When I resume earning to give, I'll probably do something like this:
 <ul>
 <li>Donate some of my earnings during the year to charities in whose value I'm already pretty confident. The main reason to give now is that the charities I want to support have only so much room to grow in a given amount of time (like a sponge has only so much room to soak up water), so it's better to donate small amounts steadily than to donate large lump sums rarely.</li>
 <li>If that doesn't use 50% of my income, give more to a donor-advised fund so that I've donated at least 50% of my income during that year for maximum tax deductions.</li>
-<li>Of remaining money not saved for retirement or spent on costs of living, invest most of it with leverage. To reduce the hassle required, I'll probably use a 3X leveraged ETF rather than a margin account. 3X leverage is ok because it's fine if I lose all of this money, since I will have already donated to the most pressing charities, and this money is just a bonus.</li>
+<li>Of remaining money not saved for retirement or spent on costs of living, invest most of it with leverage. To reduce the hassle required, I'll probably use a 3X leveraged ETF rather than a margin account. 3X leverage is ok because it's fine if I lose all of this money, since I will have already donated to the most pressing charities, and this money is just a bonus. Combining 3X leverage with an unleveraged emergency fund also <a href="#3X_funds_expense_ratio">might</a> reduce expense ratios relative to using just a 2X fund, though I have no clue if this is a legitimate point.</li>
 </ul>
 
 To start, I'll buy small amounts (a few hundred $) of a few leveraged ETFs. This will help me see how they're taxed and whether there are other gotchas that only become visible once you own them. I also plan to read even more literature on leveraged ETFs to make sure I'm not missing something with my analysis, given that almost everyone agrees leveraged ETFs are not suitable for buy-and-hold investors. Theory predicts that many of the leveraged ETFs I buy will lose value, so it's not as though early feedback with leveraged-ETF performance would be enough to convince me the strategy was wrong-headed.
 
 Originally I was going to do margin investing. I might still play with it a bit to see how it goes. I've opened a margin account with Interactive Brokers. I transferred a small amount of stocks in from my previous broker, Fidelity, so that I can play around with margin investing in a low-risk way. I also would like to go through a tax cycle before investing more in Interactive Brokers, to make sure that reporting the transactions on taxes isn't too burdensome.
+
+As far as retirement, the <a href="#reasons_favoring_401k">arguments</a> in favor of contributing up to the $18K limit seem stronger to me than the arguments for investing with leverage, so I'll probably max out retirement contributions each year.
 
 <h2>A note on refreshing this essay</h2>
 

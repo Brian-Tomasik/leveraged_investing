@@ -30,7 +30,8 @@ REPLACE_STR_END = "</REPLACE>"
 TIMESTAMP_FORMAT = '%Y%b%d_%Hh%Mm%Ss'
 OPTIMISTIC_MU = .08
 LEV_ETF_LEVERAGE_RATIO = 2.0
-LEV_ETF_NUM_SAMPLES = 1
+LEV_ETF_NUM_SAMPLES = 100000
+QUICK_M_T_OPTIMIZATION = False
 NUM_LEV_ETF_TRAJECTORIES_TO_SAVE_AS_FIGURES = 10
 
 def write_essay(skeleton, outfile, cur_working_dir, num_trials, 
@@ -44,6 +45,8 @@ def write_essay(skeleton, outfile, cur_working_dir, num_trials,
 
     # Compute the results if they don't already exist.
     default_investor = Investor.Investor()
+    assert default_investor.rebalance_monthly_to_increase_leverage, \
+        "REMINDER to self: if I ever switch the default to not rebalancing monthly, I'd need to change the 'results vs. theory' configurations to force monthly rebalancing to make the numbers comparable"
     if not data_already_exists:
         # run leveraged-ETF sim
         leveraged_etf_returns.sweep_variations(leveraged_etf_returns.FUNDS_AND_EXPENSE_RATIOS, 
@@ -55,10 +58,11 @@ def write_essay(skeleton, outfile, cur_working_dir, num_trials,
                                                            approx_num_simultaneous_processes=approx_num_simultaneous_processes)
 
     """Read and parse the results for leveraged ETFs."""
-    starting_balance_for_leveraged_ETF_sim = default_investor.initial_annual_income_for_investing / \
-        leveraged_etf_returns.MONTHS_PER_YEAR
+    starting_balance_for_leveraged_ETF_sim = default_investor.initial_annual_income_for_investing * \
+        (float(margin_leverage.INTEREST_AND_SALARY_EVERY_NUM_DAYS) / \
+        margin_leverage.DAYS_PER_YEAR)
     output_text = output_text.replace(REPLACE_STR_FRONT + "starting_balance_for_leveraged_ETF_sim" + REPLACE_STR_END, 
-                                      str(starting_balance_for_leveraged_ETF_sim))
+                                      util.format_as_dollar_string(starting_balance_for_leveraged_ETF_sim))
     output_text = output_text.replace(REPLACE_STR_FRONT + "LEV_ETF_LEVERAGE_RATIO" + REPLACE_STR_END, 
                                       str(LEV_ETF_LEVERAGE_RATIO))
     for (key, val) in leveraged_etf_returns.FUNDS_AND_EXPENSE_RATIOS.iteritems():
@@ -274,6 +278,9 @@ def add_investor_params_and_calculations(output_text):
     assert default_investor.broker_max_margin_to_assets_ratio==.5, \
         "broker_max_margin_to_assets_ratio has changed, but the essay text still assumes '2X leverage' in many places. Change that."
 
+    assert default_investor.match_percent_from_401k==50, \
+        "match_percent_from_401k has changed, but the essay text still assumes 50% in many places, such as when saying that 401k is 1.5X regular. Change that."
+    
     return output_text
 
 def add_market_params_and_calculations(output_text):
@@ -550,7 +557,89 @@ def add_general_theoretical_calculations(output_text, cur_working_dir, timestamp
     output_text = output_text.replace(REPLACE_STR_FRONT + "F20R14_K_threshold_with_taxes" + REPLACE_STR_END, 
                                       util.format_as_dollar_string(F20R14_K_threshold_with_taxes))
 
+    # optimal theta and c
+    if QUICK_M_T_OPTIMIZATION:
+        NUM_SAMPLES_FROM_M_T_DISTRIBUTION = 10**3
+    else:
+        NUM_SAMPLES_FROM_M_T_DISTRIBUTION = 10**7
+    output_text = output_text.replace(REPLACE_STR_FRONT + "num_samples_for_M_t_exp_util" + REPLACE_STR_END, 
+                                      "{:,}".format(NUM_SAMPLES_FROM_M_T_DISTRIBUTION))
+    param_sweep_function = lambda use_sat_utility, utility_param: param_sweep_exp_util_M_t( \
+        [0, .1, .25, .5, .75, .9, 1.0], default_market.annual_margin_interest_rate, \
+        default_market.annual_mu, default_investor.years_until_donate, \
+        LEV_ETF_EXP_RATIO, [1.5, 2.0, 2.5, 3.0], default_market.annual_sigma, NUM_SAMPLES_FROM_M_T_DISTRIBUTION, \
+        use_sat_utility, utility_param)
+    # regular utility
+    for alpha in [".01", ".25", ".5", ".75", ".9", ".99"]:
+        print "Getting optimal theta and c for alpha = %s" % alpha
+        (theta_of_optimum, c_of_optimum, max_exp_util) = param_sweep_function( \
+            False, float(alpha))
+        output_text = output_text.replace(REPLACE_STR_FRONT + "optimal_theta_for_alpha=%s" % alpha + REPLACE_STR_END, 
+                                          str(round(theta_of_optimum,2)))
+        output_text = output_text.replace(REPLACE_STR_FRONT + "optimal_c_for_alpha=%s" % alpha + REPLACE_STR_END, 
+                                          str(round(c_of_optimum,2)))
+        output_text = output_text.replace(REPLACE_STR_FRONT + "exp_util_for_alpha=%s" % alpha + REPLACE_STR_END, 
+                                          str(round(max_exp_util,2)))
+    # saturation utility
+    for saturation_cutoff in ["$500K", "$2 million", "$20 million"]:
+        print "Getting optimal theta and c for saturation cutoff = %s" % saturation_cutoff
+        if saturation_cutoff is "$500K":
+            saturation_as_number = 500000.0
+        elif saturation_cutoff is "$2 million":
+            saturation_as_number = 2000000.0
+        elif saturation_cutoff is "$20 million":
+            saturation_as_number = 20000000.0
+        else:
+            raise Exception("Not a valid saturation-cutoff string")
+        (theta_of_optimum, c_of_optimum, max_exp_util) = param_sweep_function( \
+            True, saturation_as_number)
+        output_text = output_text.replace(REPLACE_STR_FRONT + "optimal_theta_for_cutoff=%s" % saturation_cutoff + REPLACE_STR_END, 
+                                          str(round(theta_of_optimum,2)))
+        output_text = output_text.replace(REPLACE_STR_FRONT + "optimal_c_for_cutoff=%s" % saturation_cutoff + REPLACE_STR_END, 
+                                          str(round(c_of_optimum,2)))
+        output_text = output_text.replace(REPLACE_STR_FRONT + "exp_util_for_cutoff=%s" % saturation_cutoff + REPLACE_STR_END, 
+                                          str(round(max_exp_util,2)))
+
     return output_text
+
+def param_sweep_exp_util_M_t(theta_values_to_sweep, r, mu, t, f, 
+                             c_values_to_sweep, sigma, num_samples,
+                             use_sat_utility, utility_param):
+    if use_sat_utility:
+        utility_function = lambda wealth: util.saturation_utility(wealth, utility_param)
+    else:
+        utility_function = lambda wealth: util.utility(wealth, utility_param)
+    theta_of_optimum = -9999 # junk
+    c_of_optimum = -9999 # junk
+    max_exp_util_so_far = -99999 # junk
+    INITIAL_INVESTMENT = 100000.0
+    assert INITIAL_INVESTMENT == 100000.0, "The value 100000.0 is hard-coded into the writeup HTML text."
+    for theta in theta_values_to_sweep:
+        for c in c_values_to_sweep:
+            M_t_samples = INITIAL_INVESTMENT * sample_M_t_distribution(theta, r, mu, t, f, c, sigma, num_samples)
+            utility_values = map(utility_function, M_t_samples)
+            exp_util = numpy.average(utility_values)
+            if exp_util > max_exp_util_so_far:
+                theta_of_optimum = theta
+                c_of_optimum = c
+                max_exp_util_so_far = exp_util
+
+    return (theta_of_optimum, c_of_optimum, max_exp_util_so_far)
+
+def sample_M_t_distribution(theta, r, mu, t, f, c, sigma, num_samples):
+    assert theta >= 0 and theta <= 1, "theta isn't in [0,1]"
+    
+    leveraged_location_param = (r + (mu-r)*c) * t - f * t - c**2 * sigma**2 * t/2
+    leveraged_scale_param = c * sigma * math.sqrt(t)
+    leveraged_part = numpy.random.lognormal(leveraged_location_param, \
+        leveraged_scale_param, num_samples)
+
+    regular_location_param = mu * t - sigma**2 * t/2
+    regular_scale_param = sigma * math.sqrt(t)
+    regular_part = numpy.random.lognormal(regular_location_param, \
+        regular_scale_param, num_samples)
+
+    return theta * leveraged_part + (1.0-theta) * regular_part
 
 def c_star(alpha, custom_mu=None):
     """c* is optimal leverage. alpha is as in utility(wealth) = wealth^alpha"""
@@ -593,7 +682,9 @@ def add_theoretical_calculations_for_no_unemployment_etc(output_text, no_unemplo
     default_market = Market.Market()
 
     # initial investment for the "no complications" runs
-    one_month_pay = default_investor.initial_annual_income_for_investing/12
+    one_month_pay = default_investor.initial_annual_income_for_investing * \
+        (float(margin_leverage.INTEREST_AND_SALARY_EVERY_NUM_DAYS) / \
+        margin_leverage.DAYS_PER_YEAR)
     output_text = output_text.replace(REPLACE_STR_FRONT + "one_month_pay" + REPLACE_STR_END, 
                                       util.format_as_dollar_string(one_month_pay))
 
@@ -674,10 +765,10 @@ def add_theoretical_calculations_for_no_unemployment_etc(output_text, no_unemplo
     output_text = output_text.replace(REPLACE_STR_FRONT + "prob_Z_gt_threshold" + REPLACE_STR_END, 
                                       str(round(prob_Z_gt_threshold,2)))
 
-    # Actual % times margin is better
-    actual_percent_times_margin_is_better = parse_percent_times_margin_is_better(no_unemployment_etc_results_table_contents)
-    output_text = output_text.replace(REPLACE_STR_FRONT + "actual_percent_times_margin_is_better" + REPLACE_STR_END, 
-                                      actual_percent_times_margin_is_better)
+    # Actual % times leverage is better
+    actual_percent_times_leverage_is_better = parse_percent_times_leverage_is_better(no_unemployment_etc_results_table_contents)
+    output_text = output_text.replace(REPLACE_STR_FRONT + "actual_percent_times_leverage_is_better" + REPLACE_STR_END, 
+                                      actual_percent_times_leverage_is_better)
     return output_text
 
 """
@@ -760,15 +851,15 @@ def parse_value_from_results_table(results_table_contents, row_name, column_name
         cur_group_num += 1
     raise Exception("No matching column found")
 
-def parse_percent_times_margin_is_better(results_table_contents):
-    matches = re.search(r".*Margin is better than regular (\d+(\.\d)?)% of the time.*",results_table_contents)
+def parse_percent_times_leverage_is_better(results_table_contents):
+    matches = re.search(r".*Leverage is better than regular (\d+(\.\d)?)% of the time.*",results_table_contents)
     assert matches, "Didn't find a match for % of times margin did better!"
     return matches.group(1)
 
 if __name__ == "__main__":
     start_time = time.time()
     DATA_ALREADY_EXISTS_AND_HAS_THIS_TIMESTAMP = None
-    #DATA_ALREADY_EXISTS_AND_HAS_THIS_TIMESTAMP = "2015May07_01h33m27s" # 100 trials of everything
+    #DATA_ALREADY_EXISTS_AND_HAS_THIS_TIMESTAMP = "2015May08_22h15m16s" # 200 trials of everything
     """if the above variable is non-None, it saves lots of computation and just computes the HTML 
     and copies the required figures from saved data"""
     data_already_exists = DATA_ALREADY_EXISTS_AND_HAS_THIS_TIMESTAMP is not None
@@ -808,7 +899,7 @@ _the same as when you ran the results being pointed to_
 or else the params filled in to the output HTMl file will be wrong!
 ============
 """
-            NUM_TRIALS = 1
+            NUM_TRIALS = 10000
             APPROX_NUM_SIMULTANEOUS_PROCESSES = 1
             #APPROX_NUM_SIMULTANEOUS_PROCESSES = 3
             write_essay(skeleton, outfile, cur_folder, NUM_TRIALS, LOCAL_FILE_PATHS_IN_HTML, 

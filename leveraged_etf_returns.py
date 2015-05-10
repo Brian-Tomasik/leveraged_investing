@@ -21,7 +21,7 @@ MONTHS_PER_YEAR = 12
 
 QUICK = True
 if QUICK:
-    LEV_ETF_SCENARIOS = {"Default":"ETF_default"}
+    LEV_ETF_SCENARIOS = {"Match theory":"ETF_match_theory"}
 else:
     LEV_ETF_SCENARIOS = {"Match theory":"ETF_match_theory",
                          "Default":"ETF_default",

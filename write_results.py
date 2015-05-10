@@ -68,7 +68,7 @@ def write_file_table(account_values, account_types,
     avg_simple_calc_string = ""
     if avg_simple_calc_value is not None:
         avg_simple_calc_string = " Average simple-calculation margin ending balance was {}.".format(util.format_as_dollar_string(avg_simple_calc_value))
-    outfile.write("\nMargin is better than regular {}% of the time.{} Margin account went fully bankrupt {}% of the time.{}".format(
+    outfile.write("\nLeverage is better than regular {}% of the time.{} Leveraged account went fully bankrupt {}% of the time.{}".format(
         int(round(100 * util.probability_x_better_than_y(
             account_values[account_types[LEVERAGE_INDEX]],
             account_values[account_types[REGULAR_INDEX]]),1)), 

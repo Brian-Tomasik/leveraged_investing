@@ -17,7 +17,7 @@ from random import Random
 
 USE_SMALL_SCENARIO_SET_FOR_QUICK_TEST = True
 if USE_SMALL_SCENARIO_SET_FOR_QUICK_TEST:
-    SCENARIOS = {"Annual sigma = 0":"sig0"}
+    SCENARIOS = {"No unemployment or inflation or taxes or black swans, only paid in first month, don't taper off leverage toward end, voluntary max leverage equals broker max leverage, no emergency savings":"closetotheory"}
     """
                 "No unemployment or inflation or taxes or black swans, don't taper off leverage toward end, voluntary max leverage equals broker max leverage, no emergency savings":"closetotheoryminus1",
                  "No unemployment or inflation or taxes or black swans, don't taper off leverage toward end, no emergency savings":"closetotheoryminus2",
@@ -841,7 +841,7 @@ def run_one_variant(num_trials):
     outdir_name = util.create_timestamped_dir("one") # concise way of writing "one variant"
     #scenario = "Default"
     #scenario = "Personal max margin is broker max"
-    scenario = "Annual sigma = 0"
+    scenario = "No emergency savings"
     #scenario = "No unemployment or inflation or taxes or black swans, only paid in first month, don't taper off leverage toward end, voluntary max leverage equals broker max leverage, no emergency savings"
     #scenario = "No unemployment or inflation or taxes or black swans, don't taper off leverage toward end, no emergency savings"
     args = args_for_this_scenario(scenario, num_trials, outdir_name)
@@ -849,16 +849,16 @@ def run_one_variant(num_trials):
 
 if __name__ == "__main__":
     #sweep_scenarios(1,1)
-    run_one_variant(1)
+    run_one_variant(500)
 """
 Things that need to be checked because I sometimes set them to run faster:
 - years (15 vs. .1)
 - SCENARIOS at top of this file
-- scenarios_not_to_sweep may have "default" or "closetotheory"
+- LEV_ETF_SCENARIOS quick or not
+- scenarios_not_to_sweep may have lines to comment out
 - num trials for margin
 - num trials for lev ETFs
 Also check
 - num processes
 - LOCAL_FILE_PATHS_IN_HTML
-- using seed
 """
