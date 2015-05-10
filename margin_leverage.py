@@ -15,7 +15,7 @@ from multiprocessing import Process, Queue
 import time
 from random import Random
 
-USE_SMALL_SCENARIO_SET_FOR_QUICK_TEST = True
+USE_SMALL_SCENARIO_SET_FOR_QUICK_TEST = False
 if USE_SMALL_SCENARIO_SET_FOR_QUICK_TEST:
     SCENARIOS = {"No unemployment or inflation or taxes or black swans, only paid in first month, don't taper off leverage toward end, voluntary max leverage equals broker max leverage, no emergency savings":"closetotheory"}
     """
@@ -816,11 +816,11 @@ def optimal_leverage_for_all_scenarios(num_trials, use_timestamped_dirs, cur_wor
     scenarios_not_to_sweep = ["closetotheoryminus%i" % i for i in [2,3,4,5,6]]
     scenarios_not_to_sweep.append("sig0")
     scenarios_not_to_sweep.append("persmaxbrokermax")
-    scenarios_not_to_sweep.append("default")# comment out later
-    scenarios_not_to_sweep.append("closetotheory")# comment out later
-    scenarios_not_to_sweep.append("closetotheoryminus7")# comment out later
-    scenarios_not_to_sweep.append("emergsav1m")# comment out later
-    scenarios_not_to_sweep.append("yrs5")# comment out later
+    #scenarios_not_to_sweep.append("default")# comment out later
+    #scenarios_not_to_sweep.append("closetotheory")# comment out later
+    #scenarios_not_to_sweep.append("closetotheoryminus7")# comment out later
+    #scenarios_not_to_sweep.append("emergsav1m")# comment out later
+    #scenarios_not_to_sweep.append("yrs5")# comment out later
     for scenario_name in SCENARIOS.keys():
         if SCENARIOS[scenario_name] in scenarios_not_to_sweep: # skip them to speed up computing
             """In this case, only get results for the default margin-to-assets setting

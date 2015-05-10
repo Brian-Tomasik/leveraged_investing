@@ -30,8 +30,8 @@ REPLACE_STR_END = "</REPLACE>"
 TIMESTAMP_FORMAT = '%Y%b%d_%Hh%Mm%Ss'
 OPTIMISTIC_MU = .08
 LEV_ETF_LEVERAGE_RATIO = 2.0
-LEV_ETF_NUM_SAMPLES = 100000
-QUICK_M_T_OPTIMIZATION = False
+LEV_ETF_NUM_SAMPLES = 1
+QUICK_M_T_OPTIMIZATION = True
 NUM_LEV_ETF_TRAJECTORIES_TO_SAVE_AS_FIGURES = 10
 
 def write_essay(skeleton, outfile, cur_working_dir, num_trials, 
@@ -564,11 +564,13 @@ def add_general_theoretical_calculations(output_text, cur_working_dir, timestamp
         NUM_SAMPLES_FROM_M_T_DISTRIBUTION = 10**7
     output_text = output_text.replace(REPLACE_STR_FRONT + "num_samples_for_M_t_exp_util" + REPLACE_STR_END, 
                                       "{:,}".format(NUM_SAMPLES_FROM_M_T_DISTRIBUTION))
+    THETA_VALUES_FOR_SWEEP = [0.0, .1, .25, .5, .75, .9, 1.0]
+    C_VALUES_FOR_SWEEP = [2.0, 3.0] # only check ratios that are feasible for buying leveraged ETFs (i.e., there are only 2X and 3X funds)
     param_sweep_function = lambda use_sat_utility, utility_param: param_sweep_exp_util_M_t( \
-        [0, .1, .25, .5, .75, .9, 1.0], default_market.annual_margin_interest_rate, \
+        THETA_VALUES_FOR_SWEEP, default_market.annual_margin_interest_rate, \
         default_market.annual_mu, default_investor.years_until_donate, \
-        LEV_ETF_EXP_RATIO, [1.5, 2.0, 2.5, 3.0], default_market.annual_sigma, NUM_SAMPLES_FROM_M_T_DISTRIBUTION, \
-        use_sat_utility, utility_param)
+        LEV_ETF_EXP_RATIO, C_VALUES_FOR_SWEEP, default_market.annual_sigma, \
+        NUM_SAMPLES_FROM_M_T_DISTRIBUTION, use_sat_utility, utility_param)
     # regular utility
     for alpha in [".01", ".25", ".5", ".75", ".9", ".99"]:
         print "Getting optimal theta and c for alpha = %s" % alpha
@@ -899,7 +901,7 @@ _the same as when you ran the results being pointed to_
 or else the params filled in to the output HTMl file will be wrong!
 ============
 """
-            NUM_TRIALS = 10000
+            NUM_TRIALS = 1
             APPROX_NUM_SIMULTANEOUS_PROCESSES = 1
             #APPROX_NUM_SIMULTANEOUS_PROCESSES = 3
             write_essay(skeleton, outfile, cur_folder, NUM_TRIALS, LOCAL_FILE_PATHS_IN_HTML, 

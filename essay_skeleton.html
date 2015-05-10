@@ -1165,9 +1165,7 @@ The following graph((In general, I use standard error for error bars because the
 <blockquote>
 if f = A/B then &sigma;<sub>f</sub> is roughly |f| &radic;[ (&sigma;<sub>A</sub>/A)<sup>2</sup> + (&sigma;<sub>B</sub>/B)<sup>2</sup> - 2&sigma;<sub>AB</sub>/AB ].
 </blockquote>
-For simplicity, I omitted the correlation component of the equation (the -2&sigma;<sub>AB</sub>/AB part), which only makes my error bars conservatively big given that the sample-mean margin investment performance has a high correlation with the sample-mean regular investment performance, since the sample means for both quantities will be too high when particularly good stock returns are sampled and too low when particularly bad returns are sampled.
-
-Unfortunately, it looks like the error bars in this graph are actually too small. This is because the averages for some leverage amounts clearly deviate from the trend of the curve, and their error bars don't even overlap with the error bars of neighboring points on the curve. But the curve should be continuous in theory. Hence, the error bars must be too small.)) shows how well leverage does compared with non-leveraged investing as a function of the leverage amount. As in the tables above, I took utility(wealth) = &radic;<span style="text-decoration: overline">wealth</span>. Each data point came from <REPLACE>num_trials</REPLACE><span style="color:orange">This often gets messed upTODO</span> trials.
+For simplicity, I omitted the correlation component of the equation (the -2&sigma;<sub>AB</sub>/AB part), which only makes my error bars conservatively big given that the sample-mean margin investment performance has a high correlation with the sample-mean regular investment performance, since the sample means for both quantities will be too high when particularly good stock returns are sampled and too low when particularly bad returns are sampled.)) shows how well leverage does compared with non-leveraged investing as a function of the leverage amount. As in the tables above, I took utility(wealth) = &radic;<span style="text-decoration: overline">wealth</span>. Each data point came from <REPLACE>num_trials</REPLACE><span style="color:orange">This often gets messed upTODO</span> trials.
 
 <span class="fullwidthimage"><img src="<REPLACE>closetotheory_optimal_leverage_graph</REPLACE>" title="I release this image into the public domain worldwide." /></span>
 
@@ -1756,10 +1754,6 @@ Multiplying daily returns is suboptimal because if the year has a big capital lo
 <span class="fullwidthimage"><img src="<REPLACE>ETF_default_high_taxes_exp_util</REPLACE>" title="I release this image into the public domain worldwide." /></span>
 <span class="fullwidthimage"><img src="<REPLACE>ETF_default_high_taxes_exp_sat_util</REPLACE>" title="I release this image into the public domain worldwide." /></span>
 
-<h3 id="3X_funds_expense_ratio">Using 3X funds to reduce expense ratio?</h3>
-
-From what I've seen, it appears that 3X funds have roughly comparable expense ratios as 2X funds. This suggests an idea: Instead of holding 100% of a 2X fund, could you hold 50% of a 3X fund and 50% of an unleveraged ETF? This would achieve the same equity exposure for half the management fees. Maybe this is a bad idea for some reason, such as that the implied interest for 3X leverage is higher than for 2X leverage?
-
 <h2>Leveraged ETFs vs. margin investing</h2>
 
 It seems as though leveraged ETFs offer similar performance characteristics as ordinary constant-leverage margin investing. Leveraged ETFs are temptingly easy compared with do-it-yourself margin accounts.
@@ -1934,7 +1928,7 @@ As t approaches &infin;, 1/U approaches 0, but exp((&mu;-r)t) also approaches &i
 
 <h3>Comparing expected utilities</h3>
 
-Since most investors won't purely maximize expected value, we now examine the tradeoff for utility(wealth) = (wealth)<sup>&alpha;</sup> for some &alpha;. Analytic equations are difficult in this case, so I computed numbers empirically by drawing random samples from the relevant lognormal distributions. In particular, I sampled <REPLACE>num_samples_for_M_t_exp_util</REPLACE> points from the distribution of M<sub>t</sub> given by the <a href="#M_t_equation">M<sub>t</sub> equation</a> and then computed expected utility for a given &alpha;. I did a parameter sweep over &theta; and c, checking &theta; values of 0, .1, .25, .5, .75, .9, and 1, paired with c values of 1.5, 2, 2.5, and 3, assuming a constant expense ratio regardless of leverage. The other parameters were set to their standard values as in the rest of this piece.
+Since most investors won't purely maximize expected value, we now examine the tradeoff for utility(wealth) = (wealth)<sup>&alpha;</sup> for some &alpha;. Analytic equations are difficult in this case, so I computed numbers empirically by drawing random samples from the relevant lognormal distributions. In particular, I sampled <REPLACE>num_samples_for_M_t_exp_util</REPLACE> points from the distribution of M<sub>t</sub> given by the <a href="#M_t_equation">M<sub>t</sub> equation</a> and then computed expected utility for a given &alpha;. I did a parameter sweep over &theta; and c, checking &theta; values of 0, .1, .25, .5, .75, .9, and 1, paired with c values of 2 or 3, assuming a constant expense ratio regardless of leverage. The other parameters were set to their standard values as in the rest of this piece.
 
 In the following analysis, assume that $100K was initially invested. This table shows the optimal values of &theta; and c, along with the expected utility for those parameters, for various values of &alpha;:
 
@@ -1947,8 +1941,7 @@ In the following analysis, assume that $100K was initially invested. This table 
 <tr><td>.9</td> <td><REPLACE>optimal_theta_for_alpha=.9</REPLACE></td> <td><REPLACE>optimal_c_for_alpha=.9</REPLACE></td> <td><REPLACE>exp_util_for_alpha=.9</REPLACE></td></tr>
 <tr><td>.99</td> <td><REPLACE>optimal_theta_for_alpha=.99</REPLACE></td> <td><REPLACE>optimal_c_for_alpha=.99</REPLACE></td> <td><REPLACE>exp_util_for_alpha=.99</REPLACE></td></tr>
 </table>
-It's interesting that even for &alpha;=.01, the optimal &theta; is more than 0 and likewise that for &alpha=.99, the optimal &theta; is less than 1. Assuming this doesn't reflect a bug in my code, this implies that even very different utility functions want some balance between leverage and emergency savings. We also see how &alpha;=.75 and &alpha;=.9 are naturally discovering that half unleveraged investing and half 3X leverage beats all 2X leverage.<span style="color:orange">TODO check that all of these statements remain accurate</span>
-
+It's interesting that even for &alpha;=.01, the optimal &theta; is more than 0. Assuming this doesn't reflect a bug in my code, this implies that even a very cautious utility function wants some balance between leverage and emergency savings.<span style="color:orange">TODO check that all of these statements remain accurate</span>
 
 We can also consider optimal saturation-utility for various saturation cutoffs after which money stops being valuable. Remember that the initial investment was $100K.
 
@@ -1959,9 +1952,9 @@ We can also consider optimal saturation-utility for various saturation cutoffs a
 <tr><td>$20 million</td> <td><REPLACE>optimal_theta_for_cutoff=$20 million</REPLACE></td> <td><REPLACE>optimal_c_for_cutoff=$20 million</REPLACE></td> <td><REPLACE>exp_util_for_cutoff=$20 million</REPLACE></td></tr>
 </table>
 
+<h3 id="3X_funds_expense_ratio">Using 3X funds to reduce expense ratio?</h3>
 
-way to save expenses
-
+From what I've seen, it appears that 3X funds have roughly comparable expense ratios as 2X funds. This fact, combined with the preceding analysis, suggests that it may be better to split between unleveraged investments and a 3X leveraged ETF rather than investing more in a 2X leveraged ETF. I'm not sure if there are practical factors that militate in the other direction. For instance, could implied interest for 3X leverage be higher than for 2X leverage?
 
 <h2>My plan for using leverage</h2>
 
@@ -1971,7 +1964,7 @@ When I resume earning to give, I'll probably do something like this:
 <ul>
 <li>Donate some of my earnings during the year to charities in whose value I'm already pretty confident. The main reason to give now is that the charities I want to support have only so much room to grow in a given amount of time (like a sponge has only so much room to soak up water), so it's better to donate small amounts steadily than to donate large lump sums rarely.</li>
 <li>If that doesn't use 50% of my income, give more to a donor-advised fund so that I've donated at least 50% of my income during that year for maximum tax deductions.</li>
-<li>Of remaining money not saved for retirement or spent on costs of living, invest most of it with leverage. To reduce the hassle required, I'll probably use a 3X leveraged ETF rather than a margin account. 3X leverage is ok because it's fine if I lose all of this money, since I will have already donated to the most pressing charities, and this money is just a bonus. Combining 3X leverage with an unleveraged emergency fund also <a href="#3X_funds_expense_ratio">might</a> reduce expense ratios relative to using just a 2X fund, though I have no clue if this is a legitimate point.</li>
+<li>Of remaining money not saved for retirement or spent on costs of living, invest most of it with leverage. To reduce the hassle required, I'll probably use a 3X leveraged ETF rather than a margin account. 3X leverage is ok because it's fine if I lose all of this money, since I will have already donated to the most pressing charities, and this money is just a bonus. Combining 3X leverage with an unleveraged emergency fund also <a href="#3X_funds_expense_ratio">might</a> be better than just a 2X fund, though I'm uncertain on this point.</li>
 </ul>
 
 To start, I'll buy small amounts (a few hundred $) of a few leveraged ETFs. This will help me see how they're taxed and whether there are other gotchas that only become visible once you own them. I also plan to read even more literature on leveraged ETFs to make sure I'm not missing something with my analysis, given that almost everyone agrees leveraged ETFs are not suitable for buy-and-hold investors. Theory predicts that many of the leveraged ETFs I buy will lose value, so it's not as though early feedback with leveraged-ETF performance would be enough to convince me the strategy was wrong-headed.
