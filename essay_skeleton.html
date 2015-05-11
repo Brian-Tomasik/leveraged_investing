@@ -139,7 +139,7 @@ A home mortgage is one of the most common forms of leveraged investing (with ano
 
 <ul>
 <li>Popular and have common-sense approval.</li>
-<li>Mortgage interest is deductible. Moreover, whereas margin interest is only deductible to offset net investment income, mortgage interest doesn't have the same restriction, so it's deductible even if you have net capital losses. (This is just my impression from cursory reading. Readers, please correct me if it's wrong.)</li>
+<li>Mortgage interest is deductible. Moreover, whereas margin interest is only deductible to offset net investment income, mortgage interest doesn't have the same restriction, so it's deductible even if you have net capital losses. (This is just my impression from cursory reading. Readers, please correct me if it's wrong.) That said, if you don't have other itemized deductions, <a href="https://www.youtube.com/watch?v=IomfI_iF4EM&t=13m56s" title="'Should You Own or Rent Your Own Home'">you might take the standard deduction</a>, in which case there's no benefit to mortgage interest being deductible.</li>
 </ul>
 
 <h4>Arguments against home mortgages:</h4>
@@ -160,7 +160,7 @@ Whether to get a home mortgage depends crucially on whether you want to buy a ho
 <h4>Arguments against buying a house/condo:</h4>
 
 <ul>
-<li>Buying and selling is a lot of hassle if you move frequently.</li>
+<li>Buying and selling are a lot of hassle if you move frequently and incur big <a href="https://www.youtube.com/watch?v=IomfI_iF4EM&t=9m04s" title="'Should You Own or Rent Your Own Home'">transaction costs</a>.</li>
 <li>Have to take care of property taxes, repairs, and home improvements yourself. Depending on the neighborhood, you might be required to maintain your lawn.</li>
 <li>Real estate is plausibly a worse investment than stocks because people buy real estate partly as a consumption good, i.e., houses have positive "convenience yield". And historically, houses <a href="http://www.cbsnews.com/news/history-says-home-real-estate-is-a-bad-investment/" title="'History says home real estate is a bad investment'">have probably</a> underperformed stocks, though the difference in performance is much smaller when one considers savings from not paying rent.</li>
 </ul>
@@ -578,7 +578,7 @@ Here's how the expected utility of regular vs. margin investing compare if utili
 
 <span class="fullwidthimage"><img src="<REPLACE>default_exp_util</REPLACE>" title="I release this image into the public domain worldwide." /></span>
 
-If we instead assumed that wealth had linear value up until some saturation point (expressed in real present value of $), after which it stopped being useful, we'd instead have this graph for expected saturation-utility:
+If we instead assumed that wealth had linear value up until some saturation point (expressed in present value of $), after which it stopped being useful, we'd instead have this graph for expected saturation-utility:
 
 <span class="fullwidthimage"><img src="<REPLACE>default_exp_sat_util</REPLACE>" title="I release this image into the public domain worldwide." /></span>
 
@@ -706,7 +706,7 @@ The simulation assumes the investor starts off with emergency funds that are onl
 <li>you want to quit your job early and don't have enough in your 401k to retire on</li>
 <li>you come across an altruistic project that requires donations now or never and has such high value that you can't afford not to donate immediately.</li>
 </ul>
-The invested value of emergency funds is counted as part of your total invested money at the end of the simulation. I count the emergency money toward your total donation amount, which would make sense if the end of the simulation corresponds to your retirement, at which point you can donate the emergency funds and live off your 401k.
+The invested value of emergency funds is counted as part of your total invested money at the end of the simulation. I count the emergency money toward your total donation amount, which would make sense if the end of the simulation corresponds to your retirement, at which point you can donate the emergency funds and live off your 401k. Alternatively, we can interpret the utility(wealth) = (wealth)<sup>&alpha;</sup> utility function to represent both your own living expenses <i>and</i> what you donate to charity beyond personal costs of living, in which case it makes sense to include emergency funds as part of the wealth input to this utility function even if you'll spend those funds on yourself rather than donating them.
 
 In rare cases, such as when a big negative black swan occurs, highly leveraged accounts might get wiped out due to having more debt than remaining assets. If that happens, you tap into your emergency savings. There are two possibilities:
 <ol>
@@ -716,7 +716,17 @@ In rare cases, such as when a big negative black swan occurs, highly leveraged a
 
 When you're ready to donate your securities, you use your investments to pay off any remaining margin loans. Because you're donating the final securities, there's no capital-gains tax on them. If instead you use this calculator for personal investing (say, for retirement) rather than investing prior to donating, then you'd need to account for capital-gains tax upon selling. (In that case, it's less bad to pay capital-gains taxes early because doing so increases your cost basis, though it's still better to delay tax payments to later years because of the <a href="https://en.wikipedia.org/wiki/Time_value_of_money">time value of money</a>.)
 
-The final comparison among the strategies as presented in the results is the real present value of accumulated savings, i.e., the value after <REPLACE>years_until_donate</REPLACE> years times (1 + inflation_rate)<sup>-<REPLACE>years_until_donate</REPLACE></sup> to adjust for inflation and then times exp(-avg_ETF_returns * <REPLACE>years_until_donate</REPLACE>)</sup> to make it a present value. Looking at real present values is more informative than nominal future values because we have a better sense of what the value of a dollar is right now than what the value of a dollar will be in <REPLACE>years_until_donate</REPLACE> years.
+The final comparison among the strategies as presented in the results is the present value of accumulated savings, i.e., the value after t years times exp(-&mu;t)</sup> to make it a present value. Looking at present values is more informative than future values because we have a better sense of what the value of a dollar is right now than what the value of a dollar will be in <REPLACE>years_until_donate</REPLACE> years.
+
+It's unclear what discount rate I should have used:
+<ul>
+<li>I chose &mu; because this represents the opportunity cost of delayed investing for a risk-neutral investor who would have invested in regular equities.</li>
+<li>I could also have used something closer to r to represent a risk-free rate of return, which is standard in most present-value calculations.</li>
+<li>Finally, I could have used the rate of return of the activities of the charity to which the donor will be giving plus the rate of return on the donor's wisdom from giving later, since that represents the opportunity cost of waiting until later to give.</li>
+</ul>
+Fortunately, the discount rate doesn't affect the ratio of performance between regular vs. margin investing, just the magnitudes of absolute ending wealth.
+
+The simulation seeds the random-number generator used for market and unemployment randomness at the same value across all variations that I ran. This helps reduce noise when making comparisons across variants because different variants are being evaluated against the same series of market and unemployment outcomes. Using a seed also helped with debugging, because I could precisely reproduce any weird behavior that I saw and could compare two variants side by side to look for where they diverged due to non-random factors.
 
 <h3 id="margin_results_vs_theory">Results vs. theory</h3>
 
@@ -1244,7 +1254,7 @@ E[ 1/(S<sub>t</sub> + V<sub>t</sub>) * exp(ln(V<sub>0</sub>) + h(c)) * h'(c) ] =
 
 <h3>Emergency savings = $1 million</h3>
 
-(This policy is also roughly what you'd get if you split between margin and non-margin investing with mostly non-margin investing.)
+This policy is also roughly what you'd get if you split between margin and non-margin investing with mostly non-margin investing.
 
 <REPLACE>emergsav1m_results_table</REPLACE>
 
@@ -1502,7 +1512,19 @@ If you're hell-bent on using leverage for any period of time longer than a day, 
 
 I think this statement is wrong. As is shown below, I think daily-rebalanced leveraged ETFs have comparable returns as constant-leverage margin investing (ignoring expense ratios and taxes). Maybe I'm wrong, and if so, please correct me! Or maybe the difference in conclusions comes from these authors interpreting "margin investing" as not rebalancing very often and so being less leveraged.
 
-The math of leveraged-ETF performance (ignoring taxes and expense ratios) is actually closer to the theory discussed in previous sections than margin investing is, because leveraged ETFs rebalance daily and so hold more true to the assumption of constant leverage. Moreover, within a few months, monthly rebalanced ETFs <a href="http://www.aabri.com/manuscripts/10676.pdf" title="'Daily vs. monthly rebalanced leveraged funds'">show similar trends</a> as daily-rebalanced ETFs do, so I don't think rebalancing frequency per se is a huge factor. My best guess is that rebalancing matters mainly through how leveraged it makes you: The more frequently you rebalance back up to 2X leverage, the higher your actual leverage amount is averaged over time.
+The math of leveraged-ETF performance (ignoring taxes and expense ratios) is actually closer to the theory discussed in previous sections than margin investing is, because leveraged ETFs rebalance daily and so hold more true to the assumption of constant leverage. Moreover, within a few months, monthly rebalanced ETFs <a href="http://www.aabri.com/manuscripts/10676.pdf" title="'Daily vs. monthly rebalanced leveraged funds'">show similar trends</a> as daily-rebalanced ETFs do.
+
+In many of the articles I've read about leveraged ETFs, I see at least one of these two claims:
+<ol>
+<li>Leveraged ETFs lose money because they rebalance too often.</li>
+<li>Leveraged ETFs lose money because they buy high and sell low.</li>
+</ol>
+Neither of these makes sense to me. I can't tell if I'm being obtuse or if these popular slogans aren't technically precise. I'll examine each one:
+<ol>
+<li>In the stochastic differential equation for leveraged investing, the only variable that seems to matter is c, the amount of leverage at a given time. I don't see why rebalancing should matter apart from how it affects c (ignoring trading fees, taxes, etc.). My best guess is that rebalancing more often tends to cause worse losses because it keeps the ETFs more leveraged. A fund that never rebalanced would tend to become less and less leveraged over time if the underlying asset increased in value.</li>
+<li>All losses come from buying high and selling low. I think what the claim is trying to say is that leverage performs badly because a leveraged position is forced to sell more when prices decline. But if the market is efficient, it shouldn't matter, <i>ex ante</i>, when you buy or sell. If the market is not efficient and you know that after a price decline will be a price increase, then obviously leverage is bad because it's penalized by alternating up/down price swings, but if you know the market's inefficient in that way, you could make money on that knowledge more directly anyway.</li>
+</ol>
+As far as I can tell, the only reason why leveraged ETFs tend to lose money is that volatility drag is quadratic in the leverage amount.
 
 <h3>Other legitimate risks of leveraged ETFs</h3>
 
@@ -1869,9 +1891,11 @@ And here's with them:
 
 <h2>Shorting leveraged ETFs?</h2>
 
-Because leveraged ETFs tend to decline in value, some investors like to short sell them, which usually results in a gain. This seems risky to me, since every once in a while, the funds will perform amazingly, and then you'll lose a huge amount of money. If you don't go bankrupt from shorting leveraged ETFs, then because long leveraged ETFs have big positive expected value, short leveraged ETFs have big negative expected value.
+Because leveraged ETFs tend to decline in value, <a href="http://seekingalpha.com/article/1226201-short-selling-daily-leveraged-etfs-some-practicalities-to-consider" title="'Short-Selling Daily Leveraged ETFs: Some Practicalities To Consider'">some</a> investors short sell them, which often results in a gain. Doing this by itself seems risky, since every once in a while, the funds will perform amazingly, and then you'll lose a huge amount of money. This risk could be hedged with, e.g., long call options on the underlying ETF but at some cost to buy the options. Since a hedged position has pretty low risk, I would guess that it also has low expected return, but I haven't calculated the details.
 
-I suppose that if, when leveraged ETFs perform amazingly, you declare bankruptcy, then you could get usual-case gains from shorting while not taking huge losses when the ETFs do really well. But setting yourself up for possible bankruptcy doesn't strike me as a good idea.
+One commenter <a href="http://seekingalpha.com/article/1066111-an-almost-risk-free-way-for-annual-return-of-50-percent#comment-12637371" title="comment on the article 'An Almost Risk-Free Way For Annual Return Of 50%+'">said</a> about a strategy of shorting both short and long leveraged ETFs: "When I wrote an article about a similar strategy back in 2009, I was contacted by hedge fund performing this. They said the biggest problem that you run into is the shares are really difficult and expensive to borrow. I don't think they are still doing the strategy anymore either."
+
+This all seems rather complex and uncertain to me and so maybe is best left to hedge funds, though someone with more time could explore scenarios like these further.
 
 <h2>Should you have both leveraged and unleveraged investments?</h2>
 

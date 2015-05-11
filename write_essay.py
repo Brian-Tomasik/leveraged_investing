@@ -30,8 +30,8 @@ REPLACE_STR_END = "</REPLACE>"
 TIMESTAMP_FORMAT = '%Y%b%d_%Hh%Mm%Ss'
 OPTIMISTIC_MU = .08
 LEV_ETF_LEVERAGE_RATIO = 2.0
-LEV_ETF_NUM_SAMPLES = 1
-QUICK_M_T_OPTIMIZATION = True
+LEV_ETF_NUM_SAMPLES = 100000
+QUICK_M_T_OPTIMIZATION = False
 NUM_LEV_ETF_TRAJECTORIES_TO_SAVE_AS_FIGURES = 10
 
 def write_essay(skeleton, outfile, cur_working_dir, num_trials, 
@@ -866,7 +866,7 @@ if __name__ == "__main__":
     and copies the required figures from saved data"""
     data_already_exists = DATA_ALREADY_EXISTS_AND_HAS_THIS_TIMESTAMP is not None
 
-    LOCAL_FILE_PATHS_IN_HTML = True
+    LOCAL_FILE_PATHS_IN_HTML = False
 
     # Open essay skeleton.
     SKELETON = "essay_skeleton.html"
@@ -901,7 +901,7 @@ _the same as when you ran the results being pointed to_
 or else the params filled in to the output HTMl file will be wrong!
 ============
 """
-            NUM_TRIALS = 1
+            NUM_TRIALS = 1000
             APPROX_NUM_SIMULTANEOUS_PROCESSES = 1
             #APPROX_NUM_SIMULTANEOUS_PROCESSES = 3
             write_essay(skeleton, outfile, cur_folder, NUM_TRIALS, LOCAL_FILE_PATHS_IN_HTML, 
