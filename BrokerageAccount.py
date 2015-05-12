@@ -36,12 +36,13 @@ class BrokerageAccount(object):
     """Store parameters about how an investor's brokerage account"""
 
     def __init__(self, margin, assets, broker_max_margin_to_assets_ratio, 
-                 taper_off_leverage_toward_end, 
+                 taper_off_leverage_toward_end, taper_off_leverage_a_lot_toward_end, 
                  initial_personal_max_margin_to_assets_relative_to_broker_max):
         self.__margin = margin # amount of debt
         self.__assets = Assets.Assets() # list of the ETFs you own
         self.__broker_max_margin_to_assets_ratio = broker_max_margin_to_assets_ratio
         self.__taper_off_leverage_toward_end = taper_off_leverage_toward_end
+        self.__taper_off_leverage_a_lot_toward_end = taper_off_leverage_a_lot_toward_end
         self.__initial_personal_max_margin_to_assets_relative_to_broker_max = initial_personal_max_margin_to_assets_relative_to_broker_max
 
     def personal_max_margin_to_assets_ratio(self, years_remaining):
@@ -50,13 +51,21 @@ class BrokerageAccount(object):
         force you to rebalance.
         Also, reduce leverage amount toward the end of the investing time period if 
         leverage used to be high."""
-        initial_ratio_for_when_not_near_end = self.__broker_max_margin_to_assets_ratio * self.__initial_personal_max_margin_to_assets_relative_to_broker_max
-        if years_remaining <= 5 and self.__taper_off_leverage_toward_end:
-            two_to_one_leverage_margin_to_assets = util.N_to_1_leverage_to_max_margin_to_assets_ratio(2.0)
-            return min(two_to_one_leverage_margin_to_assets, initial_ratio_for_when_not_near_end)
-        elif years_remaining <= 10 and self.__taper_off_leverage_toward_end:
-            three_to_one_leverage_margin_to_assets = util.N_to_1_leverage_to_max_margin_to_assets_ratio(3.0)
-            return min(three_to_one_leverage_margin_to_assets, initial_ratio_for_when_not_near_end)
+        initial_ratio_for_when_not_near_end = self.__broker_max_margin_to_assets_ratio * \
+            self.__initial_personal_max_margin_to_assets_relative_to_broker_max
+        if self.__taper_off_leverage_a_lot_toward_end:
+            max_leverage_amount = util.N_to_1_leverage_to_max_margin_to_assets_ratio(
+                1 + 0.1 * years_remaining)
+            return min(max_leverage_amount, initial_ratio_for_when_not_near_end)
+        elif self.__taper_off_leverage_toward_end:
+            if years_remaining <= 5:
+                two_to_one_leverage_margin_to_assets = util.N_to_1_leverage_to_max_margin_to_assets_ratio(2.0)
+                return min(two_to_one_leverage_margin_to_assets, initial_ratio_for_when_not_near_end)
+            elif years_remaining <= 10:
+                three_to_one_leverage_margin_to_assets = util.N_to_1_leverage_to_max_margin_to_assets_ratio(3.0)
+                return min(three_to_one_leverage_margin_to_assets, initial_ratio_for_when_not_near_end)
+            else:
+                return initial_ratio_for_when_not_near_end
         else:
             return initial_ratio_for_when_not_near_end
 
@@ -211,7 +220,7 @@ class BrokerageAccount(object):
         L/(L+M) = R  ==>  L = LR + MR  ==>  L - LR = MR  ==>  L(1-R) = MR
         ==>  L = MR/(1-R)."""
         if money_on_hand > 0:
-            loan = money_on_hand * self.personal_max_margin_to_assets_ratio(years_remaining) / (1 - self.personal_max_margin_to_assets_ratio(years_remaining))
+            loan = money_on_hand * self.personal_max_margin_to_assets_ratio(years_remaining) / (1.0 - self.personal_max_margin_to_assets_ratio(years_remaining))
             self.margin += loan
             self.__assets.buy_new_lot(money_on_hand + loan, FEE_PER_DOLLAR_TRADED, day)
             # This is no longer true:   assert self.margin_to_assets() <= (1+EPSILON) * self.personal_max_margin_to_assets_ratio(years_remaining), "This assertion should also be true if the account started out within its margin limits."

@@ -631,18 +631,18 @@ Based on how small these differences usually are, it looks like I probably could
 
 <h3>Input parameters for these results:</h3>
 
-The following parameters are what I refer to as the "default" setting in the rest of this essay:
+The following parameters are what I refer to as the "default" settings in the rest of this essay:
 <ul>
 <li>invest for <REPLACE>years_until_donate</REPLACE> years before donating</li>
-<li>savings are <REPLACE>initial_annual_income_for_investing</REPLACE>/year in the first year, with <REPLACE>annual_real_income_growth_percent</REPLACE>% real annual growth (i.e., after <REPLACE>years_until_donate</REPLACE> years, inflation-adjusted savings are about <REPLACE>yearly_income_at_end_of_investing_period</REPLACE>/year), with a slight penalty the more times the person is laid off</li>
-<li>starting emergency money, which gets invested without leverage = <REPLACE>initial_emergency_savings</REPLACE></li>
+<li>after-tax savings are <REPLACE>initial_annual_income_for_investing</REPLACE>/year in the first year, with <REPLACE>annual_real_income_growth_percent</REPLACE>% real annual growth (i.e., after <REPLACE>years_until_donate</REPLACE> years, inflation-adjusted savings are about <REPLACE>yearly_income_at_end_of_investing_period</REPLACE>/year), with a slight penalty the more times the person is laid off</li>
+<li>starting emergency money, which gets invested without leverage, is <REPLACE>initial_emergency_savings</REPLACE></li>
 <li>short-term capital-gains tax rate = <REPLACE>short_term_cap_gains_rate</REPLACE></li>
 <li>long-term capital-gains tax rate = <REPLACE>long_term_cap_gains_rate</REPLACE></li>
 <li>state income-tax rate (whether short-term or long-term gains) = <REPLACE>state_income_tax</REPLACE></li>
 <li>monthly probability of being laid off = <REPLACE>monthly_probability_of_layoff</REPLACE></li>
 <li>monthly probability of finding work after being laid off = <REPLACE>monthly_probability_find_work_after_laid_off</REPLACE></li>
-<li>average annual returns (continuously compounded) of index ETF = <REPLACE>annual_mu_as_percent</REPLACE> (This assumes a return of <a href="http://www.marketwatch.com/story/stocks-future-return-just-56-annualized-2012-09-21" title="&quot;Stocks’ future return: Just 5.6% annualized&quot;">5.6%</a> not continuously compounded, since ln(1 + 0.056) = 0.054. This estimate is conservative, since historical returns have been more like ~10% in the US, but historical US returns are probably too high because of <a href="http://effective-altruism.com/ea/66/parenthood_and_effective_altruism/b6" title="'Toby_Ord comments on Parenthood and effective altruism - Effective Altruism Forum'">selection biases</a>. The reason to use continuous interest is that stock prices are compounded daily <REPLACE>trading_days_per_year</REPLACE> times per year, so the return is approximately continuously compounded anyway. To see this, note that (1+ln(1.056)/<REPLACE>trading_days_per_year</REPLACE>)<sup><REPLACE>trading_days_per_year</REPLACE></sup> &asymp; 1.056.)<!--I THINK MY LN(1.056) = .054 THING MIGHT BE MISGUIDED. I don't use continuously compounded returns after fixing the bug?? Oh no, I do. :) because a daily mu of .054 is like a yearly mu of .056 :)--></li>
-<li>annual volatility of index ETF = <REPLACE>annual_sigma_as_percent</REPLACE> (I <a href="https://docs.google.com/spreadsheets/d/1g2B0vZwePiaJ0ypqTqe_jheLBF25qNRtb-H2eoDcNik/edit#gid=0">calculated</a> this based on <a href="http://finance.yahoo.com/q?s=SPY">SPY</a> data from 3 Jan. 2007 to 2 Apr. 2015. You could also <a href="http://www.indexologyblog.com/2014/02/04/whats-a-normal-vix-level/" title="&quot;What’s a Normal VIX Level?&quot;">look</a> at the <a href="https://en.wikipedia.org/wiki/VIX">VIX index</a>. I don't recommend investing in the US stock market at the moment because some think it's overpriced. I picked a random global index ETF, ACWI, and found that it had annual volatility of 0.24 between 28 Mar. 2008 to 1 May 2015. It <a href="https://www.ishares.com/us/products/239600/ishares-msci-acwi-etf" title="'iShares MSCI ACWI ETF'">has</a> about 50% holdings in the USA. It would be good to look at volatility for other types of index ETFs too.)</li>
+<li>average annual returns (continuously compounded) of index ETF = <REPLACE>annual_mu_as_percent</REPLACE> (This assumes a return of <a href="http://www.marketwatch.com/story/stocks-future-return-just-56-annualized-2012-09-21" title="&quot;Stocks’ future return: Just 5.6% annualized&quot;">5.6%</a> not continuously compounded, since ln(1 + 0.056) = 0.054. This estimate is conservative, since historical returns have been more like ~10% in the US, but historical US returns are probably too high because of <a href="http://effective-altruism.com/ea/66/parenthood_and_effective_altruism/b6" title="'Toby_Ord comments on Parenthood and effective altruism - Effective Altruism Forum'">selection biases</a>. The reason to use continuous interest is that stock prices are compounded daily <REPLACE>trading_days_per_year</REPLACE> times per year, so the return is approximately continuously compounded anyway. To see this, note that (1+[ln(1.056)]/<REPLACE>trading_days_per_year</REPLACE>)<sup><REPLACE>trading_days_per_year</REPLACE></sup> &asymp; 1.056.)<!--I THINK MY LN(1.056) = .054 THING MIGHT BE MISGUIDED. I don't use continuously compounded returns after fixing the bug?? Oh no, I do. :) because a daily mu of .054 is like a yearly mu of .056 :)--></li>
+<li>annual volatility of index ETF = <REPLACE>annual_sigma_as_percent</REPLACE> (I <a href="https://docs.google.com/spreadsheets/d/1g2B0vZwePiaJ0ypqTqe_jheLBF25qNRtb-H2eoDcNik/edit#gid=0">calculated</a> this based on <a href="http://finance.yahoo.com/q?s=SPY">SPY</a> data from 3 Jan. 2007 to 2 Apr. 2015. You could also <a href="http://www.indexologyblog.com/2014/02/04/whats-a-normal-vix-level/" title="&quot;What’s a Normal VIX Level?&quot;">look</a> at the <a href="https://en.wikipedia.org/wiki/VIX">VIX index</a>. That said, I don't recommend investing in the US stock market at the moment because some think it's overpriced. So I picked a random global index ETF, ACWI, and found that it had annual volatility of 0.24 between 28 Mar. 2008 to 1 May 2015, which is close enough to my parameter setting. ACWI <a href="https://www.ishares.com/us/products/239600/ishares-msci-acwi-etf" title="'iShares MSCI ACWI ETF'">has</a> about 50% holdings in the USA. It would be good to look at volatility for other types of index ETFs too.)</li>
 <li>"medium black swan" probability = <REPLACE>medium_black_swan_prob</REPLACE></li>
 <li>annual volatility for "medium black swan" event = <REPLACE>annual_sigma_for_medium_black_swan</REPLACE></li>
 <li>"large black swan" probability = <REPLACE>large_black_swan_prob</REPLACE></li>
@@ -650,8 +650,8 @@ The following parameters are what I refer to as the "default" setting in the res
 <li>trading days per year = <REPLACE>trading_days_per_year</REPLACE></li>
 <li>margin interest rate = <REPLACE>annual_margin_interest_rate_as_percent</REPLACE> (The actual current margin rate on Interactive Brokers <a href="https://www.interactivebrokers.com/en/index.php?f=interest&p=schedule2" title="&quot;Interest Rates Charged to You on Margin Loan Balances&quot;">is</a> 1.12% for account balances of at least $100K and less than $1M. I chose a higher value of <REPLACE>annual_margin_interest_rate_as_percent</REPLACE> to make the calculations more conservative and because current interest rates are extremely low by <a href="http://www.macrotrends.net/1433/historical-libor-rates-chart" title="&quot;Historical LIBOR Rates Chart&quot;">historical standards</a>, which is a trend that may not last for <REPLACE>years_until_donate</REPLACE> more years. The effective margin interest rate is also lower if you deduct margin interest payments against other net investment income. To keep things conservative, I ignore this point, since you may not have much other net investment income. If you're buy-and-hold investing to donate appreciated securities, the only investment income you'd have would be from dividends, not from capital gains.)</li>
 <li>inflation rate = <REPLACE>inflation_rate_as_percent</REPLACE> (see p. 5 of <a href="http://reducing-suffering.org/wp-content/uploads/2014/09/donatable-money.pdf" title="&quot;How Much Money Could a Person Donate by Having a Conventional Job?&quot;">this piece</a>)</li>
-<li>broker-imposed max margin-to-assets ratio in your margin account = <REPLACE>broker_max_margin_to_assets_ratio_as_percent</REPLACE>% (For simplicity, I'm not distinguishing initial margin vs. maintenance margin.)</li>
-<li>voluntarily self-imposed max margin-to-assets ratio in the account = <REPLACE>volunary_max_margin_to_assets_as_percent</REPLACE>% (monthly rebalancing to keep margin below this ratio)</li>
+<li>broker-imposed max margin-to-assets ratio in your margin account = <REPLACE>broker_max_margin_to_assets_ratio_as_percent</REPLACE>% (This is unrealistically low for Interactive Brokers, and if I were doing the simulation over, I would have increased it. Also, for simplicity, I'm not distinguishing initial margin vs. maintenance margin.)</li>
+<li>voluntarily self-imposed max margin-to-assets ratio in the account = <REPLACE>volunary_max_margin_to_assets_as_percent</REPLACE>% (The investor does voluntary monthly rebalancing to keep margin below this ratio.)</li>
 <li>trading fee per dollar of securities bought or sold = $<REPLACE>fee_per_dollar_traded</REPLACE> (this counts both Interactive Brokers trading fees and bid-ask spreads)</li>
 <li>number of random iterations = <REPLACE>num_trials</REPLACE></li><span style="color:orange">This often gets messed up TODO</span>
 </ul>
@@ -706,7 +706,7 @@ The simulation assumes the investor starts off with emergency funds that are onl
 <li>you want to quit your job early and don't have enough in your 401k to retire on</li>
 <li>you come across an altruistic project that requires donations now or never and has such high value that you can't afford not to donate immediately.</li>
 </ul>
-The invested value of emergency funds is counted as part of your total invested money at the end of the simulation. I count the emergency money toward your total donation amount, which would make sense if the end of the simulation corresponds to your retirement, at which point you can donate the emergency funds and live off your 401k. Alternatively, we can interpret the utility(wealth) = (wealth)<sup>&alpha;</sup> utility function to represent both your own living expenses <i>and</i> what you donate to charity beyond personal costs of living, in which case it makes sense to include emergency funds as part of the wealth input to this utility function even if you'll spend those funds on yourself rather than donating them.
+The invested value of emergency funds is counted as part of your total invested money at the end of the simulation. I count the emergency money toward your total donation amount, which would make sense if the end of the simulation corresponds to your retirement, at which point you can donate the emergency funds and live off your 401k. Alternatively, we can interpret the utility(wealth) = (wealth)<sup>&alpha;</sup> utility function to represent both your own living expenses <i>and</i> what you donate to charity beyond personal costs of living, in which case it makes sense to include emergency funds as part of the wealth input to this utility function even if you'll spend those funds on yourself rather than donating them. ((That said, this latter interpretation doesn't completely jive with cases where you assume that other correlated donors are also giving to the same charity, since that analysis assumed that the utility function of wealth only reflected donated wealth. If you go bankrupt, other donors aren't going to bail you out, but if you don't donate anything to the charity, other donors still will.))
 
 In rare cases, such as when a big negative black swan occurs, highly leveraged accounts might get wiped out due to having more debt than remaining assets. If that happens, you tap into your emergency savings. There are two possibilities:
 <ol>
@@ -849,6 +849,14 @@ Prob[V<sub>t</sub> > S<sub>t</sub>] = Prob[Z/&radic;<span style="text-decoration
 = <REPLACE>prob_Z_gt_threshold</REPLACE>.
 </blockquote>
 The empirical probability of margin outperforming regular investing in the above table is <REPLACE>actual_percent_times_leverage_is_better</REPLACE>%.
+
+Note that this probability gets smaller as t increases because &radic;<span style="text-decoration: overline">t</span>( (c+1)&sigma;/2 - (&mu;-r)/&sigma; ) is &radic;<span style="text-decoration: overline">t</span> times a positive number. But if the parameters were somewhat different, this probability would actually <i>increase</i> with bigger t. That would happen if and only if
+<blockquote>
+(c+1)&sigma;/2 - (&mu;-r)/&sigma; < 0<br />
+(c+1)&sigma;/2 < (&mu;-r)/&sigma;<br />
+c < 2(&mu;-r)/&sigma;<sup>2</sup> - 1.
+</blockquote>
+The expression (&mu;-r)/&sigma;<sup>2</sup> will show up <a href="#Kelly">later</a> as being the Kelly-criterion optimal amount of leverage. So this expression says that leverage tends to beat regular investing with longer time horizons when the actual leverage amount, c, is no more than 2 * (Kelly-optimal leverage amount) - 1.
 
 <h4>Relaxing the simplifying assumptions</h4>
 
@@ -997,7 +1005,7 @@ If you use margin investing, ESPP shares can (presumably?) just contribute to yo
 
 In practice, margin leverage is not unlimited. But suppose it were. What would be the best amount of leverage to use?
 
-<h3>Maximizing expected average return</h3>
+<h3 id="Kelly">Maximizing expected average return</h3>
 
 In 2007, when I first learned about the <a href="https://en.wikipedia.org/wiki/Capital_allocation_line">capital allocation line</a>, I saw that it suggests an investor could get arbitrarily high expected returns with arbitrarily high amounts of leverage. For a purely risk-neutral investor, this is a bonanza.
 
@@ -1274,11 +1282,24 @@ The optimal-leverage graph above shows that when we don't taper off higher lever
 <span class="fullwidthimage"><img src="<REPLACE>donttaper_exp_util</REPLACE>" title="I release this image into the public domain worldwide." /></span>
 <span class="fullwidthimage"><img src="<REPLACE>donttaper_exp_sat_util</REPLACE>" title="I release this image into the public domain worldwide." /></span>
 
+<h3>Taper off leverage a lot near end of investing period</h3>
+
+In this variant, the investor decreases leverage aggressively toward the end of the investing period. In particular, the max leverage Y years before the end can be at most 1 + 0.1Y. For instance, 5 years before the end, the max leverage can be at most 1.5X. The purpose of running this variant was to see if I could get closer to the results presented in <i>Lifecycle Investing</i> in which early leverage followed by dramatic tapering down in later years allows for better median outcomes than unleveraged investing. My leverage ramp-down here is only approximate and isn't based on exactly targeting a constant proportion of lifetime wealth toward equity. Moreover, I haven't implemented fixed-income investing into my simulation, so my leveraged investors always have more total equity-years of exposure than unleveraged. Probably for this reason, I still found that leverage reduces median outcomes. I hope that if I were to allow investors in the simulation to buy fixed-income securities that I could reproduce the <i>Lifecycle Investing</i> results (otherwise I'd worry about a bug in my code), but I haven't done that due to lack of time.
+
+<REPLACE>taperalot_results_table</REPLACE>
+
+<span class="fullwidthimage"><img src="<REPLACE>taperalot_optimal_leverage_graph</REPLACE>" title="I release this image into the public domain worldwide." /></span>
+
+<span class="fullwidthimage"><img src="<REPLACE>taperalot_exp_util</REPLACE>" title="I release this image into the public domain worldwide." /></span>
+<span class="fullwidthimage"><img src="<REPLACE>taperalot_exp_sat_util</REPLACE>" title="I release this image into the public domain worldwide." /></span>
+
 <h3>Don't rebalance monthly</h3>
 
 In this configuration, the investor buys new shares at the standard leverage ratio but doesn't rebalance existing shares to increase leverage when asset prices rise. This tends to cause margin-to-assets ratios to fall over time as asset values appreciate without corresponding increases in debt.
 
 <REPLACE>dontreb_results_table</REPLACE>
+
+The margin median here is much higher than usual, but the upside of margin is much smaller. Maybe this variant is what people have in mind when they say that margin investing is less risky than constant-leverage leveraged ETFs.
 
 <span class="fullwidthimage"><img src="<REPLACE>dontreb_optimal_leverage_graph</REPLACE>" title="I release this image into the public domain worldwide." /></span>
 
@@ -1465,6 +1486,28 @@ The actual margin interest rate for Interactive Brokers in 2015 <a href="https:/
 <span class="fullwidthimage"><img src="<REPLACE>int_r015_exp_sat_util</REPLACE>" title="I release this image into the public domain worldwide." /></span>
 
 <h3>Further simulation features that could be implemented</h3>
+
+<h4>Strategies to dynamically vary leverage</h4>
+
+<i>Lifecycle Investing</i> (ch. 4) proposes two ways to adjust leverage over time to potentially improve risk-adjusted performance:
+<ol>
+<li>Reduce leverage when <a href="http://en.wikipedia.org/wiki/Cyclically_adjusted_price-to-earnings_ratio">CAPE</a> is higher because this suggests possibly a lower future &mu;</li>
+<li>Reduce leverage when future volatility forecasts (e.g., VIX) are higher because this implies higher &sigma;.</li>
+</ol>
+Both of these seem like reasonable approaches if
+<ul>
+<li>you have enough time to actively make these changes</li>
+<li>you're trading in a tax-advantage account (e.g., IRA).</li>
+</ul>
+Adjusting leverage downward in a taxable account would mean selling shares and incurring capital-gains taxes, unless you pay down debt using new income rather than already invested assets.
+
+Two other obvious reasons to adjust leverage based on the optimal-leverage formulas discussed previously would be
+<ul>
+<li>if the borrowing interest rate r changes or</li>
+<li>if your risk tolerance &alpha; changes (depending on how sharply it looks like your future donations would hit diminishing marginal returns).</li>
+</ul>
+
+It may be that &mu; adjusts in response to changes in &sigma; and r in order to keep optimal leverage constant, since otherwise we'd expect investors using optimal leverage to decrease leverage as &sigma; and r increased. I don't know whether this is true empirically.
 
 <h4>Letting more parameters vary</h4>
 

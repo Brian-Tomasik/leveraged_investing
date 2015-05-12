@@ -866,7 +866,7 @@ if __name__ == "__main__":
     and copies the required figures from saved data"""
     data_already_exists = DATA_ALREADY_EXISTS_AND_HAS_THIS_TIMESTAMP is not None
 
-    LOCAL_FILE_PATHS_IN_HTML = False
+    LOCAL_FILE_PATHS_IN_HTML = True
 
     # Open essay skeleton.
     SKELETON = "essay_skeleton.html"

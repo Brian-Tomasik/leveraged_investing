@@ -17,7 +17,7 @@ from random import Random
 
 USE_SMALL_SCENARIO_SET_FOR_QUICK_TEST = False
 if USE_SMALL_SCENARIO_SET_FOR_QUICK_TEST:
-    SCENARIOS = {"No unemployment or inflation or taxes or black swans, only paid in first month, don't taper off leverage toward end, voluntary max leverage equals broker max leverage, no emergency savings":"closetotheory"}
+    SCENARIOS = {"Taper off leverage a lot toward end":"taperalot"}
     """
                 "No unemployment or inflation or taxes or black swans, don't taper off leverage toward end, voluntary max leverage equals broker max leverage, no emergency savings":"closetotheoryminus1",
                  "No unemployment or inflation or taxes or black swans, don't taper off leverage toward end, no emergency savings":"closetotheoryminus2",
@@ -53,7 +53,8 @@ else:
                  "Donate after 30 years":"yrs30",
                  "Don't taper off leverage toward end":"donttaper",
                  "Don't rebalance monthly and don't taper off leverage toward end":"dontrebtaper",
-                 "Personal max margin is broker max":"persmaxbrokermax"}
+                 "Personal max margin is broker max":"persmaxbrokermax",
+                 "Taper off leverage a lot toward end":"taperalot"}
 
 DAYS_PER_YEAR = 365
 TAX_LOSS_HARVEST_DAY = 360 # day number 360 in late Dec
@@ -70,9 +71,19 @@ def one_run(investor,market,verbosity,outfilepath,iter_num,
     investor.reset_employment_for_next_round()
     days_from_start_to_donation_date = int(DAYS_PER_YEAR * investor.years_until_donate)
     accounts = dict()
-    accounts["regular"] = BrokerageAccount.BrokerageAccount(0,0,0,investor.taper_off_leverage_toward_end,investor.initial_personal_max_margin_to_assets_relative_to_broker_max)
-    accounts["margin"] = BrokerageAccount.BrokerageAccount(0,0,investor.broker_max_margin_to_assets_ratio,investor.taper_off_leverage_toward_end,investor.initial_personal_max_margin_to_assets_relative_to_broker_max)
-    accounts["matched401k"] = BrokerageAccount.BrokerageAccount(0,0,0,investor.taper_off_leverage_toward_end,investor.initial_personal_max_margin_to_assets_relative_to_broker_max)
+    accounts["regular"] = BrokerageAccount.BrokerageAccount(0,0,0,\
+        investor.taper_off_leverage_toward_end,\
+        investor.taper_off_leverage_a_lot_toward_end,\
+        investor.initial_personal_max_margin_to_assets_relative_to_broker_max)
+    accounts["margin"] = BrokerageAccount.BrokerageAccount(0,0,\
+        investor.broker_max_margin_to_assets_ratio,\
+        investor.taper_off_leverage_toward_end,\
+        investor.taper_off_leverage_a_lot_toward_end,\
+        investor.initial_personal_max_margin_to_assets_relative_to_broker_max)
+    accounts["matched401k"] = BrokerageAccount.BrokerageAccount(0,0,0,\
+        investor.taper_off_leverage_toward_end,\
+        investor.taper_off_leverage_a_lot_toward_end,\
+        investor.initial_personal_max_margin_to_assets_relative_to_broker_max)
     debt_to_yourself_after_margin_account_lost_all_value = 0
     """Non-margin investors can't get into debt, so we need only track debt to yourself
     for the margin-investing case. This variable assumes that if you go into the hole with
@@ -446,6 +457,7 @@ def check_if_margin_strategy_should_use_emergency_funds_and_maybe_go_bankrupt(
             not using margin investing anymore (since our credit score, etc. is hammered)."""
             accounts["margin"] = BrokerageAccount.BrokerageAccount(0,0,0, \
                 investor.taper_off_leverage_toward_end, \
+                investor.taper_off_leverage_a_lot_toward_end,\
                 investor.initial_personal_max_margin_to_assets_relative_to_broker_max)
     return (emergency_savings, accounts, margin_strategy_went_bankrupt)
 
@@ -713,6 +725,9 @@ def args_for_this_scenario(scenario_name, num_trials, outdir_name):
         investor = Investor.Investor(rebalance_monthly_to_increase_leverage=False,
                                      taper_off_leverage_toward_end=False)
         return (investor,default_market,num_trials,outpath)
+    elif scenario_name == "Taper off leverage a lot toward end":
+        investor = Investor.Investor(taper_off_leverage_a_lot_toward_end=True)
+        return (investor,default_market,num_trials,outpath)
     else:
         raise Exception(scenario_name + " is not a known scenario type.")
 
@@ -841,7 +856,7 @@ def run_one_variant(num_trials):
     outdir_name = util.create_timestamped_dir("one") # concise way of writing "one variant"
     #scenario = "Default"
     #scenario = "Personal max margin is broker max"
-    scenario = "No emergency savings"
+    scenario = "Annual mu = -.02"
     #scenario = "No unemployment or inflation or taxes or black swans, only paid in first month, don't taper off leverage toward end, voluntary max leverage equals broker max leverage, no emergency savings"
     #scenario = "No unemployment or inflation or taxes or black swans, don't taper off leverage toward end, no emergency savings"
     args = args_for_this_scenario(scenario, num_trials, outdir_name)
@@ -849,12 +864,13 @@ def run_one_variant(num_trials):
 
 if __name__ == "__main__":
     #sweep_scenarios(1,1)
-    run_one_variant(500)
+    run_one_variant(1)
 """
 Things that need to be checked because I sometimes set them to run faster:
 - years (15 vs. .1)
 - SCENARIOS at top of this file
 - LEV_ETF_SCENARIOS quick or not
+- QUICK_M_T_OPTIMIZATION
 - scenarios_not_to_sweep may have lines to comment out
 - num trials for margin
 - num trials for lev ETFs

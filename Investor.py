@@ -6,7 +6,8 @@ class Investor(object):
 
     def __init__(self, years_until_donate=15, initial_annual_income_for_investing=30000, 
                  annual_real_income_growth_percent=2, match_percent_from_401k=50,
-                 taper_off_leverage_toward_end=True, initial_emergency_savings=100000,
+                 taper_off_leverage_toward_end=True, taper_off_leverage_a_lot_toward_end=False,
+                 initial_emergency_savings=100000,
                  tax_rates=TaxRates.TaxRates(), rebalance_monthly_to_increase_leverage=True, 
                  pay_principal_throughout=False, broker_max_margin_to_assets_ratio=.5,
                  monthly_probability_of_layoff=.01, monthly_probability_find_work_after_laid_off=.2,
@@ -18,6 +19,7 @@ class Investor(object):
         self.__annual_real_income_growth_percent = annual_real_income_growth_percent
         self.__match_percent_from_401k = match_percent_from_401k
         self.__taper_off_leverage_toward_end = taper_off_leverage_toward_end
+        self.__taper_off_leverage_a_lot_toward_end = taper_off_leverage_a_lot_toward_end
         self.__initial_emergency_savings = initial_emergency_savings
         self.__tax_rates = tax_rates
 
@@ -54,6 +56,10 @@ class Investor(object):
     @property
     def taper_off_leverage_toward_end(self):
         return self.__taper_off_leverage_toward_end
+
+    @property
+    def taper_off_leverage_a_lot_toward_end(self):
+        return self.__taper_off_leverage_a_lot_toward_end
 
     @property
     def initial_emergency_savings(self):
