@@ -1,12 +1,12 @@
 by Brian Tomasik
 First written: Apr. 2015; last update: <REPLACE>date_of_last_update</REPLACE>
 
-<span style="color:red">The sample size for the results in this piece is tiny because it's still in test mode. Hence, the results aren't especially useful! Note to self: search for all TODO in the text and CHECK THIS MANUALLY</span>
+<span style="color:red">The sample size for the results in this piece is tiny because it's still in test mode. Hence, the results aren't especially useful! Note to self: search for all TODO in the text</span>
 <span style="color:red">This piece is still a draft. Please give feedback. :) </span>
 
 <h2>Summary</h2>
 
-Investing with leverage means borrowing money to buy stocks/ETFs/etc. In theory, leverage offers higher <i>expected</i> ending wealth but also higher risk and usually even lower <i>median</i> ending wealth. Leverage is not for everyone, even all altruists, but if you have money you want to donate down the road that you can afford to lose without major consequences, then investing it with leverage may be a reasonable choice.
+Investing with leverage means borrowing money to buy stocks/ETFs/etc. In theory, leverage offers higher <i>expected</i> ending wealth but also higher (<a href="http://en.wikipedia.org/wiki/Systematic_risk">systematic</a>) risk and usually even lower <i>median</i> ending wealth. Leverage is not for everyone, even all altruists, but if you have money you want to donate down the road that you can afford to lose without major consequences, then investing it with leverage may be a reasonable choice.
 
 The easiest form of leverage is to buy and hold leveraged ETFs. Most advisors warn that doing this is a terrible idea because such funds usually lose money, but from what I can tell, leveraged ETFs do have higher expected utility for nearly risk-neutral investors. If you're willing to put in more manual effort, margin investing can achieve similar results without the ~1% expense ratios of leveraged ETFs.
 
@@ -353,7 +353,21 @@ mean(V<sub>t</sub>) / mean(S<sub>t</sub>) = exp{(&mu;-r)(c-1)t} = exp{(<REPLACE>
 </blockquote>
 For instance, if you can make an expected $100K with normal investments, you'd make (in expectation, not median) <REPLACE>$100K * mean(V_t)/mean(S_t)</REPLACE>K with <REPLACE>broker_imposed_leverage_limit</REPLACE>X leverage.
 
-So (at least in this simplified theoretical model), leverage does indeed offer higher expected ending wealth than non-leveraged investing. The catch, of course, is that most investors -- even most altruists -- shouldn't be risk-neutral with respect to wealth. The next section discusses what levels of risk aversion might be reasonable when it comes to wealth that will be donated.
+So (at least in this simplified theoretical model), leverage does indeed offer higher expected ending wealth than non-leveraged investing.
+
+We can prove that leverage has higher expected returns even more simply and generally. Assume that some investment's daily returns R<sub>i</sub> are independent and identically distributed with some mean E[R]. The total wealth multiplier after N days is
+<blockquote>
+(1+R<sub>1</sub>)(1+R<sub>2</sub>)...(1+R<sub>N</sub>).
+</blockquote>
+For independent random variables, the expected value of a product <a href="https://www.cs.princeton.edu/courses/archive/fall02/cs341/lec22.pdf" title="'Random Variables, COS 341 Fall 2002, lecture 21' see Corollary 2 on p. 4">is the</a> product of expected values, so the expected wealth multiplier after N days is
+<blockquote>
+E[(1+R<sub>1</sub>)(1+R<sub>2</sub>)...(1+R<sub>N</sub>)]<br />
+= E[(1+R<sub>1</sub>)] E[(1+R<sub>2</sub>)] ... E[(1+R<sub>N</sub>)]<br />
+= (1+E[R]) (1+E[R]) ... (1+E[R]) = (1+E[R])<sup>N</sup>.
+</blockquote>
+In other words, we maximize expected wealth after N days by maximizing the expected daily return E[R]. Since leverage increases E[R], leverage has higher expected value. Q.E.D.
+
+The catch, of course, is that most investors -- even most altruists -- shouldn't be risk-neutral with respect to wealth. The next section discusses what levels of risk aversion might be reasonable when it comes to wealth that will be donated.
 
 Also note that this continuous-time model doesn't allow margin accounts to go bankrupt. Because a continuous-time margin account maintains constant leverage, if its assets fall, it rebalances immediately by selling some securities. In the real world, margin accounts can go bankrupt. This could, with low probability, even happen if the account rebalances daily. For instance, a 5X-leveraged margin account that rebalanced once per day might have been wiped out by <a href="https://en.wikipedia.org/wiki/Black_Monday_(1987)">1987's Black Monday</a>. By not allowing for bankruptcy (and by ignoring <a href="https://en.wikipedia.org/wiki/Black_swan_theory">black swans</a> in general), continuous-time equations like those above may slightly overstate the expected value of leverage. In the extreme case, taking t = &infin;, a margin investor who doesn't rebalance continuously would go bankrupt with probability 1 (since eventually there would be a huge, near-instantaneous market downturn that destroys the account), while the <a href="#leveraged_mean">leveraged mean equation</a> concludes that the margin investor ends up with infinite expected wealth.
 
@@ -695,7 +709,7 @@ As you move toward your target date for donating the securities, you ramp down l
 
 You maintain a self-imposed maximum margin-to-assets ratio of <REPLACE>volunary_max_margin_to_assets_as_percent</REPLACE>% to give some breathing room relative to the broker-imposed maximum margin-to-assets ratio of <REPLACE>broker_max_margin_to_assets_ratio_as_percent</REPLACE>%. In the simulation, the broker checks the margin-to-assets ratio every weekday and, if it's above <REPLACE>broker_max_margin_to_assets_ratio_as_percent</REPLACE>%, sells securities randomly to keep the ratio within bounds. But this is bad for you, since it leads to unpredictable selling behavior. For instance, maybe the broker sells securities with high, short-term capital gains rather than those with capital losses. It's better if you can personally keep margin-to-assets ratios in check by selling securities manually as needed. But you don't want to manage the account daily, so you monthly keep the margin-to-assets ratio less than <REPLACE>volunary_max_margin_to_assets_as_percent</REPLACE>%, on the assumption that the ratio won't move above <REPLACE>broker_max_margin_to_assets_ratio_as_percent</REPLACE>% within the next month. Adopting this policy reduces manual maintenance work. It's much easier to check a margin account 12 times a year than <REPLACE>trading_days_per_year</REPLACE> times a year, and the lost leverage by maintaining a maximum <REPLACE>volunary_max_margin_to_assets_as_percent</REPLACE>% ratio instead of <REPLACE>broker_max_margin_to_assets_ratio_as_percent</REPLACE>% isn't that big.
 
-Different variations of a margin strategy sell securities at different rates. The more leveraged you are, the more likely you are to sell securities at a loss to meet margin requirements. This means some strategies get more tax benefit from capital losses than others. To help put the strategies on somewhat more even footing, I added tax-loss harvesting, which is done by both margin and regular investors every December: You sell all securities with losses and use the money to buy the sold ETF back. (In real life, you'd have to wait a month before buying back to avoid a <a href="https://en.wikipedia.org/wiki/Wash_sale">wash sale</a>, but in the simulation you buy it back immediately for simplicity.)
+Different variations of a margin strategy sell securities at different rates. The more leveraged you are, the more likely you are to sell securities at a loss to meet margin requirements. This means some strategies get more tax benefit from capital losses than others. To help put the strategies on somewhat more even footing, I added tax-loss harvesting, which is done by both margin and regular investors every December: You sell all securities with losses and use the money to buy the sold ETF back. (In real life, you'd have to wait a month before buying back to avoid a <a href="https://en.wikipedia.org/wiki/Wash_sale">wash sale</a>, but in the simulation you buy it back immediately for simplicity.)((Tax-loss harvesting once per year is still not as good as harvesting more often. To illustrate this: Suppose you buy a security at $1000 on Jan. 1. By Feb. 1 it falls to $900. If you sell it now, you can harvest the -$100 loss. If you don't harvest now, suppose the price increases back up to $1000 by Dec. 1. Now you can't harvest the loss anymore because the loss has gone away. More frequent tax-loss harvesting does leave you with lower cost basis on your securities and hence more capital gains, but this isn't a problem if you donate the securities. Even if you don't donate them, it's better to delay capital gains because of time value of money, and long-term capital gains are taxed at a lower rate than the income from which a harvested loss can potentially be deducted. The worst that will happen is that the harvested loss will exactly offset the future capital gain that resulted from having a lower cost basis.))
 
 Your capital-gains taxes accumulate from selling, both for tax-loss harvesting and for rebalancing your margin account as needed. Every March 1, you pay off any taxes owed, if necessary by selling some securities. However, almost uniformly you have net capital losses, because basically the only times you might sell securities at a capital gain are (1) if the broker liquidates them to keep you within the <REPLACE>broker_max_margin_to_assets_ratio_as_percent</REPLACE>% margin limit or (2) if you're unemployed for a while and have to sell ETF shares with gains.
 
@@ -1197,9 +1211,7 @@ How would the results change if, instead of investing a single lump sum at the b
 
 <h4>Case 2: Default (realistic) parameter values</h4>
 
-The theoretical equations above assume investing a single lump sum. But for real-world investors, buying securities every month using a salary income stream is generally more realistic.
-
-The default margin configuration involves an investor earning income each month. The following graph shows optimal leverage with all parameters set at their default values.
+The default margin configuration involves an investor earning income each month. The following graph shows optimal leverage with all parameters set at their default values. The huge gains and losses at higher leverage amounts that we saw in the previous two graphs are tempered because the default configuration tapers off leverage toward the end of the investing period (so, e.g., "4X leverage" isn't really 4X leverage for the whole period).
 
 <span class="fullwidthimage"><img src="<REPLACE>default_optimal_leverage_graph</REPLACE>" title="I release this image into the public domain worldwide." /></span>
 
@@ -1238,9 +1250,9 @@ Also note that the derivative of h with respect to c is
 h'(c) = ( (&mu;-r) - &sigma;<sup>2</sup>c)t + &sigma;W<sub>t</sub>.
 </blockquote>
 
-<h4>Case 1: utility(wealth) = ln(wealth)</h4>
+< h4 >Case 1: utility(wealth) = ln(wealth)</ h4 >
 
-We want to maximize E[u(wealth)] = E[ ln(S<sub>t</sub> + V<sub>t</sub>) ] with respect to c. Set &part;E[u(wealth)]/&part;c = 0. By continuity, we can move differentiation inside the E[] operator<footnote>E[] is an integral with respect to an underlying normal distribution. Formally it extends from -&infin; to &infin;, but we could also approximate it as extending from a really huge fixed negative number to a really huge fixed positive number. Note that u(wealth) and &part;u(wealth)/&part;c are continuous with respect to c and all other variables for any values of those variables, since the expressions involved are just (1) polynomials, (2) exp(), or (3) ln of numbers that are always positive. Hence, <a href="https://en.wikipedia.org/wiki/Differentiation_under_the_integral_sign">we can</a> move differentiation within the integral.</footnote>, which means
+We want to maximize E[u(wealth)] = E[ ln(S<sub>t</sub> + V<sub>t</sub>) ] with respect to c. Set &part;E[u(wealth)]/&part;c = 0. By continuity, we can move differentiation inside the E[] operator< footnote >E[] is an integral with respect to an underlying normal distribution. Formally it extends from -&infin; to &infin;, but we could also approximate it as extending from a really huge fixed negative number to a really huge fixed positive number. Note that u(wealth) and &part;u(wealth)/&part;c are continuous with respect to c and all other variables for any values of those variables, since the expressions involved are just (1) polynomials, (2) exp(), or (3) ln of numbers that are always positive. Hence, <a href="https://en.wikipedia.org/wiki/Differentiation_under_the_integral_sign">we can</a> move differentiation within the integral.</ footnote >, which means
 <blockquote>
 E[ &part;u/&part;c ] = 0<br />
 E[ 1/(S<sub>t</sub> + V<sub>t</sub>) * (&part;S<sub>t</sub>/&part;c + &part;V<sub>t</sub>/&part;c) ] = 0<br />
@@ -1262,7 +1274,9 @@ E[ 1/(S<sub>t</sub> + V<sub>t</sub>) * exp(ln(V<sub>0</sub>) + h(c)) * h'(c) ] =
 
 <h3>Emergency savings = $1 million</h3>
 
-This policy is also roughly what you'd get if you split between margin and non-margin investing with mostly non-margin investing.
+In this variant, emergency savings (invested without leverage) start at $1 million. This policy is also roughly what you'd get if you split between margin and non-margin investing with mostly non-margin investing. This variant can also approximate a policy where you donate a lot each year and only invest some money to donate at the end of the investing period because with that kind of policy, you move farther along the utility(wealth) curve before considering your donations of leveraged securities, just like if you donate appreciated emergency savings.
+
+For example, suppose the first $1 million donated to a charity are crucial, while everything after that is less important. If you leverage most of your future donations, there's a risk you won't end with at least $1 million and so won't fill the crucial funding gap. In contrast, if you either have $1 million of emergency savings or donate a lot to the charity every year while working, then you'll probably donate at least the $1 million threshold, which means the further money that you're investing with leverage is less crucial and can be subjected to greater risk.
 
 <REPLACE>emergsav1m_results_table</REPLACE>
 
@@ -1413,7 +1427,7 @@ A main reason why these numbers aren't as low as one might think compared with <
 
 <REPLACE>mu10_results_table</REPLACE>
 
-These results are lower than you might expect because I'm discounting by exp(-&mu;t), so a higher &mu; implies more discounting. The undiscounted values should be higher than for other variants because of higher &mu;.
+The ending-wealth values are lower than you might expect because I'm discounting by exp(-&mu;t), so a higher &mu; implies more discounting. The undiscounted values should be higher than for other variants because of higher &mu;.
 
 <span class="fullwidthimage"><img src="<REPLACE>mu10_optimal_leverage_graph</REPLACE>" title="I release this image into the public domain worldwide." /></span>
 
@@ -1578,9 +1592,9 @@ Several leveraged ETFs have in the last years ended up having a changed their st
 The holders of these instruments will in addition take on counter-party risk. In many cases these funds are structured around synthetic total return swaps where the ETF operator exposes the execution of the strategy and at least a substantial part of the clients' investment to the fate of individual international investment banks.
 </blockquote>
 
-That said, none of these seems terrible.
+Similar warnings are given in, e.g., the <a href="http://direxioninvestments.onlineprospectus.net/DirexionInvestments//EDC/index.html?open=Summary%20Prospectus" title="prospectus for Direxion Daily Emerging Markets Bull & Bear 3x Shares">prospectus</a> for the 3X leveraged ETF called EDC. That said, none of these risks seems terrible.
 
-I don't know much about the counterparty risk, but I assume it's priced in to the swaps and so perhaps doesn't affect expected returns?
+I don't know much about the counterparty risk, but I assume it's priced in to the swaps and so perhaps doesn't affect expected returns? That said, maybe such risk increases &sigma; and so may decrease expected utility if you're not risk-neutral.
 
 As far as liquidation: When ETFs shut down, they give investors <a href="http://www.fa-mag.com/news/what-happens-when-my-etf-closes-11599.html" title="'What Happens When My ETF Closes?'">3-4 weeks of advance notice</a>, which is enough time to sell or donate the securities. Donating would be better if you want to avoid paying capital-gains taxes, but it's hardly a tragedy if you have to donate shares earlier, since you were only investing in order to get higher returns from leverage anyway. If you contribute the ETF shares to a donor-advised fund, the money can continue to grow at unleveraged equity rates of return until you're ready to donate. ETF liquidation may involve some extra fees and losses, but the effects of these probably aren't huge.
 
@@ -1698,11 +1712,11 @@ while the multiplier on the leveraged fund (ignoring expenses and interest) is
 </blockquote>
 When R<sub>1</sub>R<sub>2</sub> > 0, i.e., when the two returns have the same sign, the quadratic term R<sub>1</sub>R<sub>2</sub> term boosts leveraged-ETF performance 4 times as much as regular-ETF performance.
 
-Typically the articles that warn against volatility drag from leveraged ETFs (such as <a href="http://seekingalpha.com/article/1189121-worth-repeating-why-buy-and-hold-in-daily-leveraged-etfs-should-be-avoided" title="'Worth Repeating: Why Buy-And-Hold In Daily Leveraged ETFs Should Be Avoided'">this one</a>) rig their example returns to alternate from day to day in order to make the leveraged-ETF perform worse. But in practice, returns on successive days are (roughly) as likely to have the same sign as opposite signs.
+Typically the articles that warn against volatility drag from leveraged ETFs (such as <a href="http://seekingalpha.com/article/1189121-worth-repeating-why-buy-and-hold-in-daily-leveraged-etfs-should-be-avoided" title="'Worth Repeating: Why Buy-And-Hold In Daily Leveraged ETFs Should Be Avoided'">this one</a>) rig their example returns to alternate from day to day in order to make the leveraged-ETF perform worse. But in practice, returns on successive days are (roughly((Actually, the probability of a positive daily return should be slightly higher than a negative daily return assuming the market has a positive mean return and the distribution of daily returns is symmetric about the mean, but daily volatility is so high relative to daily mean returns that the signs of successive daily returns should be basically coin flips.))) as likely to have the same sign as opposite signs.
 
 <h3>Results vs. theory</h3>
 
-To compare the results of my simple simulation against theory, I used basically the same leverage equations as for margin investing. The only difference is that because the expense ratio of the ETF is now significant (at least for the leveraged ETF), I include it in the equations, using the symbol f. In other words, for the regular ETF:
+To compare the results of my simple simulation against theory, I used basically the same leverage equations as for margin investing. The only difference is that because the expense ratio of the ETF is now significant (at least for the leveraged ETF), I include it in the equations, using the symbol f. Expenses <a href="http://wiki.fool.com/Does_Mutual_Fund_Performance_Include_Expense_Ratio%3F" title="'Does Mutual Fund Performance Include Expense Ratio?'">are subtracted</a> from a fund's NAV. So for the regular ETF:
 <blockquote>
 dS<sub>t</sub>/S<sub>t</sub> = (&mu;-f) dt + &sigma; dW<sub>t</sub>.
 </blockquote>
@@ -1716,7 +1730,10 @@ In order to help my simulation results match theory, I made the same adjustments
 
 <REPLACE>ETF_match_theory_results_table</REPLACE>
 
+<!--
+THIS DIDN'T GET PRINTED OUT:
 <span class="fullwidthimage"><img src="<REPLACE>ETF_match_theory_bothhist</REPLACE>" title="I release this image into the public domain worldwide." /></span>
+-->
 
 As you can see, leveraged ETFs usually do worse! It's no wonder they're discouraged for most investors.
 
@@ -1825,7 +1842,7 @@ It seems as though leveraged ETFs offer similar performance characteristics as o
 
 <h3>Analysis without taxes</h3>
 
-Apart from taxes, the main drawback is the high expense ratios of leveraged ETFs. Let's say leveraged ETFs have expense ratios of 1%, while ordinary index ETFs have expense ratios of 0.1%. Ignore the difference between daily vs. monthly rebalancing, and assume for simplicity that both forms of leveraged investing use continuous constant-leverage rebalancing. Also ignore black swans, since both approaches will face similar problems there. Say the manual work involved with managing a margin account is $W per year more than that to buy shares in a leveraged ETF. Then we have
+Apart from taxes, the main drawback of leveraged ETFs is their high expense ratios. Let's say leveraged ETFs have expense ratios of 1%, while ordinary index ETFs have expense ratios of 0.1%. Ignore the difference between daily vs. monthly rebalancing, and assume for simplicity that both forms of leveraged investing use continuous constant-leverage rebalancing. Also ignore black swans, since both approaches will face similar problems there. Say the manual work involved with managing a margin account is $W per year more than that to buy shares in a leveraged ETF. Then we have
 <blockquote>
 theoretical discounted mean of LevETF<sub>t</sub> counting manual effort = LevETF<sub>0</sub> exp{(&mu;-r)(c-1)t - 0.01t}
 </blockquote>
@@ -1859,6 +1876,8 @@ One reason to set W high is that there's some small risk that you'll mess things
 
 On the other hand, these numbers ignore taxes from leveraged ETFs, which might be an important additional argument favoring manual margin investing, so we incorporate taxes in the next subsection.
 
+Finally, note that the above analysis compares expected values, but if you're risk-averse, then expected value isn't exactly what you care about. My intuition is that if you're risk-averse, the K threshold beyond which margin investing is better increases (i.e., leveraged ETFs are better for more people), because in many cases, your leveraged ETFs will decline in value, so a constant expense ratio will translate into a lower actual fee, and in the few cases where the leveraged ETF hits a home run, the fees are higher but aren't as important because the marginal value of money is lower in that case. In contrast, the cost of managing a margin account is essentially constant regardless of whether your investments perform well or poorly. Margin management costs are like a regressive tax system, which is worse for expected utility because poor people who have the least wealth value a marginal dollar more but also pay a bigger percent tax. I haven't done the math to verify that this intuition is correct or to measure how much it affects K thresholds.
+
 <h3>Analysis with taxes</h3>
 
 For simplicity, assume a leveraged ETF pays short-term capital-gains taxes continuously on a constant fraction F of its holdings (say, F = .05), with the investor's marginal short-term tax rate being R (say R = .28). Since I think ETFs carry forward capital losses, it's not too inaccurate to pretend that taxes multiply any return by (1-FR), even though in practice, an investor can't deduct losses beyond $3K/year but pays taxes on capital gains without limit.
@@ -1867,7 +1886,7 @@ The leveraged-ETF SDE is now
 <blockquote>
 dV<sub>t</sub>/V<sub>t</sub> = (1-FR) [ (r + (&mu;-r)c) dt + c &sigma; dW<sub>t</sub> ] - f dt.
 </blockquote>
-(This assumes that margin interest is deductible. That's true for margin accounts. Is it also true for the implied interest that leveraged ETFs get from swaps, options, etc.??)
+This assumes that margin interest is deductible. That's true for margin accounts. Is it also true for the implied interest that leveraged ETFs get from swaps, options, etc.?? Also note that taxes paid by the owner of an ETF aren't actually subtracted from the ETF's NAV, so this equation doesn't track the literal NAV of an ETF, just the effective NAV to a holder of the fund who pays taxes.((If you pay your ETF tax bill out of current income, then to pay $X of taxes requires more than $X of current income because that income is itself taxed. Likewise, if you paid taxes on an ETF by selling a portion of the ETF, you'd pay taxes on the capital gains from selling that portion of the ETF, so you'd actually need to sell more of the ETF so that the after-tax gain could pay off your tax bill. These considerations get complicated, but fortunately they don't affect the results that much and so can be ignored without severe loss of accuracy. Also, since I'm assuming the investor donates the ETF to charity, its capital gains are never subjected to capital-gains tax, so this equation can be read as expressing an after-tax value of the ETF (which is the same as the pre-tax value). In that case, we can interpret the tax bill as coming from after-tax dollars, in which case it's actually correct not to make further adjustments for the taxes paid on income used to pay other taxes, since all quantities in the equation are already after-tax values. (TODO: I should learn more about how ETF tax bills work to make sure this is accurate.) ))
 
 Solving in the same way we solved the original <a href="#leveraged_V_t">leveraged V<sub>t</sub> equation</a>:
 <blockquote>
@@ -1912,7 +1931,8 @@ Here's a version of the leveraged-ETF simulation without expense ratios. It serv
 
 <REPLACE>ETF_default_no_exp_ratios_results_table</REPLACE>
 
-Note how close<span style="color:orange">TODO CHECK THIS</span> the average ending balance of the "simple calculation" for checking the margin simulation is to the average leveraged-ETF ending balance. This is because they represent the same calculations. If I run each simulation for equal numbers of trials using the same initial random seed, the numbers come out identical.
+The average ending balance of the "simple calculation" for checking the margin simulation ($583,023 TODO REPLACE THIS) is somewhat close to the average leveraged-ETF ending balance ($568,034 TODO REPLACE THIS). This is because they represent the same logical calculations. If I run each simulation for equal numbers of trials using the same initial random seed, the numbers come out identical. (TODO: Is that still true? Why are they so far apart?) I didn't run them equal numbers of times for these results because the leveraged-ETF simulations run orders of magnitude faster, so I did more iterations of them.
+
 
 Now here are the leveraged-ETF results if we add in expense ratios. These are just the "Default" leveraged-ETF results from above:
 

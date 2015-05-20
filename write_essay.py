@@ -860,8 +860,8 @@ def parse_percent_times_leverage_is_better(results_table_contents):
 
 if __name__ == "__main__":
     start_time = time.time()
-    DATA_ALREADY_EXISTS_AND_HAS_THIS_TIMESTAMP = None
-    #DATA_ALREADY_EXISTS_AND_HAS_THIS_TIMESTAMP = "2015May08_22h15m16s" # 200 trials of everything
+    #DATA_ALREADY_EXISTS_AND_HAS_THIS_TIMESTAMP = None
+    DATA_ALREADY_EXISTS_AND_HAS_THIS_TIMESTAMP = "2015May15_15h57m13s" # 1000 trials of everything; production-ready run
     """if the above variable is non-None, it saves lots of computation and just computes the HTML 
     and copies the required figures from saved data"""
     data_already_exists = DATA_ALREADY_EXISTS_AND_HAS_THIS_TIMESTAMP is not None
