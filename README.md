@@ -1,5 +1,8 @@
 Simulations of leveraged investing vs. non-leveraged. For further explanation, see http://reducing-suffering.org/should-altruists-leverage-investments/
 
+The version of Python I used was:
+Python 2.7.6 (default, Nov 10 2013, 19:24:18) [MSC v.1500 32 bit (Intel)] on win32
+
 # Margin simulations
 
 To do margin-investing simulations, run "margin_leverage.py". You can edit the section at the bottom to choose how to run different variations. Note that if you set approx_num_simultaneous_processes too high, the program will use 100% of your CPU and make other applications slower because I haven't yet figured out a cross-platform way to reduce the priority of the processes that get created.
