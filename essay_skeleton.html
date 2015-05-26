@@ -1,8 +1,9 @@
 by Brian Tomasik
-First written: Apr. 2015; last update: <REPLACE>date_of_last_update</REPLACE>
+First written: Apr.-May 2015; last update: <REPLACE>date_of_last_update</REPLACE>
 
 <span style="color:red">The sample size for the results in this piece is tiny because it's still in test mode. Hence, the results aren't especially useful! Note to self: search for all TODO in the text</span>
 <span style="color:red">This piece is still a draft. Please give feedback. :) </span>
+<span style="color:red">Things to check every time I rerun the essay: 1. margin results vs. theory 2. lev-ETF results vs. theory 3. that simple calc for margin is close to lev ETF for the argin vs. levETF comparison section 4. that my theta, c stuff makes sense in the section on mixing leverage with non-leverage 5. maybe other stuff I'm forgetting....</span>
 
 <h2>Summary</h2>
 
@@ -12,7 +13,9 @@ The easiest form of leverage is to buy and hold leveraged ETFs. Most advisors wa
 
 Before getting carried away with the details of whether and how to use leverage, the more important question is how much of your money, if any, to invest at all compared against donating now. I personally plan to donate most of my future earnings immediately, while saving some money to invest with leverage for donating later.<!--I simulated margin vs. regular investing and found that over <REPLACE>years_until_donate</REPLACE> years, for someone saving <REPLACE>initial_annual_income_for_investing</REPLACE>/year with a <REPLACE>annual_real_income_growth_percent</REPLACE>% real annual growth in savings and various other assumptions, using margin investing results in an expected present value of ~<REPLACE>margin_better_than_regular</REPLACE> more eventual donatable savings than not using it, which is about a <REPLACE>margin_better_than_regular_percent</REPLACE>% improvement.-->
 
-<h3>Caveat</h3>
+<h3>Caveats</h3>
+
+This is an advanced topic, so unless you're familiar with the basics of personal finance already, your time is better spent first reading more introductory articles/books.
 
 I'm not a professional investor or economist. This piece relies on the best understanding I've been able to gather as an amateur, and I don't yet have experience actually doing leveraged investing. There may be errors in my analysis, so I encourage readers to give me feedback. I found several nontrivial bugs in my simulation code over the course of testing it, so it's possible that more bugs remain despite my successful efforts to check the simulation results against theory. Also, my discussion assumes you live in the USA, and many details (especially about taxes) may not extend to other countries.
 
@@ -39,7 +42,7 @@ If you don't already have a lot to invest, the total gains from leverage will of
 
 This piece is mainly targeted toward altruists who want to donate a few years or decades down the road but are saving their money for now, perhaps because they want to wait to pick out charities or because their desired charities don't yet exist. Some people also think the returns on capital-market investments exceed the returns on direct altruism work. But before jumping into details about whether to invest using leverage, you should first ask: Do I want to invest before donating at all?
 
-There's <a href="http://www.effective-altruism.com/ea/4e/giving_now_vs_later_a_summary/" title="'Giving now vs. later: a summary' by Julia Wise">much</a> <a href="http://effective-altruism.com/ea/4e/giving_now_vs_later_a_summary/3bq" title="'Brian_Tomasik comments on Giving now vs. later: a summary - Effective Altruism Forum'">discussion</a> regarding the question of whether to donate now or later. For my personal situation, I think the optimal strategy is to donate some amount now toward projects that are either very underfunded or that should be done sooner rather than later. For instance, the <a href="http://foundational-research.org/">Foundational Research Institute</a> is more urgent than a regular charity because its conclusions will help me direct the remainder of my donations. For the rest of my donations, I'd rather wait at least a decade, because I'm continuing to learn a lot, and my opinions will change with new insights.
+There's <a href="http://www.effective-altruism.com/ea/4e/giving_now_vs_later_a_summary/" title="'Giving now vs. later: a summary' by Julia Wise">much</a> <a href="http://effective-altruism.com/ea/4e/giving_now_vs_later_a_summary/3bq" title="'Brian_Tomasik comments on Giving now vs. later: a summary - Effective Altruism Forum'">discussion</a> regarding the question of whether to donate now or later. For my personal situation, I think the optimal strategy is to donate some amount now toward projects that are either very underfunded or that should be done sooner rather than later. For instance, the <a href="http://foundational-research.org/">Foundational Research Institute</a> is more urgent than a regular charity because its conclusions will help me direct the remainder of my donations. For some other donations, I'd rather wait at least a decade, because I'm continuing to learn a lot, and my opinions will change with new insights.
 
 <!--
 This explains why the altruist in my simulations only invests ~<REPLACE>initial_annual_income_for_investing</REPLACE>/year rather than a larger amount. It's because she's donating much of the remainder, either to charities directly or at least to a DAF to max out her 50%-of-AGI limit.
@@ -1311,6 +1314,8 @@ In this variant, the investor decreases leverage aggressively toward the end of 
 
 In this configuration, the investor buys new shares at the standard leverage ratio but doesn't rebalance existing shares to increase leverage when asset prices rise. This tends to cause margin-to-assets ratios to fall over time as asset values appreciate without corresponding increases in debt.
 
+I think this approach is somewhat similar to the constant-debt strategy <a href="#constant-debt">discussed later</a>, in the sense that for any given paycheck, that paycheck is invested with some initial amount of debt, and that debt isn't increased as asset prices rise. That said, my simulated investor may not be able to maintain constant debt when asset prices <i>fall</i> because the simulation assumes that the investor's leverage starts out close to the maximum leverage allowed by the broker, which may not be true in the real world. So these simulations shouldn't be taken as an indication of how a true constant-debt strategy would perform.
+
 <REPLACE>dontreb_results_table</REPLACE>
 
 The margin median here is much higher than usual, but the upside of margin is much smaller. Maybe this variant is what people have in mind when they say that margin investing is less risky than constant-leverage leveraged ETFs.
@@ -1386,7 +1391,13 @@ Here are some accumulated capital losses for the 2X-leverage version of this con
 
 <span class="fullwidthimage"><img src="<REPLACE>FO_carrcg</REPLACE>" title="I release this image into the public domain worldwide." /></span>
 
-I plan to learn more about IB's actual liquidation algorithm (some sources: <a href="http://www.elitetrader.com/et/index.php?threads/interactive-brokers-real-time-liquidation-madness.210359/">1</a>, <a href="https://www.quantopian.com/posts/interactive-brokers-lack-of-transparency">2</a>, <a href="https://www.google.com/#q=%22interactive%20brokers%22%20%22liquidation%20algorithm%22">3</a>), and if I can get some clues to how it works, I could update my simulations accordingly.        
+<h4>What is IB's actual liquidation algorithm?</h4>
+
+IB <a href="https://ibkb.interactivebrokers.com/it/node/223" title="'I want my liquidated position to be reinstated.'">says</a>: "IB employs a proprietary algorithm which identifies positions for liquidation.  This is a complicated formula which seeks always to make the best possible liquidation.  There are numerous factors involved in the liquidation algorithm which are taken into account prior to the creation of a liquidation trade." One forum <a href="https://www.quantopian.com/posts/interactive-brokers-lack-of-transparency">reports</a> about IB: "if you are -1 or -2 in your margin they will liquidate 100 contracts regardless from ANY position, whichever pleases them", with the aim of maximizing IB's profit.
+
+IB <a href="https://ibkb.interactivebrokers.com/it/node/223" title="'I want my liquidated position to be reinstated.'">explains</a> that IB allows you to set a position that you prefer to be liquidated last: "This feature allows you to mark those positions which you would prefer to hold over others.  IB will try to honor those requests, but this is merely a request and we cannot guarantee that the chosen position won’t be liquidated." I don't know if you can select a bunch of positions to liquidate last or just one.
+
+In any case, the liquidation order didn't seem to make a big difference to my simulation results, presumably because most liquidations happen when there are huge market losses, which means many individual securities have losses.
 
 <h3>Use VIX daily volatilities</h3>
 
@@ -1533,17 +1544,83 @@ I didn't include tax deductions from margin interest in the simulation because t
 
 The simulation also doesn't include the impact of dividends, which incur income taxes annually. For instance, suppose the investor has $500K of securities paying 2% annual dividends. That's $10K of extra taxable income per year, which at a 28% tax rate implies almost $3K of extra taxes. (If the donor is maxing out charitable donations during the year, the tax cost <a href="http://reducing-suffering.org/advanced-tips-on-personal-finance/#Marginal_tax_rate_halved_when_you_donate_a_lot">is only half</a> as big.) The difference between the impact of these tax payments for regular vs. margin investing is probably fairly small. If you want, you could approximate taxes on dividends within &mu;: Take your regular &mu; value and subtract, say, (2% dividends)*(28% tax rate) = .02 * .28 = 0.0056.
 
-Fortunately, the errors from omitting <i>both</i> margin-interest deductions and dividends roughly cancel each other out. If an ETF pays 1-2% dividends per year, a 2X-leveraged position would get 2-4% dividends per year. Meanwhile, a margin interest rate of <REPLACE>annual_margin_interest_rate</REPLACE> can offset ~<REPLACE>annual_margin_interest_rate_as_percent</REPLACE>% of taxable income.
+Fortunately, the errors from omitting <i>both</i> margin-interest deductions and dividends roughly cancel each other out. If an ETF pays 1-2% dividends per year, a 2X-leveraged position would get 2-4% dividends per year. Meanwhile, a margin interest rate of <REPLACE>annual_margin_interest_rate</REPLACE> can offset ~<REPLACE>annual_margin_interest_rate_as_percent</REPLACE> of taxable income.
 
 <h4>Intra-day rebalancing</h4>
 
-My simulation may be overly conservative when it comes to black-swan risks. My code assumes that a margin broker can only rebalance to restore margin ratios at the end of a trading day. This means that a 5X-leveraged investor going through 1987's Black Monday would have been completely wiped out. In practice, I think Interactive Brokers would liquidate positions throughout the day if there were big losses, in which case a 5X-leveraged investor wouldn't have been completely wiped out by Black Monday. The simulation could be extended to handle this by making the time granularity some fraction of a day rather than a full day. This would require some updates to parameters for number of days per year, trading days per year, tax dates, etc. It would also make the simulation slower in proportion to the increased number of time steps. Since it's generally not possible in the real world to use 5X margin leverage anyway, it's maybe not crucial to incorporate intra-day rebalancing to the calculations. Still, doing so might affect results for lower leverage amounts too. I wonder with what frequency Interactive Brokers would have done rebalancing on a Black Monday. With a drop like the <a href="https://en.wikipedia.org/wiki/2010_Flash_Crash">2010 Flash Crash</a>, occurring within minutes, there plausibly wouldn't have been enough time for Interactive Brokers to liquidate, but on the other hand, the crash mostly reversed itself within minutes, so it probably also wouldn't have triggered margin calls or destroyed a highly leveraged margin investor.
+My simulation may be overly conservative when it comes to black-swan risks. My code assumes that a margin broker can only rebalance to restore margin ratios at the end of a trading day. This means that a 5X-leveraged investor going through 1987's Black Monday would have been completely wiped out. In practice, I think Interactive Brokers would <a href="http://www.elitetrader.com/et/index.php?threads/interactive-brokers-real-time-liquidation-madness.210359/" title="'interactive-brokers real-time liquidation madness'">liquidate positions throughout the day</a> if there were big losses, in which case a 5X-leveraged investor wouldn't have been completely wiped out by Black Monday. The simulation could be extended to handle this by making the time granularity some fraction of a day rather than a full day. This would require some updates to parameters for number of days per year, trading days per year, tax dates, etc. It would also make the simulation slower in proportion to the increased number of time steps.
 
 <h4>Margin requirements</h4>
 
 My simulation doesn't distinguish initial-margin from maintenance-margin requirements. It also doesn't consider <a href="http://ibkb.interactivebrokers.com/node/66" title="'What is SMA and how does it work?'">SMA margin requirements</a>.
 
 My simulation ties the investor's leverage limit to <REPLACE>initial_personal_max_margin_to_assets_relative_to_broker_max_as_percent</REPLACE>% of the broker's max margin-to-assets ratio. This is unrealistic, because Interactive Brokers allows ~4X(?) leverage or possibly more if you use <a href="https://en.wikipedia.org/wiki/Portfolio_margin">portfolio margin</a>. This means that in practice, an investor would probably have less mandatory rebalancing than my simulation shows (and hence more variable leverage between points at which the investor rebalances voluntarily).
+
+<h2 id="constant-debt">Constant-debt investing</h2>
+
+In <i>Enhanced Indexing Strategies: Utilizing Futures and Options to Achieve Higher Performance</i> (p. 55), Tristan Yates describes a "constant debt reinvestment strategy", in which the investor starts out with c-times leverage but doesn't rebalance to increase or decrease the initial debt amount. This means the investor becomes more leveraged when asset prices fall and less leveraged when they rise.
+
+A constant-debt approach is an interesting alternative to the constant-leverage strategy that I took as the default in this piece. How do the two compare?
+
+<h3>Simple example</h3>
+
+First, here's a simple example to build intuition. Let's take the sample figures that Yates uses: We have $50K of equity and borrow an additional $100K of debt.
+
+Suppose asset prices rise 10% on day 1 and then fall 10% on day 2. We can ignore interest on debt because the time scale under consideration is so short. How do different investment strategies perform?
+<ul>
+<li>Without any leverage, we would end up with $50K * 1.10 * 0.90 = $49.5K.</li>
+<li>Using the constant-debt approach, our final assets would be $150K * 1.10 * 0.90 = $148.5K, but since we still have $100K of debt, this implies a net value of only $48.5K. The volatility drag was three times worse than without leverage. Another way to see this same result is to note that after the 10% price increase, the investor's leverage amount is only $165K / $65K = 2.54, so the final net value should be $50K * (1 + 3 * 0.10) * (1 - 2.54 * 0.10) = $48.5K.</li>
+<li>If we used constant 3X leverage, then after asset prices rose to $150K * 1.10 = $165K, we would have $165K assets - $100K debt = $65K net value. 3X of that is $195K, so we would add $30K of debt. Then the 10% drop in asset prices would reduce $195K to $195K * 0.90 = $175.5K. Subtracting off our $130K of debt leaves $45.5K of net value. We could have computed the same result as $50K * (1 + 3 * 0.10) * (1 - 3 * 0.10) = $45.5K.</li>
+</ul>
+
+Now suppose that asset prices rise 10% twice in a row:
+<ul>
+<li>Without any leverage, we would end up with $50K * 1.10 * 1.10 = $60.5K.</li>
+<li>Using the constant-debt approach, our final asset prices would be $150K * 1.10 * 1.10 = $181.5K, and since we still have $100K of debt, this implies a net value of $81.5K. The capital gain is exactly 3 times as much as without leverage. Another way to see this same result is to note that after the first 10% price increase, the investor's leverage amount is $165K / $65K = 2.54, so the final net value should be $50K * (1 + 3 * 0.10) * (1 + 2.54 * 0.10) = $81.5K.</li>
+<li>If we used constant 3X leverage, then after asset prices rose to $150K * 1.10 = $165K, we would have $165K assets - $100K debt = $65K net value. 3X of that is $195K, so we would add $30K of debt. Then the additional 10% increase in asset prices would turn $195K into $195K * 1.10 = $214.5K. Subtracting off our $130K of debt leaves $84.5K of net value. We could have computed the same result as $50K * (1 + 3 * 0.10) * (1 + 3 * 0.10) = $84.5K.</li>
+</ul>
+
+If instead asset prices fell 10% in the first period, the constant-debt investor would be leveraged $135K/$35K = 3.86X.
+
+Here's a list of all four possibilities:
+<table>
+<tr><td><i>Scenario</i></td> <td><i>Constant 3X leverage</i></td> <td><i>Constant debt starting at 3X leverage</i></td></tr>
+<tr><td>Increase 10% both times</td> <td>$50K * (1 + 3 * 0.1)(1 + 3 * 0.1) = $84.5K</td> <td>$50K * (1 + 3 * 0.1)(1 + 2.54 * 0.1) = $81.5K</td></tr>
+<tr><td>Increase 10%, then decrease 10%</td> <td>$50K * (1 + 3 * 0.1)(1 - 3 * 0.1) = $45.5K</td> <td>$50K * (1 + 3 * 0.1)(1 - 2.54 * 0.1) = $48.5K</td></tr>
+<tr><td>Decrease 10%, then increase 10%</td> <td>$50K * (1 - 3 * 0.1)(1 + 3 * 0.1) = $45.5K</td> <td>$50K * (1 - 3 * 0.1)(1 + 3.86 * 0.1) = $48.5K</td></tr>
+<tr><td>Decrease 10% both times</td> <td>$50K * (1 - 3 * 0.1)(1 - 3 * 0.1) = $24.5K</td> <td>$50K * (1 - 3 * 0.1)(1 - 3.86 * 0.1) = $21.5K</td></tr>
+<tr><td>Average &pm; std dev of the above 4 scenarios</td> <td>$50K &pm; $25K</td> <td>$50K &pm; $24.6K</td></tr>
+</table>
+So the two strategies seem pretty similar.
+
+<h3>Geometric Brownian motion version</h3>
+
+For simplicity, suppose our initial amount to invest is $1, and we start out at c-times leverage. A constant-debt approach invests as though it has $c in assets, which go up or down, from which $(c-1) of debt has to be subtracted. Yates interprets a constant-debt strategy as paying down interest on debt throughout, but for simplicity, let's pretend it doesn't do that until the end. Also ignore limits on how leveraged you can get, and allow even for the possibility of having more debt than total assets. Let S<sub>t</sub> be the ending value of a non-leveraged security for which S<sub>0</sub> = 1. Then the ending net value of the constant-debt approach is
+<blockquote>
+ConstDebt<sub>t</sub> = c S<sub>t</sub> - (c-1) exp(rt).
+</blockquote>
+Using the <a href="#regular_median">regular median equation</a> and <a href="#regular_mean">regular mean equation</a>, we have that
+<blockquote>
+median(ConstDebt<sub>t</sub>) = c exp(&mu;t - &sigma;<sup>2</sup>t/2) - (c-1) exp(rt).<br />
+mean(ConstDebt<sub>t</sub>) = c exp(&mu;t) - (c-1) exp(rt).
+</blockquote>
+
+Comparing against the <a href="#leveraged_median">leveraged median equation</a>:
+<blockquote>
+median(V<sub>t</sub>) / median(ConstDebt<sub>t</sub>) = [ exp{(r + (&mu;-r)c) t - c<sup>2</sup>&sigma;<sup>2</sup>t/2} ] / [ c exp(&mu;t - &sigma;<sup>2</sup>t/2) - (c-1) exp(rt) ].
+</blockquote>
+For the default parameter values used in this piece, the above ratio tends toward 0 for large t because the numerator tends toward 0, while the denominator tends toward infinity.TODO:IS THAT STILL TRUE? So the median of the constant-debt approach is indeed better.
+
+Now comparing against the <a href="#leveraged_mean">leveraged mean equation</a>:
+<blockquote>
+mean(V<sub>t</sub>) / mean(ConstDebt<sub>t</sub>) = [ exp{(r + (&mu;-r)c) t} ] / [ c exp(&mu;t) - (c-1) exp(rt) ]<br />
+> [ exp{(r + (&mu;-r)c) t} ] / [ c exp(&mu;t) ]<br />
+= (1/c) exp{(r + (&mu;-r)c) t - &mu;t}<br />
+= (1/c) exp{(&mu;-r)(c-1) t}.
+</blockquote>
+For &mu; > r and c > 1, this ratio tends toward infinity as t increases. So the constant-debt approach sacrifices expected returns for the sake of higher median returns. This is consistent with what we'd expect, since in the typical case, a constant-debt approach becomes less and less leveraged over time as asset prices rise, which decreases risk and expected return.
+
+Yates also proposes gradually increasing the debt amount over time, but I haven't analyzed that more complex strategy. My guess is its performance would fall somewhere between pure constant debt (which doesn't increase debt as asset prices rise) and pure constant leverage (which increases debt quickly as asset prices rise).
 
 <h2>Leveraged ETFs</h2>
 
@@ -1578,7 +1655,7 @@ In many of the articles I've read about leveraged ETFs, I see at least one of th
 </ol>
 Neither of these makes sense to me. I can't tell if I'm being obtuse or if these popular slogans aren't technically precise. I'll examine each one:
 <ol>
-<li>In the stochastic differential equation for leveraged investing, the only variable that seems to matter is c, the amount of leverage at a given time. I don't see why rebalancing should matter apart from how it affects c (ignoring trading fees, taxes, etc.). My best guess is that rebalancing more often tends to cause worse losses because it keeps the ETFs more leveraged. A fund that never rebalanced would tend to become less and less leveraged over time if the underlying asset increased in value.</li>
+<li>In the stochastic differential equation for leveraged investing, the only variable that seems to matter is c, the amount of leverage at a given time. Likewise, in the analysis of <a href="#Constant-debt_investing">constant-debt leverage</a>, we could compute the ending wealth balance only by keeping track of the daily value of c and the daily returns of the underlying. I don't see why rebalancing should matter apart from how it affects c (ignoring trading fees, taxes, etc.). My best guess is that rebalancing more often tends to cause worse losses because it keeps the ETFs more leveraged. A fund that never rebalanced would tend to become less and less leveraged over time if the underlying asset increased in value.</li>
 <li>All losses come from buying high and selling low. I think what the claim is trying to say is that leverage performs badly because a leveraged position is forced to sell more when prices decline. But if the market is efficient, it shouldn't matter, <i>ex ante</i>, when you buy or sell. If the market is not efficient and you know that after a price decline will be a price increase, then obviously leverage is bad because it's penalized by alternating up/down price swings, but if you know the market's inefficient in that way, you could make money on that knowledge more directly anyway.</li>
 </ol>
 As far as I can tell, the only reason why leveraged ETFs tend to lose money is that volatility drag is quadratic in the leverage amount.
@@ -2064,6 +2141,6 @@ As far as retirement, the <a href="#reasons_favoring_401k">arguments</a> in favo
 
 I originally wrote this piece by copying and pasting static results into an HTML file. However, I kept updating my code and thus found that I had to keep refreshing the results. Eventually I parameterized the inputs and results, so that I could dynamically generate this essay from the latest run of my simulations.
 
-That means if I find bugs, add features, or change parameters, I can rerun my program and regenerate this essay with minimal manual work. That said, generating all the results using thousands of random samples per configuration might take up to a few weeks to run on my laptop.
+That means if I find bugs, add features, or change parameters, I can rerun my program and regenerate this essay with minimal manual work. That said, generating all the results using 1000 random samples per configuration for margin investing takes 4-5 days to run on my laptop.
 
 <h2>Footnotes</h2>
