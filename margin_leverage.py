@@ -54,7 +54,8 @@ else:
                  "Don't taper off leverage toward end":"donttaper",
                  "Don't rebalance monthly and don't taper off leverage toward end":"dontrebtaper",
                  "Personal max margin is broker max":"persmaxbrokermax",
-                 "Taper off leverage a lot toward end":"taperalot"}
+                 "Taper off leverage a lot toward end":"taperalot",
+                 "Unemployment lasts a long time":"unemp_long"}
 
 DAYS_PER_YEAR = 365
 TAX_LOSS_HARVEST_DAY = 360 # day number 360 in late Dec
@@ -595,6 +596,10 @@ def args_for_this_scenario(scenario_name, num_trials, outdir_name):
 
     if scenario_name == "Default":
         return (default_investor,default_market,num_trials,outpath)
+    if scenario_name == "Unemployment lasts a long time":
+        investor = Investor.Investor(monthly_probability_of_layoff=.04,
+                                     monthly_probability_find_work_after_laid_off=.04)
+        return (investor,default_market,num_trials,outpath)
     if scenario_name == "Personal max margin is broker max":
         investor = Investor.Investor(initial_personal_max_margin_to_assets_relative_to_broker_max=1.0)
         return (investor,default_market,num_trials,outpath)
@@ -856,7 +861,7 @@ def run_one_variant(num_trials):
     outdir_name = util.create_timestamped_dir("one") # concise way of writing "one variant"
     #scenario = "Default"
     #scenario = "Personal max margin is broker max"
-    scenario = "Annual mu = -.02"
+    scenario = "Unemployment lasts a long time"
     #scenario = "No unemployment or inflation or taxes or black swans, only paid in first month, don't taper off leverage toward end, voluntary max leverage equals broker max leverage, no emergency savings"
     #scenario = "No unemployment or inflation or taxes or black swans, don't taper off leverage toward end, no emergency savings"
     args = args_for_this_scenario(scenario, num_trials, outdir_name)
@@ -864,7 +869,7 @@ def run_one_variant(num_trials):
 
 if __name__ == "__main__":
     #sweep_scenarios(1,1)
-    run_one_variant(1)
+    run_one_variant(1000)
 """
 Things that need to be checked because I sometimes set them to run faster:
 - years (15 vs. .1)

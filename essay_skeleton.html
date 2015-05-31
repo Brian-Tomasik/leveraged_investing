@@ -195,6 +195,8 @@ ADD:
 http://en.wikipedia.org/wiki/Portfolio_margin vs. Regulation T
 -->
 
+IB <a href="http://www.brokerage-review.com/stock-broker-reviews/interactivebrokers-review.aspx">says</a> they're not liable if your account is hacked if you're not using their secure login. I don't know how this compares with other brokerages, but my guess is that some more consumer-friendly brokerages might be more willing to reimburse money lost due to someone else breaking in to your account. IB does use a special security device to reduce the risk of someone breaking in to your account.
+
 <h3>Invest in foreign ETFs?</h3>
 
 Many commentators believe that the US stock market is overpriced as of ~2015. This is <a href="http://www.starcapital.de/research/stockmarketvaluation" title="'Global Stock Market Valuation Ratios'">suggested by</a> most fundamental-valuation metrics. As a result, it may be best to buy mostly global equity ETFs. Even if you (like me) have strong efficient-market intuitions, it at least shouldn't <i>hurt</i> to buy global ETFs (except for slightly higher expense ratios and bid/ask spreads) in order to reduce exposure to the possible US stock-market bubble as of ~2015.
@@ -564,7 +566,7 @@ If you're splitting donations among causes like these, I suppose you could use l
 
 <h3>What about other donations you'll make later?</h3>
 
-Modeling utility(wealth) = (wealth)<sup>&alpha;</sup> for only wealth earned over a only part of your life (say, a <REPLACE>years_until_donate</REPLACE>-year period) has a flaw: You'll probably donate more than this later on. Plus, maybe you have other savings not invested on margin that you'll donate as well. In this case, the total amount of your wealth is your current margin investments plus other amounts. In general, this should have the effect of implying that your current donations are actually farther along the utility(lifetime-donated wealth) curve than they seem and hence that marginal utility diminishes less sharply than you might think.((If utility(wealth) is (wealth)<sup>&alpha;</sup>, marginal utility at a given level of wealth is &alpha;(wealth)<sup>&alpha;-1</sup>, which is smaller as wealth is bigger.)) A hacky correction for this observation is to increase &alpha; relative to a naive estimate.
+Modeling utility(wealth) = (wealth)<sup>&alpha;</sup> for only wealth earned over a only part of your life (say, a <REPLACE>years_until_donate</REPLACE>-year period) has a flaw: You'll probably donate more than this later on. Plus, maybe you have other savings not invested on margin that you'll donate as well. In this case, the total amount of your wealth is your current margin investments plus other amounts. In general, this should have the effect of implying that your current donations are actually farther along the utility(lifetime-donated wealth) curve than they seem and hence that marginal utility diminishes less sharply than you might think.((If utility(wealth) is (wealth)<sup>&alpha;</sup>, marginal utility at a given level of wealth is &alpha;(wealth)<sup>&alpha;-1</sup>, which is smaller as wealth is bigger.)) A hacky correction for this observation is to increase &alpha; relative to a naive estimate. Alternatively, you could look at the scenario discussed later on in which you're assumed to have a large amount of "emergency savings" that you donate in addition to what you invest with leverage, where this emergency-savings amount somewhat approximates the additional donations you'll make later in life (assuming they aren't leveraged also).
 
 On the other hand, sometimes donation opportunities have time windows to them: If you don't donate within <REPLACE>years_until_donate</REPLACE> years, the project will either never happen or will be adequately funded by others. If this is the case, then only considering donations within a <REPLACE>years_until_donate</REPLACE>-year window is more correct, and other wealth that you might donate later doesn't enter into the analysis.
 
@@ -1434,6 +1436,25 @@ A main reason why these numbers aren't as low as one might think compared with <
 <span class="fullwidthimage"><img src="<REPLACE>yrs30_exp_util</REPLACE>" title="I release this image into the public domain worldwide." /></span>
 <span class="fullwidthimage"><img src="<REPLACE>yrs30_exp_sat_util</REPLACE>" title="I release this image into the public domain worldwide." /></span>
 
+<h3>Unemployment lasts a long time</h3>
+
+This variant sets the monthly probability of unemployment to 4% and the monthly probability of becoming employed during a period of unemployment also to 4%. In other words, the investor becomes unemployed roughly every ~2 years on average, and this lasts for ~2 years on average. This can help approximate the income profile for a serial entrepreneur who doesn't earn much during the first 2 years of founding her company.
+
+I added this variant after computing the rest of this essay and so copy-pasted these results in manually. The following results are as of 30 May 2015 and might possibly not be up to date by the time you read this.
+
+<table>
+<tr><td><i>Type</i></td> <td><i>Mean &plusmn; stderr</i></td> <td><i>Median</i></td> <td><i>Min</i></td> <td><i>Max</i></td> <td><i>E[&radic;<span style="text-decoration: overline">wealth</span>] &plusmn; stderr</i></td> <td><i>&sigma;<sub>ln(wealth)</sub></i></td> </tr>
+<tr><td><i>Regular</i></td> <td>$305,120 &plusmn; $7,789</td> <td>$243,060</td> <td>$16,943</td> <td>$2,991,945</td> <td>521 &plusmn; 6</td> <td>0.68</td></tr>
+<tr><td><i>Margin</i></td> <td>$353,700 &plusmn; $16,931</td> <td>$214,078</td> <td>$13,620</td> <td>$8,282,302</td> <td>525 &plusmn; 9</td> <td>0.93</td></tr>
+<tr><td><i>Regular + 50% match</i></td> <td>$407,719 &plusmn; $10,018</td> <td>$331,967</td> <td>$25,415</td> <td>$3,447,322</td> <td>604 &plusmn; 7</td> <td>0.67</td></tr>
+</table>
+Leverage is better than regular 29% of the time. Margin investor ended with no assets and a deficit in emergency savings 0.0% of the time. Leveraged account went fully bankrupt 0.0% of the time. Average simple-calculation margin ending balance was $342,404.
+
+<span class="fullwidthimage"><img src="http://reducing-suffering.org/wp-content/uploads/2015/05/longunemployment_exp_util_30May15.png" title="I release this image into the public domain worldwide." /></span>
+<span class="fullwidthimage"><img src="http://reducing-suffering.org/wp-content/uploads/2015/05/longunemployment_exp_sat_util_30May15.png" title="I release this image into the public domain worldwide." /></span>
+
+The absolute wealth numbers are lower for both regular and margin investing because of longer periods of unemployment, but the comparison between regular vs. margin investing looks very similar as it did when using default settings.
+
 <h3>&mu; = 0.1</h3>
 
 <REPLACE>mu10_results_table</REPLACE>
@@ -1533,6 +1554,10 @@ Two other obvious reasons to adjust leverage based on the optimal-leverage formu
 </ul>
 
 It may be that &mu; adjusts in response to changes in &sigma; and r in order to keep optimal leverage constant, since otherwise we'd expect investors using optimal leverage to decrease leverage as &sigma; and r increased. I don't know whether this is true empirically.
+
+<h4>Using actual daily returns</h4>
+
+In my simulations, I assumed normally distributed daily returns with black swans. However, I could have also tried using actual historical daily returns that had been shuffled around. This is the approach used by some other studies. I tend to think that pure simulation like I did is better because it allows for more variety of outcomes, whereas shuffling previous returns could cause overfitting to the particular set of returns from the past. But adding a variant that uses actual past returns would be useful.
 
 <h4>Letting more parameters vary</h4>
 
@@ -1899,9 +1924,9 @@ Sample trajectories:
 
 <h3>Various tax rates</h3>
 
-As noted <a href="#arguments_against_leveraged_ETFs">previously</a>, leveraged ETFs can occasionally have unpleasant tax consequences if the fund turns over a large portion of its assets. I ran versions of my leveraged-ETF simulations that attempted to crudely incorporate taxes, by multiplying each day's return by (1 - short_term_capital_gains_tax_rate * percent_assets_with_gains). In the "medium" tax scenario, percent_assets_with_gains was 15%, and in the "high" tax scenario, it was 75%. (In the results presented above, the default percent of assets taxed is 0%.)
+As noted <a href="#arguments_against_leveraged_ETFs">previously</a>, leveraged ETFs can occasionally have unpleasant tax consequences if the fund turns over a large portion of its assets. I ran versions of my leveraged-ETF simulations that attempted to crudely incorporate taxes, by multiplying each day's return by (1 - short_term_capital_gains_tax_rate * fraction_assets_with_gains). In the "medium" tax scenario, fraction_assets_with_gains was 15%, and in the "high" tax scenario, it was 75%. (In the results presented above, the default percent of assets taxed is 0%.)
 
-Multiplying daily returns is suboptimal because if the year has a big capital loss, multiplying by (1-tax_fraction) dampens that loss. But in reality, you can't deduct more than a given amount of capital loss per year, so the (1-tax_fraction) factor may actually make performance look better than it would be in practice. I didn't have an easy way to fix this problem without making the simulation much more complicated. So take these results with sample sodium chloride.
+Multiplying daily returns by (1-tax_fraction) isn't perfectly accurate. If the year has a big capital loss, multiplying by (1-tax_fraction) dampens that loss as if the loss can be fully deducted. But in reality, you can't deduct more than a given amount of capital loss per year, so the (1-tax_fraction) factor may make a big loss look less bad than it would be in practice. I didn't have an easy way to fix this problem without making the simulation much more complicated. So take these results with ample sodium chloride.
 
 <h4>Leveraged ETF only pays short-term taxes on 10% of assets per year</h4>
 
